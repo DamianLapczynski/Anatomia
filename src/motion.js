@@ -92,6 +92,7 @@ export class Motion {
       for (const pid of e.att) { const b = boneOfPatch(pid); if (b != null && moving.has(b)) rigid.add(pid); }
       for (const id of e.ids) {
         if (!eng.meshes[id]) continue;
+        { const b = meta[id].bb; if (Math.max(b[3] - b[0], b[4] - b[1], b[5] - b[2]) < 0.03) continue; } // centymetrowe duplikaty siatek
         const P = this._pos(id), n = P.length / 3;
         let a;
         if (ori.length && ins.length) {

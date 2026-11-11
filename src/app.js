@@ -338,7 +338,7 @@ modes.motion = (() => {
     const only = new Set(model.meta.filter((m) => m.layer === 'bones').map((m) => m.id));
     const groups = [['ago', move.ago], ['syn', move.syn], ...(showAnt ? [['ant', move.ant]] : [])];
     const keys = [];
-    for (const [g, list] of groups) for (const key of list) { keys.push(key); for (const id of model.muscleEntity(key, side).ids) { only.add(id); view.tints.set(id, COL[g]); } }
+    for (const [g, list] of groups) for (const key of list) { keys.push(key); for (const id of model.muscleEntity(key, side).ids) { const b = model.meta[id].bb; if (Math.max(b[3] - b[0], b[4] - b[1], b[5] - b[2]) < 0.03) continue; only.add(id); view.tints.set(id, COL[g]); } }
     view.only = only; applyView();
     const animated = motion.setup(move, side, keys);
     const ids = keys.flatMap((key) => model.muscleEntity(key, side).ids);
