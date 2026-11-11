@@ -115,7 +115,7 @@ export class Engine extends EventTarget {
       if (arg === 'fascia') { m.transparent = true; m.opacity = 0.3; m.depthWrite = false; }
       if (kind === 'sel') { m.emissive = new THREE.Color(0x1c7dff); m.emissiveIntensity = 0.55; m.transparent = false; m.opacity = 1; m.depthWrite = true; }
     } else if (kind === 'ghost') {
-      m = new THREE.MeshStandardMaterial({ color: 0x9fb0c8, transparent: true, opacity: 0.07, depthWrite: false, roughness: 1, side: THREE.DoubleSide });
+      m = new THREE.MeshStandardMaterial({ color: 0x9fb0c8, transparent: true, opacity: 0.1, depthWrite: false, roughness: 1, side: THREE.FrontSide }); // jedna strona = połowa kosztu wypełniania ekranu
     } else if (kind === 'tint') {
       m = new THREE.MeshStandardMaterial({ color: new THREE.Color(arg), roughness: 0.5, side: THREE.DoubleSide, emissive: new THREE.Color(arg), emissiveIntensity: 0.18 });
     } else if (kind === 'fade') { // base z przezroczystością warstwy
