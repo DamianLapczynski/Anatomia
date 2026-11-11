@@ -2,8 +2,12 @@
 //   node tools/make_reel.mjs naramienny
 //   node tools/make_reel.mjs "biceps brachii" --side l
 //   node tools/make_reel.mjs --nerve axillary        (seria: wszystkie mięśnie unerwiane przez nerw)
+//   node tools/make_reel.mjs --plan 1-7              (dni 1–7 z planu serii, tools/reel_plan.mjs)
 //   node tools/make_reel.mjs --list                  (lista mięśni i nerwów)
-// Wymaga: ffmpeg w PATH oraz pakietu playwright (npm i -D playwright && npx playwright install chromium).
+//   node tools/make_reel.mjs --week 3                (tydzień 3 planu = dni 15–21)
+// Działa samodzielnie, bez Claude'a: czyta bazę z src/data, renderuje w lokalnej przeglądarce i składa MP4.
+// Jednorazowa instalacja: npm install && npm run reel:setup   (pobiera Playwright, Chromium i ffmpeg).
+// Gotowe pliki są pomijane; --force renderuje je ponownie. --software wymusza render bez karty graficznej.
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
@@ -14,7 +18,12 @@ const require = createRequire(import.meta.url);
 const args = process.argv.slice(2);
 const opt = (name, def = null) => { const i = args.indexOf(`--${name}`); if (i < 0) return def; const v = args[i + 1]; args.splice(i, 2); return v; };
 const flag = (name) => { const i = args.indexOf(`--${name}`); if (i < 0) return false; args.splice(i, 1); return true; };
-const side = opt('side', 'r'), nerveArg = opt('nerve'), outDir = opt('out', 'reels'), fps = Number(opt('fps', 30)), only = opt('only');
+const side = opt('side', 'r'), nerveArg = opt('nerve'), weekArg = opt('week');
+let planArg = opt('plan');
+if (weekArg) planArg = `${(weekArg - 1) * 7 + 1}-${weekArg * 7}`;
+if (!planArg) { const i = args.findIndex((x, k) => /^\d+(-\d+)?$/.test(x) && !(k > 0 && args[k - 1].startsWith('--'))); if (i >= 0) planArg = args.splice(i, 1)[0]; }
+const force = flag('force'), software = flag('software') || (process.platform === 'linux' && !process.env.DISPLAY && !process.env.WAYLAND_DISPLAY);
+const  outDir = opt('out', 'reels'), fps = Number(opt('fps', 30)), only = opt('only');
 const list = flag('list'), still = flag('still');
 const fold = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l').replace(/^(miesien|miesnie|m\.|mm\.|musculus|nerw|n\.)\s+/, '').trim();
 
@@ -29,7 +38,12 @@ if (list) {
 }
 
 let jobs = [];
-if (nerveArg) {
+if (planArg) {
+  const { plan } = await import('./reel_plan.mjs');
+  const [a, b = a] = planArg.split('-').map(Number);
+  jobs = plan().filter((d) => d.day >= a && d.day <= b).map((d) => ({ key: d.key, ep: d.ep, of: d.of, series: d.chapter.toUpperCase(), next: d.nextKey ? MUSCLES[d.nextKey].lat : null, prefix: `d${String(d.day).padStart(3, '0')}-${d.date}-` }));
+  if (!jobs.length) { console.error('Brak dni w tym zakresie (plan ma 144 dni).'); process.exit(1); }
+} else if (nerveArg) {
   const nk = find(NERVES, nerveArg); if (!nk) { console.error(`Nie znam nerwu „${nerveArg}”. Zobacz --list.`); process.exit(1); }
   const keys = Object.keys(MUSCLES).filter((k) => (MUSCLES[k].nr ?? []).some((x) => NERVES[nk].mesh.includes(x)));
   jobs = keys.map((key, i) => ({ key, ep: i + 1, of: keys.length, series: NERVES[nk].lat.toUpperCase(), next: keys[i + 1] ? MUSCLES[keys[i + 1]].lat : null }));
@@ -41,27 +55,34 @@ if (nerveArg) {
 
 const caption = (m, j) => `Hello! ${m.pl} – ${m.lat}.\n\n${m.f[0]}.\nPoczątek: ${m.o}\nKoniec: ${m.i}\nUnerwienie: ${m.n}\n${m.s ? `\nSkojarzenie: ${m.s}\n` : ''}\nWkuwanie na ślepo to najgorszy sposób na anatomię – zobacz, gdzie to leży i co robi.\nZapisz rolkę, jeśli uczysz się anatomii. Obserwuj, bo przecież na pewno ktoś to czyta.${j.next ? `\nDalej: ${j.next}.` : ''}\n\n#anatomia #fizjoterapia #studiafizjoterapii #anatomiaczlowieka #miesnie\n`;
 
-const { chromium } = require('playwright');
+let chromium, ffmpegBin = 'ffmpeg';
+try { ({ chromium } = require('playwright')); } catch { console.error('Brak pakietu playwright. Uruchom raz: npm run reel:setup'); process.exit(1); }
+try { ffmpegBin = require('ffmpeg-static') || 'ffmpeg'; } catch { /* używamy ffmpeg z PATH */ }
 const server = await createServer({ server: { port: 0, host: '127.0.0.1' }, logLevel: 'error' });
 await server.listen();
 const base = `http://127.0.0.1:${server.httpServer.address().port}/`;
-const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: software ? ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] : ['--ignore-gpu-blocklist', '--enable-gpu', '--use-gl=angle'] });
+let shownGpu = false;
 fs.mkdirSync(outDir, { recursive: true });
 try {
   for (const j of jobs) {
-    const m = MUSCLES[j.key], name = `${j.ep ? `${String(j.ep).padStart(2, '0')}-` : ''}${j.key}`;
+    const m = MUSCLES[j.key], name = `${j.prefix ?? (j.ep ? `${String(j.ep).padStart(2, '0')}-` : '')}${j.key}`;
+    if (!still && !force && fs.existsSync(path.join(outDir, `${name}.mp4`))) { console.log(`• ${name}.mp4 już istnieje – pomijam (--force, aby wyrenderować ponownie)`); continue; }
     const q = new URLSearchParams({ reel: j.key, side, capture: '1', ...(j.ep ? { ep: j.ep, of: j.of, series: j.series } : {}), ...(j.next ? { next: j.next } : {}) });
     const page = await browser.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1 });
     page.on('pageerror', (e) => console.error('  błąd strony:', e.message));
     await page.goto(`${base}?${q}`);
     await page.waitForFunction('window.ready === true && !!window.__reel', null, { timeout: 180000 });
     const info = await page.evaluate('({d: __reel.duration, s: __reel.segments})');
+    if (!shownGpu) { shownGpu = true; console.log('  grafika:', await page.evaluate("(()=>{const g=document.createElement('canvas').getContext('webgl');const e=g&&g.getExtension('WEBGL_debug_renderer_info');return e?g.getParameter(e.UNMASKED_RENDERER_WEBGL):'nieznana'})()")); }
     const n = Math.round(info.d * fps);
     console.log(`▶ ${m.lat}: ${info.d.toFixed(1)} s, ${n} klatek → ${outDir}/${name}.mp4`);
     if (still) {
       for (const [seg, t0] of info.s) { await page.evaluate((t) => __reel.seek(t), t0 + 2.4); await page.screenshot({ path: path.join(outDir, `${name}-${seg}-${t0}.png`) }); }
     } else {
-      const ff = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'mjpeg', '-i', '-', '-c:v', 'libx264', '-preset', 'medium', '-crf', '17', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', path.join(outDir, `${name}.mp4`)], { stdio: ['pipe', 'inherit', 'inherit'] });
+      const tmp = path.join(outDir, `${name}.part.mp4`);
+      const ff = spawn(ffmpegBin, ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'mjpeg', '-i', '-', '-c:v', 'libx264', '-preset', 'medium', '-crf', '17', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', tmp], { stdio: ['pipe', 'inherit', 'inherit'] });
+      ff.on('error', () => { console.error('Nie znaleziono ffmpeg. Uruchom: npm run reel:setup'); process.exit(1); });
       const done = new Promise((res, rej) => ff.on('close', (c) => (c === 0 ? res() : rej(new Error(`ffmpeg zakończył się kodem ${c}`)))));
       const t0 = Date.now();
       for (let i = 0; i < n; i++) {
@@ -71,6 +92,7 @@ try {
         if (i % 90 === 0 && i) console.log(`  ${Math.round((i / n) * 100)}%  (${((Date.now() - t0) / 1000 / i * (n - i)).toFixed(0)} s do końca)`);
       }
       ff.stdin.end(); await done;
+      fs.renameSync(tmp, path.join(outDir, `${name}.mp4`));
       fs.writeFileSync(path.join(outDir, `${name}.txt`), caption(m, j));
     }
     await page.close();

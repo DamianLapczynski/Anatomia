@@ -23,7 +23,21 @@ npm run reel -- --list                # dostępne mięśnie i nerwy
 npm run reel -- naramienny --still    # same kadry kontrolne (PNG) zamiast filmu
 ```
 
-Wymaga `ffmpeg` oraz pakietu `playwright` (`npm i -D playwright && npx playwright install chromium`). Podgląd na żywo bez renderowania: dopisz do adresu aplikacji `?reel=deltoid` (klucze z `--list`; stuknięcie zatrzymuje i wznawia).
+Skrypt działa samodzielnie na komputerze, bez Claude'a i bez internetu (po instalacji): czyta bazę z `src/data`, renderuje w lokalnej przeglądarce i składa MP4.
+
+**Instalacja (raz):** Node.js LTS, potem w folderze projektu `npm install` i `npm run reel:setup` (pobiera Playwright, Chromium i ffmpeg). Na Windows wystarczy dwukrotnie kliknąć `rolka.bat` – zainstaluje brakujące rzeczy i zapyta o mięsień.
+
+**Praca z planem serii** (`tools/reel_plan.mjs`, 144 dni):
+
+```bash
+npm run reel -- --week 1      # dni 1–7; gotowe pliki są pomijane (--force renderuje ponownie)
+npm run reel -- 8-14          # dowolny zakres dni
+npm run reel:plan             # odświeża docs/plan-rolek.pdf po zmianie kolejności lub daty startu
+```
+
+**Gdzie są dane:** opisy mięśni w `src/data/muscles_*.js`, nerwy w `src/data/nerves.js`, ruchy w `src/data/movements.js`. Teksty pisane specjalnie pod rolkę (hak, krótsze linie, skojarzenie) dodaje się w `src/data/reel_texts.js` – mają pierwszeństwo przed automatycznymi skrótami.
+
+Podgląd na żywo bez renderowania: dopisz do adresu aplikacji `?reel=deltoid` (klucze z `--list`; stuknięcie zatrzymuje i wznawia).
 
 ## Uruchomienie
 

@@ -11,6 +11,7 @@ import '@fontsource/jetbrains-mono/latin-ext-500.css';
 import './reel.css';
 import { MOVES } from './data/movements.js';
 import { polishName } from './data/names.js';
+import REEL_TEXTS from './data/reel_texts.js';
 
 const W = 1080, H = 1920;
 const NAVY = '#0F2A3D', BONE = '#F4EFE6', CORAL = '#FF6B4A';
@@ -24,6 +25,7 @@ const REACH = { shoulder: 0.55, elbow: 0.36, forearm: 0.3, wrist: 0.2, hip: 0.7,
 export async function startReel({ engine, model, motion, MUSCLES, NERVES }, params) {
   const key = params.get('reel');
   const kb = MUSCLES[key];
+  const rt = REEL_TEXTS[key] ?? {}; // teksty pisane pod rolkę mają pierwszeństwo przed skrótami z bazy
   document.body.classList.add('reel');
   const stage = document.getElementById('stage');
   const fitStage = () => document.documentElement.style.setProperty('--rs', Math.min(innerWidth / W, innerHeight / H));
@@ -127,11 +129,11 @@ export async function startReel({ engine, model, motion, MUSCLES, NERVES }, para
   // Tempo czytania: pismo ~24 znaki/s, po każdej linii pauza, na końcu segmentu czas na doczytanie.
   const CPS = 26, GAP = 0.4;
   const script = {
-    intro: [['skan układu mięśniowego… ok'], [`cel: ${kb.lat}`, 'hi']],
+    intro: [[rt.hook ?? 'skan układu mięśniowego… ok'], [`cel: ${kb.lat}`, 'hi']],
     dive: [[`warstwa: ${deep ? 'głęboka' : 'powierzchowna'}`], ...coverNames.map((n) => [`zdejmuję: ${n}`, 'dim']), ['cel namierzony', 'hi']],
-    func: [['CZYNNOŚĆ', 'head'], ...kb.f.slice(0, 2).map((f) => [short(f, 54)])],
-    att: [['PRZYCZEPY', 'head'], [`początek: ${short(kb.o, 50)}`], [`koniec: ${short(kb.i, 50)}`]],
-    nerve: [['UNERWIENIE', 'head'], [short(kb.n, 60)], ...(nerveKbOf()?.palsy ? [[`uszkodzenie: ${short(nerveKbOf().palsy, 54)}`, 'dim']] : [])],
+    func: [['CZYNNOŚĆ', 'head'], ...(rt.f ?? kb.f.slice(0, 2).map((f) => short(f, 54))).map((f) => [f])],
+    att: [['PRZYCZEPY', 'head'], [`początek: ${rt.o ?? short(kb.o, 50)}`], [`koniec: ${rt.i ?? short(kb.i, 50)}`]],
+    nerve: [['UNERWIENIE', 'head'], [rt.n ?? short(kb.n, 60)], ...(nerveKbOf()?.palsy ? [[`uszkodzenie: ${short(nerveKbOf().palsy, 54)}`, 'dim']] : [])],
     outro: [['zapis zakończony.', 'dim']],
   };
   function nerveKbOf() { return (kb.nr ?? []).map((n) => model.meshNerve.get(n)).filter(Boolean).map((k) => NERVES[k])[0]; }
@@ -205,7 +207,7 @@ export async function startReel({ engine, model, motion, MUSCLES, NERVES }, para
   if (S('att')) say(S('att'), script.att);
   segs.filter((x) => x.name === 'move').forEach((x) => say(x, x.lines, 0.3));
   say(S('nerve'), script.nerve);
-  const tip = kb.s && kb.s.length <= 190 ? kb.s : short(kb.s || kb.k, 170);
+  const tip = rt.tip ?? (kb.s && kb.s.length <= 190 ? kb.s : short(kb.s || kb.k, 170));
   say(S('outro'), script.outro, 0.3);
 
   const ov = document.createElement('div'); ov.id = 'reel';
