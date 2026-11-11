@@ -11,6 +11,20 @@ Interaktywny atlas anatomii 3D do nauki na studiach fizjoterapii: układ kostny,
 - **Quiz** – wskaż strukturę na modelu, rozpoznaj podświetloną, pytania o unerwienie / przyczepy / czynność.
 - **Powtórki** – fiszki z modelem 3D i algorytmem SM-2; postęp w pamięci przeglądarki, z eksportem i importem.
 
+## Rolki (wideo 1080×1920)
+
+Tryb rolki tworzy pionową animację jednego mięśnia w identyfikacji @fizjio_anatomia: przelot do mięśnia, zdjęcie zasłaniających go warstw, czynność, pola przyczepów z opisami, ruchy w stawie, nerw z drogą od korzeni i skojarzenie.
+
+```bash
+npm run reel -- naramienny            # jedna rolka → reels/deltoid.mp4 + reels/deltoid.txt (opis posta)
+npm run reel -- "biceps brachii" --side l
+npm run reel -- --nerve axillary      # seria wzdłuż nerwu: numer odcinka i „Dalej: …” w każdej rolce
+npm run reel -- --list                # dostępne mięśnie i nerwy
+npm run reel -- naramienny --still    # same kadry kontrolne (PNG) zamiast filmu
+```
+
+Wymaga `ffmpeg` oraz pakietu `playwright` (`npm i -D playwright && npx playwright install chromium`). Podgląd na żywo bez renderowania: dopisz do adresu aplikacji `?reel=deltoid` (klucze z `--list`; stuknięcie zatrzymuje i wznawia).
+
 ## Uruchomienie
 
 ```bash

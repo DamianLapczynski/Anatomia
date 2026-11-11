@@ -7,9 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "models": "node tools/build_models.mjs"
+    "models": "node tools/build_models.mjs",
+    "reel": "node tools/make_reel.mjs"
   },
   "dependencies": {
+    "@fontsource/bricolage-grotesque": "^5.3.0",
+    "@fontsource/inter": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
     "three": "^0.187.0"
   },
   "devDependencies": {
