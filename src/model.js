@@ -76,8 +76,9 @@ export function buildModel(meta, latin) {
 
   function muscleEntity(key, side) {
     const e = MUSCLES[key];
-    let meshIds = e.mesh.flatMap((n) => ids(n, side));
-    if (!meshIds.length) meshIds = e.mesh.flatMap((n) => names.get(n) ?? []);
+    const isM = (id) => meta[id].f === 'muscles';
+    let meshIds = e.mesh.flatMap((n) => ids(n, side)).filter(isM);
+    if (!meshIds.length) meshIds = e.mesh.flatMap((n) => names.get(n) ?? []).filter(isM);
     const attNames = [...new Set([...e.mesh, ...(e.att ?? [])])];
     const att = attNames.flatMap((n) => ids(n, side)).filter((id) => meta[id].f === 'insertions');
     const bones = new Set();
@@ -88,7 +89,7 @@ export function buildModel(meta, latin) {
     }
     const nerveIds = new Set(), pathIds = new Set();
     for (const n of e.nr ?? []) {
-      ids(n, side).forEach((i) => nerveIds.add(i));
+      ids(n, side).filter((i) => meta[i].f === 'nerves').forEach((i) => nerveIds.add(i));
       const nk = meshNerve.get(n);
       if (nk) for (const p of NERVES[nk].path) ids(p, side).forEach((i) => pathIds.add(i));
     }
@@ -98,8 +99,9 @@ export function buildModel(meta, latin) {
 
   function nerveEntity(key, side) {
     const e = NERVES[key];
-    const meshIds = e.mesh.flatMap((n) => ids(n, side));
-    const path = e.path.flatMap((n) => ids(n, side));
+    const isN = (id) => meta[id].f === 'nerves';
+    const meshIds = e.mesh.flatMap((n) => ids(n, side)).filter(isN);
+    const path = e.path.flatMap((n) => ids(n, side)).filter(isN);
     const muscles = Object.values(MUSCLES).filter((m) => (m.nr ?? []).some((n) => e.mesh.includes(n)));
     return { type: 'nerve', key, side, kb: e, title: e.pl, lat: e.lat, ids: meshIds, nervePath: path, muscles };
   }
@@ -107,7 +109,7 @@ export function buildModel(meta, latin) {
   function structEntity(id) {
     const m = meta[id];
     const pl = polishName(m.n), la = latin[m.n];
-    return { type: 'struct', key: `${m.n}|${m.s}`, side: m.s, name: m.n, title: pl ?? la ?? m.n, lat: la, en: m.n, ids: byName.get(`${m.n}|${m.s}`), layer: m.layer, meta: m };
+    return { type: 'struct', key: `${m.n}|${m.s}`, side: m.s, name: m.n, title: pl ?? la ?? m.n, lat: la, en: m.n, ids: byName.get(`${m.n}|${m.s}`).filter((i) => meta[i].f === m.f), layer: m.layer, meta: m };
   }
 
   function entityOf(id) {

@@ -9,14 +9,14 @@ export default {
     a: 'A. iliolumbalis, a. circumflexa ilium profunda.', ar: ['Iliolumbar artery'],
     f: ['Zgięcie w stawie biodrowym (m. biodrowo-lędźwiowy = najsilniejszy zginacz biodra)', 'Rotacja zewnętrzna uda', 'Przy ustalonych udach: zgięcie tułowia / przodopochylenie miednicy'],
     k: 'Skrócenie → przykurcz zgięciowy biodra, przodopochylenie miednicy, hiperlordoza. Test Thomasa.',
-    s: 'Iliacus + psoas = iliopsoas: „mięsień biegacza i kopnięcia".',
+    s: 'Iliacus + psoas = iliopsoas: „mięsień biegacza i kopnięcia”.',
   },
   psoas_major: {
     pl: 'Mięsień lędźwiowy większy', lat: 'M. psoas major', grp: 'Obręcz miedniczna – grupa przednia', reg: 'kd',
     mesh: ['Psoas major'], att: ['Iliopsoas muscle'],
     o: 'Trzony i krążki międzykręgowe Th12–L4 (warstwa powierzchowna), wyrostki żebrowe L1–L5 (warstwa głęboka).',
     i: 'Krętarz mniejszy kości udowej.',
-    n: 'Gałęzie bezpośrednie splotu lędźwiowego (L1–L3).', nr: ['Femoral nerve'],
+    n: 'Gałęzie bezpośrednie splotu lędźwiowego (L1–L3).', nr: [],
     a: 'Aa. lumbales, a. iliolumbalis.', ar: ['Iliolumbar artery'],
     f: ['Zgięcie w stawie biodrowym', 'Rotacja zewnętrzna uda', 'Jednostronnie: zgięcie boczne odcinka lędźwiowego', 'Przy ustalonych udach: unosi tułów z leżenia'],
     k: 'Między jego warstwami tworzy się splot lędźwiowy. Ropień m. lędźwiowego może spływać pod więzadło pachwinowe. Objaw psoas (ból przy wyproście biodra) w zapaleniu wyrostka robaczkowego.',
@@ -31,7 +31,7 @@ export default {
     a: 'A. glutea inferior, a. glutea superior.', ar: ['Inferior gluteal artery', 'Superior gluteal artery'],
     f: ['Wyprost w stawie biodrowym (najsilniejszy prostownik – wstawanie, wchodzenie po schodach, bieg)', 'Rotacja zewnętrzna uda', 'Część górna: odwodzenie; część dolna: przywodzenie', 'Przez pasmo biodrowo-piszczelowe stabilizuje wyprostowane kolano'],
     k: 'Osłabienie → trudność we wstawaniu z krzesła i wchodzeniu po schodach, chód z odchylaniem tułowia do tyłu. W zwykłym chodzie po płaskim mało aktywny.',
-    s: 'Mięsień „wstawania i sprintu", nie spokojnego chodu.',
+    s: 'Mięsień „wstawania i sprintu”, nie spokojnego chodu.',
   },
   gluteus_medius: {
     pl: 'Mięsień pośladkowy średni', lat: 'M. gluteus medius', grp: 'Obręcz miedniczna – grupa tylna', reg: 'kd',
@@ -42,7 +42,7 @@ export default {
     a: 'A. glutea superior.', ar: ['Superior gluteal artery'],
     f: ['Odwodzenie uda', 'Stabilizacja miednicy w płaszczyźnie czołowej w fazie podporu', 'Włókna przednie: zgięcie i rotacja wewnętrzna', 'Włókna tylne: wyprost i rotacja zewnętrzna'],
     k: 'Niewydolność → objaw Trendelenburga (opadanie miednicy po stronie kończyny wykrocznej) i chód kaczkowaty (Duchenne’a). Bezpieczne miejsce iniekcji: górno-boczny kwadrant pośladka.',
-    s: '„Naramienny biodra" – trzyma miednicę poziomo, gdy stoisz na jednej nodze.',
+    s: '„Naramienny biodra” – trzyma miednicę poziomo, gdy stoisz na jednej nodze.',
   },
   gluteus_minimus: {
     pl: 'Mięsień pośladkowy mały', lat: 'M. gluteus minimus', grp: 'Obręcz miedniczna – grupa tylna', reg: 'kd',
@@ -64,7 +64,7 @@ export default {
     a: 'A. glutea superior, a. circumflexa femoris lateralis.', ar: ['Superior gluteal artery', 'Lateral circumflex femoral artery'],
     f: ['Zgięcie, odwodzenie i rotacja wewnętrzna uda', 'Napina pasmo biodrowo-piszczelowe – stabilizuje kolano w wyproście'],
     k: 'Zespół pasma biodrowo-piszczelowego (kolano biegacza) – ból nad kłykciem bocznym uda. Test Obera. Często kompensuje słaby m. pośladkowy średni.',
-    s: 'Mały mięsień z bardzo długim „ścięgnem" – pasmem biegnącym jak lampas spodni.',
+    s: 'Mały mięsień z bardzo długim „ścięgnem” – pasmem biegnącym jak lampas spodni.',
   },
   piriformis: {
     pl: 'Mięsień gruszkowaty', lat: 'M. piriformis', grp: 'Obręcz miedniczna – rotatory zewnętrzne', reg: 'kd',
@@ -75,7 +75,7 @@ export default {
     a: 'A. glutea superior et inferior.', ar: ['Superior gluteal artery', 'Inferior gluteal artery'],
     f: ['Rotacja zewnętrzna wyprostowanego uda', 'Odwodzenie zgiętego uda', 'Powyżej 60–90° zgięcia biodra staje się rotatorem wewnętrznym'],
     k: 'Dzieli otwór kulszowy większy na nad- i podgruszkowy; n. kulszowy wychodzi zwykle pod nim (u części osób przebija mięsień) – zespół m. gruszkowatego imituje rwę kulszową. Test FAIR.',
-    s: '„Skrzyżowanie" okolicy pośladkowej – wszystko, co wychodzi z miednicy, opisuje się względem niego.',
+    s: '„Skrzyżowanie” okolicy pośladkowej – wszystko, co wychodzi z miednicy, opisuje się względem niego.',
   },
   obturator_internus: {
     pl: 'Mięsień zasłaniacz wewnętrzny', lat: 'M. obturatorius internus', grp: 'Obręcz miedniczna – rotatory zewnętrzne', reg: 'kd',
@@ -96,8 +96,8 @@ export default {
     n: 'Górny: n. do m. zasłaniacza wewnętrznego. Dolny: n. do m. czworobocznego uda (L4–S2).', nr: ['Nerve to quadratus femoris muscle'],
     a: 'A. glutea inferior.', ar: ['Inferior gluteal artery'],
     f: ['Rotacja zewnętrzna uda', 'Stabilizacja stawu biodrowego'],
-    k: 'Z m. zasłaniaczem wewnętrznym tworzą „m. triceps coxae".',
-    s: '„Bliźniaki" po obu stronach ścięgna zasłaniacza.',
+    k: 'Z m. zasłaniaczem wewnętrznym tworzą „m. triceps coxae”.',
+    s: '„Bliźniaki” po obu stronach ścięgna zasłaniacza.',
   },
   quadratus_femoris: {
     pl: 'Mięsień czworoboczny uda', lat: 'M. quadratus femoris', grp: 'Obręcz miedniczna – rotatory zewnętrzne', reg: 'kd',
@@ -129,7 +129,7 @@ export default {
     a: 'A. circumflexa femoris lateralis (r. descendens).', ar: ['Lateral circumflex femoral artery', 'Descending branch of lateral circumflex femoral artery'],
     f: ['Wyprost w stawie kolanowym', 'Zgięcie w stawie biodrowym (jedyna dwustawowa głowa czworogłowego)'],
     k: 'Awulsja SIAI u młodych sportowców (kopnięcie, sprint). Skrócenie: test Ely’ego, zmodyfikowany test Thomasa. Odruch kolanowy – L3–L4.',
-    s: '„Mięsień kopnięcia piłki" – zgina biodro i prostuje kolano jednocześnie.',
+    s: '„Mięsień kopnięcia piłki” – zgina biodro i prostuje kolano jednocześnie.',
   },
   vastus_lateralis: {
     pl: 'Mięsień obszerny boczny', lat: 'M. vastus lateralis', grp: 'Udo – grupa przednia (m. czworogłowy)', reg: 'kd',
@@ -151,7 +151,7 @@ export default {
     a: 'A. femoralis, a. descendens genus.', ar: ['Femoral artery'],
     f: ['Wyprost w stawie kolanowym', 'Włókna skośne (VMO) stabilizują rzepkę przyśrodkowo'],
     k: 'Zanika najszybciej po urazach i operacjach kolana (hamowanie artrogenne); kluczowy w rehabilitacji bólu rzepkowo-udowego.',
-    s: '„Łezka" nad kolanem po stronie przyśrodkowej.',
+    s: '„Łezka” nad kolanem po stronie przyśrodkowej.',
   },
   vastus_intermedius: {
     pl: 'Mięsień obszerny pośredni', lat: 'M. vastus intermedius', grp: 'Udo – grupa przednia (m. czworogłowy)', reg: 'kd',
@@ -173,7 +173,7 @@ export default {
     a: 'A. femoralis.', ar: ['Femoral artery'],
     f: ['Zgięcie, odwodzenie i rotacja zewnętrzna uda', 'Zgięcie kolana i rotacja wewnętrzna podudzia'],
     k: 'Najdłuższy mięsień ciała. Ogranicza trójkąt udowy od boku i pokrywa kanał przywodzicieli.',
-    s: 'Siad „po turecku" (krawiecki): zgięcie + odwiedzenie + rotacja zewnętrzna biodra, zgięcie kolana. Gęsia stopa: Sartorius – Gracilis – semiTendinosus („SGT").',
+    s: 'Siad „po turecku” (krawiecki): zgięcie + odwiedzenie + rotacja zewnętrzna biodra, zgięcie kolana. Gęsia stopa: Sartorius – Gracilis – semiTendinosus („SGT”).',
   },
   pectineus: {
     pl: 'Mięsień grzebieniowy', lat: 'M. pectineus', grp: 'Udo – grupa przyśrodkowa', reg: 'kd',
@@ -184,7 +184,7 @@ export default {
     a: 'A. circumflexa femoris medialis, a. obturatoria.', ar: ['Medial circumflex femoral artery', 'Obturator artery'],
     f: ['Przywodzenie uda', 'Zgięcie uda', 'Słaba rotacja zewnętrzna'],
     k: 'Tworzy dno trójkąta udowego razem z m. biodrowo-lędźwiowym.',
-    s: 'Mięsień „graniczny" – między grupą przednią (n. udowy) a przyśrodkową (n. zasłonowy).',
+    s: 'Mięsień „graniczny” – między grupą przednią (n. udowy) a przyśrodkową (n. zasłonowy).',
   },
   adductor_longus: {
     pl: 'Mięsień przywodziciel długi', lat: 'M. adductor longus', grp: 'Udo – grupa przyśrodkowa', reg: 'kd',
@@ -194,7 +194,7 @@ export default {
     n: 'N. zasłonowy – gałąź przednia (L2–L4).', nr: ['Anterior branch of obturator nerve', 'Obturator nerve'],
     a: 'A. profunda femoris, a. obturatoria.', ar: ['Deep femoral artery', 'Obturator artery'],
     f: ['Przywodzenie uda', 'Zgięcie uda (z pozycji wyprostu)', 'Stabilizacja miednicy w chodzie'],
-    k: 'Najczęściej naciągany przywodziciel („pachwina piłkarza"). Jego ścięgno łatwo wyczuwalne w pachwinie przy odwiedzeniu uda.',
+    k: 'Najczęściej naciągany przywodziciel („pachwina piłkarza”). Jego ścięgno łatwo wyczuwalne w pachwinie przy odwiedzeniu uda.',
     s: 'Przyśrodkowa granica trójkąta udowego.',
   },
   adductor_brevis: {
@@ -206,7 +206,7 @@ export default {
     a: 'A. profunda femoris, a. obturatoria.', ar: ['Deep femoral artery', 'Obturator artery'],
     f: ['Przywodzenie uda', 'Słabe zgięcie'],
     k: 'Rozdziela gałąź przednią i tylną n. zasłonowego.',
-    s: 'Leży jak „kanapka" między gałęziami n. zasłonowego.',
+    s: 'Leży jak „kanapka” między gałęziami n. zasłonowego.',
   },
   adductor_magnus: {
     pl: 'Mięsień przywodziciel wielki', lat: 'M. adductor magnus', grp: 'Udo – grupa przyśrodkowa', reg: 'kd',
@@ -217,7 +217,7 @@ export default {
     a: 'A. profunda femoris (aa. perforantes), a. obturatoria.', ar: ['Deep femoral artery', 'Obturator artery'],
     f: ['Przywodzenie uda (najsilniejszy przywodziciel)', 'Część tylna: wyprost uda (jak mięśnie kulszowo-goleniowe)', 'Stabilizacja miednicy'],
     k: 'Rozwór przywodzicieli (hiatus adductorius) między jego przyczepami – tędy naczynia udowe przechodzą do dołu podkolanowego.',
-    s: 'Dwa mięśnie w jednym: przywodziciel + „czwarty hamstring".',
+    s: 'Dwa mięśnie w jednym: przywodziciel + „czwarty hamstring”.',
   },
   gracilis: {
     pl: 'Mięsień smukły', lat: 'M. gracilis', grp: 'Udo – grupa przyśrodkowa', reg: 'kd',
@@ -251,7 +251,7 @@ export default {
     a: 'Aa. perforantes, a. glutea inferior.', ar: ['Deep femoral artery'],
     f: ['Wyprost uda', 'Zgięcie kolana', 'Rotacja wewnętrzna podudzia'],
     k: 'Ścięgno pobierane do rekonstrukcji ACL. Skrócenie hamstringów: test SLR, test 90–90.',
-    s: 'Półścięgnisty – długie ścięgno; leży na Półbłoniastym (alfabetycznie: Membranosus pod Tendinosus – „M pod T").',
+    s: 'Półścięgnisty – długie ścięgno; leży na Półbłoniastym (alfabetycznie: Membranosus pod Tendinosus – „M pod T”).',
   },
   semimembranosus: {
     pl: 'Mięsień półbłoniasty', lat: 'M. semimembranosus', grp: 'Udo – grupa tylna (kulszowo-goleniowa)', reg: 'kd',
@@ -294,7 +294,7 @@ export default {
     n: 'N. strzałkowy głęboki (L5–S1).', nr: ['Deep fibular nerve'],
     a: 'A. tibialis anterior.', ar: ['Anterior tibial artery'],
     f: ['Wyprost palców II–V', 'Zgięcie grzbietowe stopy', 'Nawracanie stopy (ewersja)'],
-    k: '', s: 'Kolejność ścięgien z przodu stawu skokowego od przyśrodka: Tibialis anterior – extensor Hallucis – extensor Digitorum („Tom Has Dogs").',
+    k: '', s: 'Kolejność ścięgien z przodu stawu skokowego od przyśrodka: Tibialis anterior – extensor Hallucis – extensor Digitorum („Tom Has Dogs”).',
   },
   fibularis_tertius: {
     pl: 'Mięsień strzałkowy trzeci', lat: 'M. fibularis (peroneus) tertius', grp: 'Goleń – grupa przednia', reg: 'kd',
@@ -315,7 +315,7 @@ export default {
     n: 'N. strzałkowy powierzchowny (n. fibularis superficialis, L5–S1).', nr: ['Superficial fibular nerve'],
     a: 'A. fibularis.', ar: ['Fibular artery'],
     f: ['Nawracanie stopy (ewersja/pronacja)', 'Zgięcie podeszwowe', 'Podtrzymuje łuk poprzeczny i podłużny stopy, dociska I promień do podłoża'],
-    k: 'Ochrona przed skręceniem inwersyjnym stawu skokowego – trening czasu reakcji strzałkowych po urazie. Przyczepia się w tym samym miejscu co m. piszczelowy przedni, tworząc „strzemię" stopy.',
+    k: 'Ochrona przed skręceniem inwersyjnym stawu skokowego – trening czasu reakcji strzałkowych po urazie. Przyczepia się w tym samym miejscu co m. piszczelowy przedni, tworząc „strzemię” stopy.',
     s: 'Strzemię: tibialis anterior od przyśrodka + fibularis longus od boku – trzymają to samo miejsce z dwóch stron.',
   },
   fibularis_brevis: {
@@ -338,7 +338,7 @@ export default {
     n: 'N. piszczelowy (n. tibialis, S1–S2).', nr: ['Tibial nerve'],
     a: 'Aa. surales (od a. poplitea).', ar: ['Popliteal artery'],
     f: ['Zgięcie podeszwowe stopy (silne przy wyprostowanym kolanie)', 'Zgięcie kolana', 'Odwracanie stopy'],
-    k: '„Łydka tenisisty" – naderwanie głowy przyśrodkowej. Test Silfverskiölda różnicuje przykurcz brzuchatego od płaszczkowatego. Odruch ze ścięgna Achillesa – S1.',
+    k: '„Łydka tenisisty” – naderwanie głowy przyśrodkowej. Test Silfverskiölda różnicuje przykurcz brzuchatego od płaszczkowatego. Odruch ze ścięgna Achillesa – S1.',
     s: 'Dwustawowy – dlatego rozciągasz go z prostym kolanem, a płaszczkowaty ze zgiętym.',
   },
   soleus: {
@@ -349,7 +349,7 @@ export default {
     n: 'N. piszczelowy (S1–S2).', nr: ['Tibial nerve'],
     a: 'A. tibialis posterior, a. fibularis.', ar: ['Posterior tibial artery', 'Fibular artery'],
     f: ['Zgięcie podeszwowe stopy (niezależnie od ustawienia kolana)', 'Mięsień posturalny – zapobiega przewracaniu się ciała do przodu w staniu'],
-    k: 'Pompa mięśniowa łydki („serce obwodowe") – zakrzepica żył głębokich. Pod łukiem ścięgnistym przechodzą n. piszczelowy i naczynia piszczelowe tylne.',
+    k: 'Pompa mięśniowa łydki („serce obwodowe”) – zakrzepica żył głębokich. Pod łukiem ścięgnistym przechodzą n. piszczelowy i naczynia piszczelowe tylne.',
     s: 'Płaski jak ryba sola; pracuje, gdy stoisz.',
   },
   plantaris: {
@@ -361,7 +361,7 @@ export default {
     a: 'Aa. surales.', ar: ['Popliteal artery'],
     f: ['Znikome zgięcie podeszwowe i zgięcie kolana', 'Rola proprioceptywna'],
     k: 'Długie cienkie ścięgno – pobierane do przeszczepów; jego zerwanie imituje naderwanie łydki.',
-    s: '„Nerw nowicjusza" – ścięgno mylone z nerwem na preparatach.',
+    s: '„Nerw nowicjusza” – ścięgno mylone z nerwem na preparatach.',
   },
   popliteus: {
     pl: 'Mięsień podkolanowy', lat: 'M. popliteus', grp: 'Goleń – grupa tylna, warstwa głęboka', reg: 'kd',
@@ -372,7 +372,7 @@ export default {
     a: 'A. poplitea.', ar: ['Popliteal artery'],
     f: ['Odryglowanie kolana – rotacja wewnętrzna piszczeli (lub zewnętrzna uda przy stopie na podłożu) na początku zgięcia', 'Odciąga łąkotkę boczną ku tyłowi', 'Stabilizacja tylno-boczna kolana'],
     k: 'Element kompleksu tylno-bocznego kolana.',
-    s: '„Klucz" do zamka kolana – odblokowuje je z pełnego wyprostu.',
+    s: '„Klucz” do zamka kolana – odblokowuje je z pełnego wyprostu.',
   },
   tibialis_posterior: {
     pl: 'Mięsień piszczelowy tylny', lat: 'M. tibialis posterior', grp: 'Goleń – grupa tylna, warstwa głęboka', reg: 'kd',
@@ -382,8 +382,8 @@ export default {
     n: 'N. piszczelowy (L4–L5).', nr: ['Tibial nerve'],
     a: 'A. tibialis posterior, a. fibularis.', ar: ['Posterior tibial artery', 'Fibular artery'],
     f: ['Odwracanie stopy (inwersja) – najsilniejszy supinator', 'Zgięcie podeszwowe', 'Główny dynamiczny stabilizator łuku podłużnego przyśrodkowego'],
-    k: 'Niewydolność ścięgna → nabyte płaskostopie dorosłych, objaw „zbyt wielu palców", niemożność wspięcia na palce jednonóż.',
-    s: 'Za kostką przyśrodkową od przodu: Tibialis posterior – flexor Digitorum – Arteria – Nervus – flexor Hallucis („Tom, Dick And Nervous Harry").',
+    k: 'Niewydolność ścięgna → nabyte płaskostopie dorosłych, objaw „zbyt wielu palców”, niemożność wspięcia na palce jednonóż.',
+    s: 'Za kostką przyśrodkową od przodu: Tibialis posterior – flexor Digitorum – Arteria – Nervus – flexor Hallucis („Tom, Dick And Nervous Harry”).',
   },
   flexor_digitorum_longus: {
     pl: 'Mięsień zginacz długi palców', lat: 'M. flexor digitorum longus', grp: 'Goleń – grupa tylna, warstwa głęboka', reg: 'kd',
@@ -404,8 +404,8 @@ export default {
     n: 'N. piszczelowy (L5–S2).', nr: ['Tibial nerve'],
     a: 'A. fibularis.', ar: ['Fibular artery'],
     f: ['Zgięcie palucha – odbicie w końcowej fazie podporu', 'Zgięcie podeszwowe i odwracanie stopy', 'Podtrzymuje łuk podłużny przyśrodkowy'],
-    k: 'Tendinopatia u tancerzy baletowych („ścięgno Achillesa stopy tancerza"). Ścięgno biegnie pod podpórką skokową (sustentaculum tali).',
-    s: 'Ostatnie „pchnięcie" paluchem przy chodzie i sprincie.',
+    k: 'Tendinopatia u tancerzy baletowych („ścięgno Achillesa stopy tancerza”). Ścięgno biegnie pod podpórką skokową (sustentaculum tali).',
+    s: 'Ostatnie „pchnięcie” paluchem przy chodzie i sprincie.',
   },
   extensor_digitorum_brevis: {
     pl: 'Mięsień prostownik krótki palców', lat: 'M. extensor digitorum brevis', grp: 'Stopa – grzbiet', reg: 'kd',
@@ -426,8 +426,8 @@ export default {
     n: 'N. podeszwowy przyśrodkowy (n. plantaris medialis, S1–S2).', nr: ['Medial plantar nerve'],
     a: 'A. plantaris medialis.', ar: ['Medial plantar artery'],
     f: ['Odwodzenie i zgięcie palucha', 'Podtrzymuje łuk podłużny przyśrodkowy'],
-    k: 'Osłabiony w paluchu koślawym (hallux valgus). Ćwiczenie „short foot".',
-    s: 'N. podeszwowy przyśrodkowy = „n. pośrodkowy stopy"; boczny = „n. łokciowy stopy".',
+    k: 'Osłabiony w paluchu koślawym (hallux valgus). Ćwiczenie „short foot”.',
+    s: 'N. podeszwowy przyśrodkowy = „n. pośrodkowy stopy”; boczny = „n. łokciowy stopy”.',
   },
   flexor_digitorum_brevis: {
     pl: 'Mięsień zginacz krótki palców', lat: 'M. flexor digitorum brevis', grp: 'Stopa – podeszwa', reg: 'kd',
@@ -457,7 +457,7 @@ export default {
     n: 'N. podeszwowy boczny (S1–S3).', nr: ['Lateral plantar nerve'],
     a: 'A. plantaris lateralis.', ar: ['Lateral plantar artery'],
     f: ['Koryguje skośny kierunek ciągu FDL – ustawia go w osi stopy', 'Wspomaga zgięcie palców'],
-    k: '', s: '„Prostownica" dla ścięgna FDL.',
+    k: '', s: '„Prostownica” dla ścięgna FDL.',
   },
   lumbricals_foot: {
     pl: 'Mięśnie glistowate stopy', lat: 'Mm. lumbricales pedis', grp: 'Stopa – podeszwa', reg: 'kd',

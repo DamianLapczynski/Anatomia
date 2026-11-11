@@ -6,6 +6,7 @@ import { MOVES } from './data/movements.js';
 import { Motion } from './motion.js';
 import { initQuiz } from './quiz.js';
 import { initSrs } from './srs.js';
+import { landmarkPL } from './data/landmarks.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -18,7 +19,7 @@ const REG_PL = Object.fromEntries(REGIONS);
 const engine = new Engine($('#c'));
 const view = {
   layers: { bones: true, joints: false, muscles: true, fascia: false, attachments: false, arteries: false, veins: false, heart: false, nerves: false, cns: false },
-  side: 'both', region: 'all', hidden: new Set(), sel: new Set(), tints: new Map(), iso: null, only: null,
+  side: 'both', region: 'all', hidden: new Set(), sel: new Set(), extra: new Set(), tints: new Map(), iso: null, only: null,
 };
 let model, labels = [], motion, mode = 'atlas', current = null, descCache = {};
 const modes = {};
@@ -35,9 +36,10 @@ function stateOf(m) {
     for (const k of CTX) if (iso.show[k] && iso[k]?.has(m.id)) return k === 'path' ? 'tint:#b8922a' : `base:${m.layer}`;
     if (iso.others === 'hide') return null;
     if (m.layer === 'bones') return 'ghost';
-    return m.layer === 'muscles' && (!iso.side || !m.s || m.s === iso.side) ? 'ghost' : null;
+    return m.layer === 'muscles' && !iso.bonesOnly && (!iso.side || !m.s || m.s === iso.side) ? 'ghost' : null;
   }
   if (view.only) return view.only.has(m.id) ? `base:${m.layer}` : null;
+  if (view.extra.has(m.id)) return view.sel.has(m.id) ? `sel:${m.layer}` : `base:${m.layer}`;
   if (!view.layers[m.layer]) return null;
   if (view.side !== 'both' && m.s && m.s !== view.side) return null;
   if (view.region !== 'all' && m.reg !== view.region) return null;
@@ -80,14 +82,14 @@ left.addEventListener('click', (e) => {
   else if (S) { view[S.parentElement.dataset.seg] = S.dataset.v; exitIso(false); if (view.region !== 'all' || view.side !== 'both') focusVisible(); }
   else if (P) { for (const k in view.layers) view.layers[k] = PRESETS[P.dataset.preset].includes(k); exitIso(false); need(...PRESETS[P.dataset.preset]); }
   else if (A?.dataset.act === 'showall') view.hidden.clear();
-  else if (A?.dataset.act === 'reset') { resetView(); }
+  else if (A?.dataset.act === 'reset') { if (mode !== 'atlas') setMode('atlas'); resetView(); }
   else return;
   renderLeft(); applyView(); if (mode === 'atlas') renderAtlas();
 });
 function hintLoad(layer) { if (!engine.loaded.has(LAYER_FILE[layer])) hint(`Wczytywanie: ${LAYER_PL[layer]}…`, '', 1500); }
 function resetView() {
   Object.assign(view.layers, { bones: true, joints: false, muscles: true, fascia: false, attachments: false, arteries: false, veins: false, heart: false, nerves: false, cns: false });
-  view.side = 'both'; view.region = 'all'; view.hidden.clear(); view.sel.clear(); view.tints.clear(); view.iso = null; view.only = null;
+  view.side = 'both'; view.region = 'all'; view.hidden.clear(); view.sel.clear(); view.extra.clear(); view.tints.clear(); view.iso = null; view.only = null;
   current = null; clearMarks(); home(); if (mode === 'atlas') renderAtlas();
 }
 function home() { engine.focus(new THREE.Box3(new THREE.Vector3(-0.45, 0, -0.2), new THREE.Vector3(0.45, 1.72, 0.2)), { dir: new THREE.Vector3(0, 0, 1), pad: 1.05 }); }
@@ -111,6 +113,8 @@ results.addEventListener('click', (e) => {
   openItem(it);
 });
 document.addEventListener('pointerdown', (e) => { if (!e.target.closest('#searchbox')) results.hidden = true; });
+q.addEventListener('keydown', (e) => { if (e.key === 'Enter' && results._list?.length && !results.hidden) { e.preventDefault(); results.querySelector('.r').click(); } });
+q.addEventListener('focus', () => { if (q.value && results._list?.length) results.hidden = false; });
 function defSide(kind, key) {
   const side = view.side !== 'both' ? view.side : 'r';
   return side;
@@ -126,9 +130,11 @@ function openItem(it) {
 // ---------- zaznaczanie i izolacja ----------
 function select(ent, { isolate = false, focus = true } = {}) {
   current = ent; clearMarks();
-  view.sel = new Set(ent.ids);
+  view.sel = new Set(ent.ids); view.extra.clear();
   if (isolate || view.iso) isolateEntity(ent, focus);
-  else {
+  else if (ent.clicked && !view.layers.muscles) { // klik w pole przyczepu przy wyłączonych mięśniach: pokaż tylko ten mięsień
+    ent.att.forEach((i) => view.sel.add(i)); view.extra = new Set(ent.ids); need('muscles');
+  } else {
     const layers = new Set(ent.ids.map((i) => model.meta[i].layer));
     let changed = false;
     for (const l of layers) if (!view.layers[l]) { view.layers[l] = true; changed = true; }
@@ -150,19 +156,20 @@ function isolateEntity(ent, focus = true) {
     iso.path = new Set(ent.nervePath);
     iso.muscles = new Set(ent.muscles.flatMap((m) => m.mesh.flatMap((n) => model.ids(n, ent.side))));
     files.push('nerves', 'muscles');
-  } else files.push(ent.layer);
+  } else { files.push(ent.layer); iso.bonesOnly = ent.layer === 'bones' || ent.layer === 'joints'; }
   view.iso = iso;
   need(...files).then(() => {
     if (!focus || view.iso !== iso) return;
-    let dir = null;
-    if (ent.type === 'muscle' && ent.bones.length) { // patrzymy od strony, po której mięsień leży względem swoich kości
-      const c = engine.boxOf(ent.ids).getCenter(new THREE.Vector3()), b = engine.boxOf(ent.bones).getCenter(new THREE.Vector3());
-      const d = c.sub(b); d.y *= 0.25;
-      if (d.length() > 0.012) dir = d.normalize();
-    }
-    engine.focus([...iso.focus, ...(iso.att ?? [])], { pad: ent.type === 'struct' ? 1.9 : 1.6, dir });
+    engine.focus([...iso.focus, ...(iso.att ?? [])], { pad: ent.type === 'struct' ? 1.9 : 1.6, dir: entDir(ent) });
   });
   applyView();
+}
+// Kierunek patrzenia: od strony, po której mięsień leży względem kości, do których się przyczepia.
+function entDir(ent) {
+  if (ent.type !== 'muscle' || !ent.bones.length || !ent.ids.length) return null;
+  const c = engine.boxOf(ent.ids).getCenter(new THREE.Vector3()), b = engine.boxOf(ent.bones).getCenter(new THREE.Vector3());
+  const d = c.sub(b); d.y *= 0.25;
+  return d.length() > 0.012 ? d.normalize() : null;
 }
 function exitIso(render = true) { if (!view.iso) return; view.iso = null; applyView(); if (render && mode === 'atlas') renderAtlas(); }
 
@@ -170,7 +177,7 @@ engine.addEventListener('pick', (e) => {
   const hit = e.detail;
   if (modes[mode]?.onPick && modes[mode].onPick(hit) !== false) return;
   if (mode !== 'atlas') return;
-  if (!hit) { if (!view.iso) { view.sel.clear(); current = null; clearMarks(); applyView(); renderAtlas(); } return; }
+  if (!hit) { if (!view.iso) { view.sel.clear(); view.extra.clear(); current = null; clearMarks(); applyView(); renderAtlas(); } return; }
   const ent = model.entityOf(hit.id);
   select(ent, { focus: false });
   applyView();
@@ -185,7 +192,7 @@ function showMarks(ent) {
   const list = labels.filter((l) => l.p === key);
   markList = list.map((l, i) => {
     const el = document.createElement('div'); el.className = 'mark'; el.dataset.i = i;
-    el.innerHTML = `<em>${esc(model.latin[l.n] ?? l.n)}</em>`;
+    el.innerHTML = `<em>${esc(landmarkPL(l.n) ?? model.latin[l.n] ?? l.n)}</em>`;
     marks.appendChild(el);
     return { el, v: new THREE.Vector3(m.s === 'l' ? -l.b[0] : l.b[0], l.b[1], l.b[2]), l };
   });
@@ -268,7 +275,7 @@ function renderAtlas() {
       const mus = new Map();
       for (const a of att) for (const key of [model.entityOf(a.id)].filter((e) => e.type === 'muscle').map((e) => e.key)) { const r = mus.get(key) ?? { o: false, i: false }; r[a.role === 'origin' ? 'o' : 'i'] = true; mus.set(key, r); }
       if (mus.size) h += card('Mięśnie przyczepiające się do tej kości', `<div class="list">${[...mus].map(([key, r]) => `<div class="it" data-muscle="${key}"><span>${esc(MUSCLES[key].lat)}</span><small>${r.o ? '<b style="color:#ff6b6b">początek</b>' : ''}${r.o && r.i ? ' · ' : ''}${r.i ? '<b style="color:#6ea0ff">koniec</b>' : ''}</small></div>`).join('')}</div><p style="margin-top:6px"><span class="link" data-act="boneatt">Pokaż pola przyczepów na kości</span></p>`);
-      if (list.length) h += card(`Punkty kostne (${list.length})`, `<div class="list">${list.map((l, i) => `<div class="it" data-mark="${i}"><span>${esc(model.latin[l.n] ?? l.n)}</span><small>${esc(l.n)}</small></div>`).join('')}</div>`, '#ffb454');
+      if (list.length) h += card(`Punkty kostne (${list.length})`, `<div class="list">${list.map((l, i) => `<div class="it" data-mark="${i}"><span>${esc(landmarkPL(l.n) ?? model.latin[l.n] ?? l.n)}</span><small>${esc(landmarkPL(l.n) ? (model.latin[l.n] ?? l.n) : l.n)}</small></div>`).join('')}</div>`, '#ffb454');
     }
     h += `<div id="desc"></div>`;
     loadDesc(ent.name);
@@ -296,14 +303,14 @@ panelBody.addEventListener('click', (e) => {
     const a = A.dataset.act;
     if (a === 'iso') { if (view.iso) exitIso(); else { isolateEntity(current); renderAtlas(); } }
     else if (a === 'center') engine.focus(current.ids, { pad: 1.8 });
-    else if (a === 'hide') { current.ids.forEach((i) => view.hidden.add(i)); view.sel.clear(); current = null; view.iso = null; clearMarks(); applyView(); renderLeft(); renderAtlas(); hint('Ukryto. „Pokaż ukryte" w panelu warstw przywraca.'); }
+    else if (a === 'hide') { current.ids.forEach((i) => view.hidden.add(i)); view.sel.clear(); view.extra.clear(); current = null; view.iso = null; clearMarks(); applyView(); renderLeft(); renderAtlas(); hint('Ukryto. „Pokaż ukryte” w panelu warstw przywraca.'); }
     else if (a === 'side') {
       const s = current.side === 'r' ? 'l' : 'r';
       const ent = current.type === 'muscle' ? model.muscleEntity(current.key, s) : current.type === 'nerve' ? model.nerveEntity(current.key, s) : model.structEntity(model.ids(current.name, s)[0] ?? current.ids[0]);
       select(ent, { isolate: !!view.iso });
     } else if (a === 'boneatt') {
       const m = current.meta, par = m.s ? `${m.n}.${m.s}` : m.n;
-      view.iso = { focus: new Set(current.ids), side: m.s, others: 'ghost', show: { att: true }, att: new Set(model.meta.filter((x) => x.f === 'insertions' && x.par[0] === par).map((x) => x.id)) };
+      view.iso = { focus: new Set(current.ids), side: m.s, others: 'ghost', bonesOnly: true, show: { att: true }, att: new Set(model.meta.filter((x) => x.f === 'insertions' && x.par[0] === par).map((x) => x.id)) };
       need('attachments'); renderAtlasKeepScroll();
     }
   }
@@ -356,7 +363,7 @@ modes.motion = (() => {
       ${m.syn.length ? card('Mięśnie wspomagające (synergiści)', `<div class="list">${mlist(m.syn, COL.syn)}</div>`) : ''}
       ${m.ant.length ? card('Antagoniści', `<div class="list">${mlist(m.ant, COL.ant)}</div>`) : ''}
       ${card('Warto wiedzieć', p(m.note), null, 'tip')}
-      <p class="note">Animacja jest uproszczona: kości poruszają się jako sztywne segmenty wokół jednej osi, a mięśnie są „zginane" w osi stawu – pokazuje kierunek i zakres ruchu, nie rzeczywistą zmianę kształtu brzuśca.</p>`;
+      <p class="note">Animacja jest uproszczona: kości poruszają się jako sztywne segmenty wokół jednej osi, a mięśnie są „zginane” w osi stawu – pokazuje kierunek i zakres ruchu, nie rzeczywistą zmianę kształtu brzuśca.</p>`;
     panelBody.scrollTop = 0;
   }
   panelBody.addEventListener('input', (e) => { if (mode === 'motion' && e.target.id === 'mvk') { playing = false; const b = panelBody.querySelector('[data-act="play"]'); if (b) b.textContent = 'Odtwórz'; const v = e.target.value / 100; k = v; motion.set(v); } });
@@ -411,7 +418,7 @@ window.addEventListener('keydown', (e) => {
   try {
     const [meta, latin, lab] = await Promise.all([engine.init(), fetch(`${BASE}data/latin.json`).then((r) => r.json()), fetch(`${BASE}data/labels.json`).then((r) => r.json())]);
     model = buildModel(meta, latin); labels = lab; motion = new Motion(engine, model);
-    const ctx = { engine, model, view, applyView, need, hint, panelBody, esc, card, setMode, select, MUSCLES, NERVES, modeIs: (m) => mode === m, home };
+    const ctx = { engine, model, view, applyView, need, hint, panelBody, esc, card, setMode, select, entDir, MUSCLES, NERVES, modeIs: (m) => mode === m, home };
     modes.quiz = initQuiz(ctx); modes.srs = initSrs(ctx);
     renderLeft(); renderAtlas();
     await engine.ensureAll(['skeleton', 'muscles']);

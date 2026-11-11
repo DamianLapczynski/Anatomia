@@ -1,4 +1,4 @@
-// Animacja ruchów w stawach: sztywne segmenty kostne + mięśnie „zginane" w osi stawu.
+// Animacja ruchów w stawach: sztywne segmenty kostne + mięśnie „zginane” w osi stawu.
 import * as THREE from 'three';
 
 const HAND = /of hand$|metacarpal bone|^(Scaphoid|Lunate|Triquetrum|Pisiform|Trapezium|Trapezoid|Capitate|Hamate) bone/;

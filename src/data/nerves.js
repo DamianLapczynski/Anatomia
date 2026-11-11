@@ -1,4 +1,4 @@
-// Nerwy obwodowe – baza wiedzy. mesh: siatki nerwu i jego gałęzi; path: struktury, od których nerw pochodzi (pokazywane jako „droga od korzeni").
+// Nerwy obwodowe – baza wiedzy. mesh: siatki nerwu i jego gałęzi; path: struktury, od których nerw pochodzi (pokazywane jako „droga od korzeni”).
 const BP = ['Roots of brachial plexus', 'Superior trunk of brachial plexus', 'Middle trunk of brachial plexus', 'Inferior trunk of brachial plexus'];
 const ANT = ['Anterior division of superior trunk of brachial plexus', 'Anterior division of middle trunk of brachial plexus', 'Anterior division of inferior trunk of brachial plexus'];
 const POST = ['Posterior division of superior trunk of brachial plexus', 'Posterior division of middle trunk of brachial plexus', 'Posterior division of inferior trunk of brachial plexus', 'Posterior cord of brachial plexus'];
@@ -8,13 +8,13 @@ export default {
     mesh: [...BP, ...ANT, ...POST], path: [],
     course: 'Korzenie (gałęzie brzuszne C5–Th1) → 3 pnie (górny C5–C6, środkowy C7, dolny C8–Th1) w szczelinie tylnej mm. pochyłych → części przednie i tylne za obojczykiem → 3 pęczki wokół a. axillaris (boczny, przyśrodkowy, tylny) → nerwy końcowe.',
     motor: 'Cała kończyna górna i większość mięśni obręczy barkowej.', sensory: 'Skóra kończyny górnej (poza częścią barku – nn. supraclaviculares, i pachy – n. intercostobrachialis).',
-    palsy: 'Porażenie górne (Erba–Duchenne’a, C5–C6): ramię przywiedzione i zrotowane do wewnątrz, łokieć wyprostowany, przedramię w pronacji („ręka kelnera"). Porażenie dolne (Klumpkego, C8–Th1): niedowład mięśni ręki, ręka szponowata, czasem zespół Hornera.',
-    tip: 'Korzenie – Pnie – Części – Pęczki – Nerwy („Kiedy Pan Czyta, Pies Nudzi się").',
+    palsy: 'Porażenie górne (Erba–Duchenne’a, C5–C6): ramię przywiedzione i zrotowane do wewnątrz, łokieć wyprostowany, przedramię w pronacji („ręka kelnera”). Porażenie dolne (Klumpkego, C8–Th1): niedowład mięśni ręki, ręka szponowata, czasem zespół Hornera.',
+    tip: 'Korzenie – Pnie – Części – Pęczki – Nerwy („Kiedy Pan Czyta, Pies Nudzi się”).',
   },
   axillary: {
     pl: 'Nerw pachowy', lat: 'N. axillaris', roots: 'C5–C6', mesh: ['Axillary nerve', 'Muscular branches of axillary nerve', 'Superior lateral brachial cutaneous nerve'], path: [...BP, ...POST],
     course: 'Z pęczka tylnego; przechodzi przez otwór czworoboczny razem z a. circumflexa humeri posterior i owija szyjkę chirurgiczną kości ramiennej.',
-    motor: 'M. deltoideus, m. teres minor.', sensory: 'Skóra bocznej powierzchni barku („naszywka pułkowa") – n. cutaneus brachii lateralis superior.',
+    motor: 'M. deltoideus, m. teres minor.', sensory: 'Skóra bocznej powierzchni barku („naszywka pułkowa”) – n. cutaneus brachii lateralis superior.',
     palsy: 'Zwichnięcie przednie stawu ramiennego, złamanie szyjki chirurgicznej: zanik naramiennego, osłabienie odwodzenia, niedoczulica nad naramiennym.', tip: 'Zawsze badaj czucie na bocznej powierzchni barku po zwichnięciu.',
   },
   musculocutaneous: {
@@ -28,31 +28,31 @@ export default {
     mesh: ['Median nerve', 'Anterior interosseous nerve of forearm', 'Muscular branches of median nerve', 'Palmar branch of median nerve', 'Common palmar digital branches of median nerve', 'Proper palmar digital branches of median nerve'],
     course: 'Dwa korzenie z pęczka bocznego i przyśrodkowego obejmują a. axillaris. W ramieniu z a. brachialis (bez gałęzi). Między głowami m. pronator teres, pod łukiem FDS, przez kanał nadgarstka do ręki. Oddaje n. interosseus antebrachii anterior.',
     motor: 'Przedramię: wszystkie zginacze i pronatory OPRÓCZ m. flexor carpi ulnaris i łokciowej części FDP. Ręka: kłąb kciuka (APB, OP, głowa powierzchowna FPB) i mm. lumbricales I–II.', sensory: 'Dłoniowa powierzchnia palców I–III i promieniowej połowy IV oraz ich opuszki od strony grzbietowej.',
-    palsy: 'Zespół cieśni nadgarstka: parestezje nocne palców I–III, zanik kłębu, testy Phalena i Tinela. Uszkodzenie wysokie: „ręka błogosławiąca" przy zaciskaniu pięści, „ręka małpia", brak opozycji i pronacji.', tip: 'LOAF w ręce: Lumbricales I–II, Opponens pollicis, Abductor pollicis brevis, Flexor pollicis brevis.',
+    palsy: 'Zespół cieśni nadgarstka: parestezje nocne palców I–III, zanik kłębu, testy Phalena i Tinela. Uszkodzenie wysokie: „ręka błogosławiąca” przy zaciskaniu pięści, „ręka małpia”, brak opozycji i pronacji.', tip: 'LOAF w ręce: Lumbricales I–II, Opponens pollicis, Abductor pollicis brevis, Flexor pollicis brevis.',
   },
   ulnar: {
     pl: 'Nerw łokciowy', lat: 'N. ulnaris', roots: 'C8–Th1', path: [...BP, 'Anterior division of inferior trunk of brachial plexus'],
     mesh: ['Ulnar nerve', 'Deep branch of ulnar nerve', 'Superficial branch of ulnar nerve', 'Dorsal branch of ulnar nerve', 'Muscular branches of ulnar nerve', 'Palmar branch of ulnar nerve', 'Common palmar digital branches of ulnar nerve', 'Proper palmar digital branches of ulnar nerve', 'Dorsal digital branches of ulnar nerve'],
     course: 'Z pęczka przyśrodkowego; w ramieniu przyśrodkowo, przebija przegrodę międzymięśniową, biegnie w bruździe n. łokciowego za nadkłykciem przyśrodkowym, między głowami FCU, na troczku zginaczy przez kanał Guyona do ręki.',
     motor: 'Przedramię: m. flexor carpi ulnaris, łokciowa część FDP (palce IV–V). Ręka: kłębik, mm. interossei, mm. lumbricales III–IV, m. adductor pollicis, głowa głęboka FPB.', sensory: 'Palec V i łokciowa połowa palca IV, łokciowy brzeg ręki (dłoniowo i grzbietowo).',
-    palsy: 'Zespół rowka n. łokciowego (drugi co do częstości zespół uciskowy): ręka szponowata (palce IV–V), zanik mięśni międzykostnych, objaw Fromenta, objaw Wartenberga.', tip: '„Nerw muzyków" – drobne ruchy palców. Paradoks łokciowy: im niżej uszkodzenie, tym wyraźniejszy szpon.',
+    palsy: 'Zespół rowka n. łokciowego (drugi co do częstości zespół uciskowy): ręka szponowata (palce IV–V), zanik mięśni międzykostnych, objaw Fromenta, objaw Wartenberga.', tip: '„Nerw muzyków” – drobne ruchy palców. Paradoks łokciowy: im niżej uszkodzenie, tym wyraźniejszy szpon.',
   },
   radial: {
     pl: 'Nerw promieniowy', lat: 'N. radialis', roots: 'C5–Th1', path: [...BP, ...POST],
     mesh: ['Radial nerve', 'Deep branch of radial nerve', 'Posterior interosseous nerve of forearm', 'Superficial branch of radial nerve', 'Muscular branches of radial nerve', 'Posterior antebrachial cutaneous nerve', 'Inferior lateral brachial cutaneous nerve', 'Dorsal digital branches of radial nerve'],
     course: 'Z pęczka tylnego; z a. profunda brachii w bruździe n. promieniowego na tylnej powierzchni kości ramiennej, przebija przegrodę boczną, przed nadkłykciem bocznym dzieli się na gałąź powierzchowną (czuciową) i głęboką (przebija m. supinator → n. interosseus posterior).',
     motor: 'Wszystkie prostowniki ramienia i przedramienia: m. triceps, m. anconeus, m. brachioradialis, prostowniki nadgarstka i palców, m. supinator, APL.', sensory: 'Tylna powierzchnia ramienia i przedramienia; grzbiet ręki po stronie promieniowej (palce I–III do stawów PIP).',
-    palsy: '„Porażenie sobotniej nocy" (ucisk w bruździe) lub złamanie trzonu kości ramiennej: ręka opadająca, brak wyprostu nadgarstka i palców w MCP, osłabiony chwyt; wyprost łokcia zwykle zachowany.', tip: 'Nerw „BEST": Brachioradialis, Extensors, Supinator, Triceps.',
+    palsy: '„Porażenie sobotniej nocy” (ucisk w bruździe) lub złamanie trzonu kości ramiennej: ręka opadająca, brak wyprostu nadgarstka i palców w MCP, osłabiony chwyt; wyprost łokcia zwykle zachowany.', tip: 'Nerw „BEST”: Brachioradialis, Extensors, Supinator, Triceps.',
   },
   suprascapular: {
     pl: 'Nerw nadłopatkowy', lat: 'N. suprascapularis', roots: 'C5–C6', mesh: ['Suprascapular nerve'], path: ['Roots of brachial plexus', 'Superior trunk of brachial plexus'],
     course: 'Z pnia górnego; przez wcięcie łopatki pod więzadłem poprzecznym górnym łopatki, potem przez wcięcie panewkowo-grzebieniowe.', motor: 'M. supraspinatus, m. infraspinatus.', sensory: 'Torebka stawu ramiennego i barkowo-obojczykowego.',
-    palsy: 'Ucisk we wcięciu łopatki: ból tylnej części barku, zanik nad- i podgrzebieniowego, osłabienie rotacji zewnętrznej.', tip: 'Nerw przechodzi POD więzadłem, tętnica NAD („Army over, Navy under").',
+    palsy: 'Ucisk we wcięciu łopatki: ból tylnej części barku, zanik nad- i podgrzebieniowego, osłabienie rotacji zewnętrznej.', tip: 'Nerw przechodzi POD więzadłem, tętnica NAD („Army over, Navy under”).',
   },
   long_thoracic: {
     pl: 'Nerw piersiowy długi', lat: 'N. thoracicus longus', roots: 'C5–C7', mesh: ['Long thoracic nerve'], path: ['Roots of brachial plexus'],
     course: 'Bezpośrednio z korzeni; zstępuje po powierzchni m. zębatego przedniego w linii pachowej środkowej.', motor: 'M. serratus anterior.', sensory: '—',
-    palsy: 'Łopatka skrzydłowata, ograniczenie unoszenia ramienia powyżej 90°.', tip: '„C5, 6, 7 – raise your wings to heaven".',
+    palsy: 'Łopatka skrzydłowata, ograniczenie unoszenia ramienia powyżej 90°.', tip: '„C5, 6, 7 – raise your wings to heaven”.',
   },
   dorsal_scapular: {
     pl: 'Nerw grzbietowy łopatki', lat: 'N. dorsalis scapulae', roots: 'C4–C5', mesh: ['Dorsal scapular nerve'], path: ['Roots of brachial plexus'],
@@ -75,7 +75,7 @@ export default {
     mesh: ['Femoral nerve', 'Anterior cutaneous branches of femoral nerve', 'Saphenous nerve', 'Infrapatellar branch of saphenous nerve', 'Medial crural cutaneous branches of saphenous nerve'],
     course: 'Ze splotu lędźwiowego; między m. psoas a m. iliacus, pod więzadłem pachwinowym przez rozstęp mięśni (bocznie od tętnicy udowej), w trójkącie udowym rozpada się na gałęzie. Najdłuższa gałąź: n. saphenus (kanał przywodzicieli → przyśrodkowa strona goleni).',
     motor: 'M. iliacus, m. quadriceps femoris, m. sartorius, m. pectineus.', sensory: 'Przednia powierzchnia uda; przyśrodkowa powierzchnia goleni i stopy (n. saphenus).',
-    palsy: 'Osłabienie zgięcia biodra i brak wyprostu kolana (uginanie kolana przy schodzeniu ze schodów), zniesiony odruch kolanowy.', tip: 'W trójkącie udowym od boku: N-A-V-L (Nerw, Arteria, Vena, Limfatyki) – „NAVeL".',
+    palsy: 'Osłabienie zgięcia biodra i brak wyprostu kolana (uginanie kolana przy schodzeniu ze schodów), zniesiony odruch kolanowy.', tip: 'W trójkącie udowym od boku: N-A-V-L (Nerw, Arteria, Vena, Limfatyki) – „NAVeL”.',
   },
   obturator: {
     pl: 'Nerw zasłonowy', lat: 'N. obturatorius', roots: 'L2–L4', mesh: ['Obturator nerve', 'Anterior branch of obturator nerve', 'Posterior branch of obturator nerve'], path: [],
@@ -101,12 +101,12 @@ export default {
     mesh: ['Common fibular nerve', 'Sural communicating branch of common fibular nerve'],
     course: 'Wzdłuż ścięgna m. biceps femoris, owija szyjkę strzałki (tuż pod skórą!), dzieli się na n. fibularis superficialis i profundus.',
     motor: 'Głowa krótka m. biceps femoris; przez gałęzie – grupa przednia i boczna goleni.', sensory: 'Boczna powierzchnia goleni (n. cutaneus surae lateralis).',
-    palsy: 'Najczęściej uszkadzany nerw kończyny dolnej (gips, zakładanie nogi na nogę, złamanie szyjki strzałki): stopa opadająca i chód brodzący, niedoczulica grzbietu stopy.', tip: 'Szyjka strzałki = „słaby punkt".',
+    palsy: 'Najczęściej uszkadzany nerw kończyny dolnej (gips, zakładanie nogi na nogę, złamanie szyjki strzałki): stopa opadająca i chód brodzący, niedoczulica grzbietu stopy.', tip: 'Szyjka strzałki = „słaby punkt”.',
   },
   deep_fibular: {
     pl: 'Nerw strzałkowy głęboki', lat: 'N. fibularis profundus', roots: 'L4–S1', path: ['Sciatic nerve', 'Common fibular nerve'],
     mesh: ['Deep fibular nerve', 'Muscular branches of deep fibular nerve', 'Dorsal digital branches of deep fibular nerve'],
-    course: 'W przedziale przednim goleni z a. tibialis anterior, na grzbiet stopy.', motor: 'Grupa przednia goleni (m. tibialis anterior, EHL, EDL, fibularis tertius), m. extensor digitorum brevis.', sensory: 'Skóra pierwszej przestrzeni międzypalcowej („klapek japonka").',
+    course: 'W przedziale przednim goleni z a. tibialis anterior, na grzbiet stopy.', motor: 'Grupa przednia goleni (m. tibialis anterior, EHL, EDL, fibularis tertius), m. extensor digitorum brevis.', sensory: 'Skóra pierwszej przestrzeni międzypalcowej („klapek japonka”).',
     palsy: 'Stopa opadająca; zespół ciasnoty przedziału przedniego.', tip: 'Pole czuciowe = pasek japonki.',
   },
   superficial_fibular: {
@@ -122,12 +122,12 @@ export default {
   pudendal: {
     pl: 'Nerw sromowy', lat: 'N. pudendus', roots: 'S2–S4', mesh: ['Pudendal nerve'], path: [],
     course: 'Wychodzi przez otwór podgruszkowy, owija kolec kulszowy i wraca przez otwór kulszowy mniejszy do kanału sromowego (Alcocka).', motor: 'Zwieracz zewnętrzny odbytu i cewki, mięśnie krocza.', sensory: 'Skóra krocza i narządów płciowych zewnętrznych.',
-    palsy: 'Neuralgia n. sromowego (ból przy siedzeniu), nietrzymanie.', tip: '„S2, 3, 4 keeps the pelvis off the floor".',
+    palsy: 'Neuralgia n. sromowego (ból przy siedzeniu), nietrzymanie.', tip: '„S2, 3, 4 keeps the pelvis off the floor”.',
   },
   intercostal: {
     pl: 'Nerwy międzyżebrowe', lat: 'Nn. intercostales', roots: 'Th1–Th11', mesh: ['Intercostal nerves'], path: [],
     course: 'Gałęzie brzuszne nerwów piersiowych; w bruździe żebra pod żyłą i tętnicą (V-A-N), między mm. międzyżebrowymi wewnętrznymi a najgłębszymi; dolne (Th7–Th11) przechodzą na ścianę brzucha.',
-    motor: 'Mm. intercostales, mięśnie ściany brzucha.', sensory: 'Skóra klatki piersiowej i brzucha (dermatomy: Th4 – brodawka sutkowa, Th10 – pępek).', palsy: 'Neuralgia międzyżebrowa, półpasiec.', tip: 'Th4 – sutek, Th10 – pępek („T-ten = belly bu-TEN").',
+    motor: 'Mm. intercostales, mięśnie ściany brzucha.', sensory: 'Skóra klatki piersiowej i brzucha (dermatomy: Th4 – brodawka sutkowa, Th10 – pępek).', palsy: 'Neuralgia międzyżebrowa, półpasiec.', tip: 'Th4 – sutek, Th10 – pępek („T-ten = belly bu-TEN”).',
   },
   accessory: {
     pl: 'Nerw dodatkowy (XI)', lat: 'N. accessorius', roots: 'C1–C5 (korzeń rdzeniowy)', mesh: ['Accessory nerve (XI)'], path: [],

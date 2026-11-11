@@ -55,7 +55,7 @@ export function initSrs(ctx) {
     cur.ent = ent;
     await ctx.need('bones', 'muscles', 'nerves', 'attachments');
     stage(false);
-    engine.focus(ent.ids.length ? ent.ids : [], { pad: 2.1 });
+    engine.focus(ent.ids, { pad: 2.1, dir: ctx.entDir(ent) });
     render();
   }
   function stage(revealed) {

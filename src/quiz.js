@@ -76,7 +76,7 @@ export function initQuiz(ctx) {
       view.only = null;
       view.iso = { focus: new Set(ent.ids), side: S.side, others: 'ghost', show: {} };
       ent.ids.forEach((i) => view.tints.set(i, '#35c98a'));
-      applyView(); engine.focus(ent.ids, { pad: 2.6 });
+      applyView(); engine.focus(ent.ids, { pad: 2.6, dir: ctx.entDir(ent) });
       const opts = shuffle([it, ...shuffle(P.filter((x) => x.key !== it.key)).slice(0, 3)]);
       S.cur = { it, ent, opts };
       panelBody.innerHTML = `${scoreHtml()}<div class="qtext">Co to za struktura (podświetlona na zielono)?</div>
@@ -89,7 +89,7 @@ export function initQuiz(ctx) {
       for (const o of shuffle(P.filter((x) => x.key !== it.key && MUSCLES[x.key].grp === MUSCLES[it.key].grp).concat(shuffle(P.slice())))) {
         const v = val(o.key); if (!v || used.has(v)) continue; used.add(v); opts.push({ t: v }); if (opts.length === 4) break;
       }
-      view.only = null; view.iso = { focus: new Set(ent.ids), side: S.side, others: 'ghost', show: {} }; applyView(); engine.focus(ent.ids, { pad: 2.2 });
+      view.only = null; view.iso = { focus: new Set(ent.ids), side: S.side, others: 'ghost', show: {} }; applyView(); engine.focus(ent.ids, { pad: 2.2, dir: ctx.entDir(ent) });
       S.cur = { it, ent, opts: shuffle(opts), field };
       panelBody.innerHTML = `${scoreHtml()}<div class="qtext">${esc(ask(MUSCLES[it.key]))}</div><p class="en">${esc(it.title)}</p>
         <div class="opts">${S.cur.opts.map((o, i) => `<button data-opt="${i}">${esc(o.t)}</button>`).join('')}</div>
@@ -139,7 +139,7 @@ export function initQuiz(ctx) {
       if (S.type !== 'point' || !S.cur || S.answered) return true;
       if (!hit) return true;
       const ent = model.entityOf(hit.id);
-      if (model.meta[hit.id].layer === 'bones' && S.cur.it.kind !== 'struct') return true; // kość w tle – ignoruj
+      if (model.meta[hit.id].layer === 'bones' && !(S.cur.it.kind === 'struct' && S.sys === 'bones')) return true; // kość w tle – ignoruj
       const ok = sameItem(ent, S.cur.it);
       if (!ok) ent.ids.forEach((i) => view.tints.set(i, '#ff5a5a'));
       reveal();

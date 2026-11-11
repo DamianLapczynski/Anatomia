@@ -12,7 +12,7 @@ export default {
     a: 'A. transversa colli (r. superficialis), a. occipitalis.', ar: ['Transverse cervical artery', 'Occipital artery'],
     f: ['Część zstępująca: unosi łopatkę i bark, obraca łopatkę kątem dolnym do boku', 'Część poprzeczna: przywodzi łopatkę do kręgosłupa (retrakcja)', 'Część wstępująca: obniża łopatkę i obraca ją kątem dolnym do boku', 'Obustronnie: prostuje głowę i odcinek szyjny'],
     k: 'Porażenie n. XI (np. po operacjach w trójkącie bocznym szyi): opadnięcie barku, odstawanie łopatki nasilające się przy odwodzeniu, niemożność odwiedzenia ramienia powyżej 90°. Część zstępująca bywa nadaktywna i bolesna przy pracy siedzącej; część wstępująca często osłabiona – kluczowa dla rotacji górnej łopatki.',
-    s: 'Trzy części = trzy kierunki ciągu na łopatkę: w górę, do środka, w dół. Razem z m. zębatym przednim tworzy „parę sił" obracającą łopatkę przy unoszeniu ręki nad głowę.',
+    s: 'Trzy części = trzy kierunki ciągu na łopatkę: w górę, do środka, w dół. Razem z m. zębatym przednim tworzy „parę sił” obracającą łopatkę przy unoszeniu ręki nad głowę.',
   },
   latissimus_dorsi: {
     pl: 'Mięsień najszerszy grzbietu', lat: 'M. latissimus dorsi', grp: 'Grzbiet – warstwa powierzchowna', reg: 'tu',
@@ -23,7 +23,7 @@ export default {
     a: 'A. thoracodorsalis.', ar: ['Thoracodorsal artery'],
     f: ['Przywodzenie ramienia', 'Prostowanie (wyprost) ramienia', 'Rotacja wewnętrzna ramienia', 'Przy ustalonych ramionach podciąga tułów (wspinanie, podciąganie na drążku)', 'Pomocniczy mięsień wydechowy (kaszel)'],
     k: 'Główny mięsień napędowy w pływaniu (faza pociągnięcia w kraulu i motylku). Skrócenie ogranicza zgięcie ramienia nad głowę i zwiększa lordozę lędźwiową przy unoszeniu rąk. Używany jako płat w chirurgii rekonstrukcyjnej.',
-    s: '„Mięsień pływaka i wspinacza" – ruch jak przy chowaniu ręki do tylnej kieszeni: wyprost + przywiedzenie + rotacja wewnętrzna.',
+    s: '„Mięsień pływaka i wspinacza” – ruch jak przy chowaniu ręki do tylnej kieszeni: wyprost + przywiedzenie + rotacja wewnętrzna.',
   },
   levator_scapulae: {
     pl: 'Mięsień dźwigacz łopatki', lat: 'M. levator scapulae', grp: 'Grzbiet – warstwa powierzchowna', reg: 'tu',
@@ -33,8 +33,8 @@ export default {
     n: 'N. grzbietowy łopatki (n. dorsalis scapulae, C5) oraz gałęzie splotu szyjnego C3–C4.', nr: ['Dorsal scapular nerve'],
     a: 'A. dorsalis scapulae, a. cervicalis ascendens.', ar: ['(Deep branch of transverse cervical artery)'],
     f: ['Unosi łopatkę', 'Obraca łopatkę kątem dolnym do przyśrodka (rotacja dolna)', 'Przy ustalonej łopatce: zgięcie boczne i rotacja szyi w tę samą stronę'],
-    k: 'Typowy punkt bolesny przy kącie górnym łopatki („sztywny kark"). Nadaktywny przy protrakcji głowy i unoszeniu barków.',
-    s: 'Biegnie jak szelka od karku do górnego rogu łopatki – „wzruszanie ramionami".',
+    k: 'Typowy punkt bolesny przy kącie górnym łopatki („sztywny kark”). Nadaktywny przy protrakcji głowy i unoszeniu barków.',
+    s: 'Biegnie jak szelka od karku do górnego rogu łopatki – „wzruszanie ramionami”.',
   },
   rhomboid_major: {
     pl: 'Mięsień równoległoboczny większy', lat: 'M. rhomboideus major', grp: 'Grzbiet – warstwa powierzchowna', reg: 'tu',
@@ -45,7 +45,7 @@ export default {
     a: 'A. dorsalis scapulae.', ar: ['(Deep branch of transverse cervical artery)'],
     f: ['Przywodzi łopatkę do kręgosłupa (retrakcja)', 'Unosi łopatkę', 'Obraca łopatkę kątem dolnym do przyśrodka', 'Dociska brzeg przyśrodkowy łopatki do klatki piersiowej'],
     k: 'Osłabienie → protrakcja barków i odstawanie brzegu przyśrodkowego łopatki. Antagonista m. zębatego przedniego w ruchu protrakcji, ale synergista w stabilizacji łopatki.',
-    s: 'Włókna skośne w dół i do boku – „ściągnij łopatki".',
+    s: 'Włókna skośne w dół i do boku – „ściągnij łopatki”.',
   },
   rhomboid_minor: {
     pl: 'Mięsień równoległoboczny mniejszy', lat: 'M. rhomboideus minor', grp: 'Grzbiet – warstwa powierzchowna', reg: 'tu',
@@ -56,7 +56,7 @@ export default {
     a: 'A. dorsalis scapulae.', ar: ['(Deep branch of transverse cervical artery)'],
     f: ['Retrakcja i uniesienie łopatki', 'Rotacja dolna łopatki'],
     k: 'Czynnościowo stanowi całość z m. równoległobocznym większym.',
-    s: 'Mniejszy leży wyżej – „minor nad majorem".',
+    s: 'Mniejszy leży wyżej – „minor nad majorem”.',
   },
   serratus_anterior: {
     pl: 'Mięsień zębaty przedni', lat: 'M. serratus anterior', grp: 'Klatka piersiowa – mięśnie powierzchowne', reg: 'tu',
@@ -67,7 +67,7 @@ export default {
     a: 'A. thoracica lateralis, a. thoracodorsalis.', ar: ['Lateral thoracic artery', 'Thoracodorsal artery'],
     f: ['Protrakcja łopatki (wysuwa ją do przodu po klatce piersiowej)', 'Obraca łopatkę kątem dolnym do boku – umożliwia uniesienie ramienia powyżej 90°', 'Dociska łopatkę do klatki piersiowej', 'Przy ustalonej łopatce pomocniczy mięsień wdechowy'],
     k: 'Porażenie n. piersiowego długiego → łopatka skrzydłowata (scapula alata), najlepiej widoczna przy opieraniu rąk o ścianę; ograniczenie unoszenia ramienia. Nerw biegnie powierzchownie po ścianie bocznej klatki – narażony przy urazach i zabiegach pachowych.',
-    s: '„Mięsień boksera" – wypycha łopatkę przy ciosie prostym i przy „pompce z plusem".',
+    s: '„Mięsień boksera” – wypycha łopatkę przy ciosie prostym i przy „pompce z plusem”.',
   },
   pectoralis_major: {
     pl: 'Mięsień piersiowy większy', lat: 'M. pectoralis major', grp: 'Klatka piersiowa – mięśnie powierzchowne', reg: 'tu',
@@ -79,7 +79,7 @@ export default {
     a: 'Rr. pectorales a. thoracoacromialis, a. thoracica lateralis, a. thoracica interna.', ar: ['Thoraco-acromial artery', 'Lateral thoracic artery', 'Internal thoracic artery'],
     f: ['Przywodzenie ramienia', 'Rotacja wewnętrzna ramienia', 'Część obojczykowa: zgięcie ramienia', 'Część mostkowo-żebrowa: opuszcza uniesione ramię (wyprost z pozycji zgięcia)', 'Przywodzenie horyzontalne', 'Przy ustalonych ramionach pomocniczy mięsień wdechowy'],
     k: 'Skrócenie → protrakcja i rotacja wewnętrzna barków. Tworzy przedni fałd pachowy. Zerwanie ścięgna zwykle przy wyciskaniu sztangi.',
-    s: 'Ruch „obejmowania" i pociągnięcia w kraulu. Skręt włókien rozplata się przy uniesieniu ramienia.',
+    s: 'Ruch „obejmowania” i pociągnięcia w kraulu. Skręt włókien rozplata się przy uniesieniu ramienia.',
   },
   pectoralis_minor: {
     pl: 'Mięsień piersiowy mniejszy', lat: 'M. pectoralis minor', grp: 'Klatka piersiowa – mięśnie powierzchowne', reg: 'tu',
@@ -90,7 +90,7 @@ export default {
     a: 'A. thoracoacromialis, a. thoracica lateralis.', ar: ['Thoraco-acromial artery', 'Lateral thoracic artery'],
     f: ['Obniża i pochyla łopatkę do przodu (tilt przedni)', 'Protrakcja i rotacja dolna łopatki', 'Przy ustalonej łopatce unosi żebra (wdech)'],
     k: 'Pod nim przebiegają pęczki splotu ramiennego i naczynia pachowe – skrócenie może dawać objawy zespołu górnego otworu klatki piersiowej (hiperabdukcyjnego). Skrócenie = bark wysunięty do przodu.',
-    s: 'Most nad „autostradą" nerwowo-naczyniową do ręki.',
+    s: 'Most nad „autostradą” nerwowo-naczyniową do ręki.',
   },
   subclavius: {
     pl: 'Mięsień podobojczykowy', lat: 'M. subclavius', grp: 'Klatka piersiowa – mięśnie powierzchowne', reg: 'tu',
@@ -101,7 +101,7 @@ export default {
     a: 'A. thoracoacromialis (r. clavicularis).', ar: ['Thoraco-acromial artery'],
     f: ['Obniża obojczyk i dociska go do mostka – stabilizuje staw mostkowo-obojczykowy'],
     k: 'Chroni naczynia podobojczykowe przy złamaniu obojczyka.',
-    s: 'Mała „poduszka" pod obojczykiem.',
+    s: 'Mała „poduszka” pod obojczykiem.',
   },
   deltoid: {
     pl: 'Mięsień naramienny', lat: 'M. deltoideus', grp: 'Obręcz barkowa', reg: 'kg',
@@ -112,7 +112,7 @@ export default {
     n: 'N. pachowy (n. axillaris, C5–C6).', nr: ['Axillary nerve'],
     a: 'A. circumflexa humeri posterior, r. deltoideus a. thoracoacromialis.', ar: ['Posterior circumflex humeral artery', 'Thoraco-acromial artery'],
     f: ['Część barkowa: odwodzenie ramienia (główny odwodziciel od ok. 15°)', 'Część obojczykowa: zgięcie i rotacja wewnętrzna', 'Część grzebieniowa: wyprost i rotacja zewnętrzna', 'Powyżej 60° odwiedzenia wszystkie części odwodzą'],
-    k: 'N. pachowy owija szyjkę chirurgiczną kości ramiennej – uszkadzany przy jej złamaniu i zwichnięciu przednim stawu ramiennego: zanik naramiennego („bark kanciasty"), brak czucia na bocznej powierzchni barku. Miejsce iniekcji domięśniowych.',
+    k: 'N. pachowy owija szyjkę chirurgiczną kości ramiennej – uszkadzany przy jej złamaniu i zwichnięciu przednim stawu ramiennego: zanik naramiennego („bark kanciasty”), brak czucia na bocznej powierzchni barku. Miejsce iniekcji domięśniowych.',
     s: 'Trzy części działają jak trzy osobne mięśnie – przednia i tylna są dla siebie antagonistami.',
   },
   supraspinatus: {
@@ -124,7 +124,7 @@ export default {
     a: 'A. suprascapularis.', ar: ['Suprascapular artery'],
     f: ['Rozpoczyna odwodzenie ramienia (pierwsze ok. 15°)', 'Dociska głowę kości ramiennej do panewki (stabilizacja)', 'Napina torebkę stawową'],
     k: 'Najczęściej uszkadzane ścięgno stożka rotatorów – przechodzi pod łukiem barkowo-kruczym (konflikt podbarkowy, bolesny łuk 60–120°). Testy: Jobe’a (empty can), opadającego ramienia.',
-    s: '„Starter" odwodzenia – naramienny przejmuje dalej.',
+    s: '„Starter” odwodzenia – naramienny przejmuje dalej.',
   },
   infraspinatus: {
     pl: 'Mięsień podgrzebieniowy', lat: 'M. infraspinatus', grp: 'Stożek rotatorów', reg: 'kg',
@@ -135,7 +135,7 @@ export default {
     a: 'A. suprascapularis, a. circumflexa scapulae.', ar: ['Suprascapular artery', 'Circumflex scapular artery'],
     f: ['Rotacja zewnętrzna ramienia (najsilniejszy rotator zewnętrzny)', 'Stabilizacja głowy kości ramiennej – zapobiega jej przesuwaniu ku tyłowi i górze'],
     k: 'Ucisk n. nadłopatkowego we wcięciu łopatki lub wcięciu panewkowo-grzebieniowym (siatkarze) → izolowany zanik. Test: rotacja zewnętrzna z oporem przy łokciu przy tułowiu.',
-    s: 'Kolejność na guzku większym od góry: Supraspinatus – Infraspinatus – Teres minor („SIT"), a Subscapularis na guzku mniejszym.',
+    s: 'Kolejność na guzku większym od góry: Supraspinatus – Infraspinatus – Teres minor („SIT”), a Subscapularis na guzku mniejszym.',
   },
   teres_minor: {
     pl: 'Mięsień obły mniejszy', lat: 'M. teres minor', grp: 'Stożek rotatorów', reg: 'kg',
@@ -157,7 +157,7 @@ export default {
     a: 'A. subscapularis.', ar: ['Subscapular artery'],
     f: ['Rotacja wewnętrzna ramienia (najsilniejszy rotator wewnętrzny)', 'Przywodzenie', 'Przednia stabilizacja stawu ramiennego'],
     k: 'Testy: lift-off (Gerbera), belly-press. Skrócenie ogranicza rotację zewnętrzną.',
-    s: 'Jedyny mięsień stożka na przedniej stronie łopatki – „schowany" między łopatką a żebrami.',
+    s: 'Jedyny mięsień stożka na przedniej stronie łopatki – „schowany” między łopatką a żebrami.',
   },
   teres_major: {
     pl: 'Mięsień obły większy', lat: 'M. teres major', grp: 'Obręcz barkowa', reg: 'kg',
@@ -168,7 +168,7 @@ export default {
     a: 'A. circumflexa scapulae, a. thoracodorsalis.', ar: ['Circumflex scapular artery', 'Thoracodorsal artery'],
     f: ['Przywodzenie ramienia', 'Wyprost ramienia', 'Rotacja wewnętrzna'],
     k: 'Tworzy z m. najszerszym grzbietu tylny fałd pachowy; nie należy do stożka rotatorów.',
-    s: '„Mały pomocnik najszerszego grzbietu" – te same trzy ruchy.',
+    s: '„Mały pomocnik najszerszego grzbietu” – te same trzy ruchy.',
   },
   biceps_brachii: {
     pl: 'Mięsień dwugłowy ramienia', lat: 'M. biceps brachii', grp: 'Ramię – grupa przednia', reg: 'kg',
@@ -179,7 +179,7 @@ export default {
     n: 'N. mięśniowo-skórny (n. musculocutaneus, C5–C6).', nr: ['Musculocutaneous nerve'],
     a: 'A. brachialis.', ar: ['Brachial artery'],
     f: ['Zgięcie w stawie łokciowym', 'Supinacja przedramienia (najsilniejsza przy łokciu zgiętym do 90°)', 'Głowa długa: słabe odwodzenie i stabilizacja głowy kości ramiennej', 'Głowa krótka: słabe przywodzenie i zgięcie ramienia'],
-    k: 'Ścięgno głowy długiej biegnie w bruździe międzyguzkowej przez staw ramienny – tendinopatia, uszkodzenia SLAP; zerwanie → objaw „Popeye’a". Odruch z m. dwugłowego bada segment C5–C6. Testy: Speeda, Yergasona.',
+    k: 'Ścięgno głowy długiej biegnie w bruździe międzyguzkowej przez staw ramienny – tendinopatia, uszkodzenia SLAP; zerwanie → objaw „Popeye’a”. Odruch z m. dwugłowego bada segment C5–C6. Testy: Speeda, Yergasona.',
     s: 'Korkociąg: najpierw wkręcasz (supinacja), potem wyciągasz korek (zgięcie).',
   },
   coracobrachialis: {
@@ -191,7 +191,7 @@ export default {
     a: 'A. brachialis.', ar: ['Brachial artery'],
     f: ['Zgięcie ramienia', 'Przywodzenie ramienia', 'Stabilizacja głowy kości ramiennej w panewce'],
     k: 'Punkt orientacyjny dla n. mięśniowo-skórnego.',
-    s: 'Nazwa = przyczepy: od „kruczego" do „ramiennej".',
+    s: 'Nazwa = przyczepy: od „kruczego” do „ramiennej”.',
   },
   brachialis: {
     pl: 'Mięsień ramienny', lat: 'M. brachialis', grp: 'Ramię – grupa przednia', reg: 'kg',
@@ -214,7 +214,7 @@ export default {
     a: 'A. profunda brachii.', ar: ['Deep brachial artery'],
     f: ['Wyprost w stawie łokciowym', 'Głowa długa: wyprost i przywodzenie ramienia'],
     k: 'Odruch z m. trójgłowego – segment C7. Uszkodzenie n. promieniowego w bruździe (złamanie trzonu k. ramiennej) zwykle oszczędza trójgłowy (gałęzie odchodzą wyżej) – wyprost łokcia zachowany, ale ręka opadająca. Głowa długa oddziela otwór czworoboczny od trójbocznego.',
-    s: 'Jedyny prostownik łokcia z prawdziwego zdarzenia – „odpychanie", pompki.',
+    s: 'Jedyny prostownik łokcia z prawdziwego zdarzenia – „odpychanie”, pompki.',
   },
   anconeus: {
     pl: 'Mięsień łokciowy', lat: 'M. anconeus', grp: 'Ramię – grupa tylna', reg: 'kg',
@@ -248,7 +248,7 @@ export default {
     a: 'A. radialis.', ar: ['Radial artery'],
     f: ['Zgięcie dłoniowe nadgarstka', 'Odwodzenie promieniowe ręki', 'Słaba pronacja'],
     k: 'Bocznie od jego ścięgna bada się tętno na a. radialis.',
-    s: 'Ścięgno „drogowskaz" do tętna promieniowego.',
+    s: 'Ścięgno „drogowskaz” do tętna promieniowego.',
   },
   palmaris_longus: {
     pl: 'Mięsień dłoniowy długi', lat: 'M. palmaris longus', grp: 'Przedramię – grupa przednia, warstwa powierzchowna', reg: 'kg',
@@ -259,7 +259,7 @@ export default {
     a: 'A. ulnaris.', ar: ['Ulnar artery'],
     f: ['Napina rozcięgno dłoniowe', 'Słabe zgięcie nadgarstka'],
     k: 'Brak u ok. 15% ludzi; ścięgno pobierane do przeszczepów. N. pośrodkowy leży tuż pod nim / bocznie.',
-    s: 'Złącz kciuk z małym palcem i zegnij nadgarstek – ścięgno „wyskakuje" na środku.',
+    s: 'Złącz kciuk z małym palcem i zegnij nadgarstek – ścięgno „wyskakuje” na środku.',
   },
   flexor_carpi_ulnaris: {
     pl: 'Mięsień zginacz łokciowy nadgarstka', lat: 'M. flexor carpi ulnaris', grp: 'Przedramię – grupa przednia, warstwa powierzchowna', reg: 'kg',
@@ -271,19 +271,19 @@ export default {
     a: 'A. ulnaris.', ar: ['Ulnar artery'],
     f: ['Zgięcie dłoniowe nadgarstka', 'Przywodzenie łokciowe ręki'],
     k: 'Jedyny mięsień powierzchowny grupy przedniej unerwiony przez n. łokciowy. Kość grochowata jest trzeszczką w jego ścięgnie.',
-    s: '„Łokciowy" w nazwie = n. łokciowy.',
+    s: '„Łokciowy” w nazwie = n. łokciowy.',
   },
   flexor_digitorum_superficialis: {
     pl: 'Mięsień zginacz powierzchowny palców', lat: 'M. flexor digitorum superficialis', grp: 'Przedramię – grupa przednia, warstwa pośrednia', reg: 'kg',
     mesh: ['Humero-ulnar head of flexor digitorum superficialis', 'Radial head of flexor digitorum superficialis'],
     att: ['Flexor digitorum superficialis', 'Common flexor tendon'],
     o: 'Głowa ramienno-łokciowa: nadkłykieć przyśrodkowy i wyrostek dziobiasty. Głowa promieniowa: przednia powierzchnia kości promieniowej.',
-    i: 'Paliczki środkowe palców II–V (dwoma pasmami – ścięgno „przeszyte", tendo perforatus).',
+    i: 'Paliczki środkowe palców II–V (dwoma pasmami – ścięgno „przeszyte”, tendo perforatus).',
     n: 'N. pośrodkowy (C7–Th1).', nr: ['Median nerve'],
     a: 'A. ulnaris, a. radialis.', ar: ['Ulnar artery', 'Radial artery'],
     f: ['Zgięcie w stawach międzypaliczkowych bliższych (PIP) palców II–V', 'Zgięcie w stawach MCP i nadgarstka'],
     k: 'Test: zgięcie PIP badanego palca przy unieruchomieniu pozostałych w wyproście (wyłącza FDP).',
-    s: 'Powierzchowny kończy się bliżej (paliczek środkowy), głęboki dalej (dalszy) – głęboki „przebija" powierzchowny.',
+    s: 'Powierzchowny kończy się bliżej (paliczek środkowy), głęboki dalej (dalszy) – głęboki „przebija” powierzchowny.',
   },
   flexor_digitorum_profundus: {
     pl: 'Mięsień zginacz głęboki palców', lat: 'M. flexor digitorum profundus', grp: 'Przedramię – grupa przednia, warstwa głęboka', reg: 'kg',
@@ -293,7 +293,7 @@ export default {
     n: 'Część promieniowa (palce II–III): n. międzykostny przedni od n. pośrodkowego. Część łokciowa (palce IV–V): n. łokciowy. (C8–Th1)', nr: ['Anterior interosseous nerve of forearm', 'Ulnar nerve'],
     a: 'A. interossea anterior, a. ulnaris.', ar: ['Common interosseous artery', 'Ulnar artery'],
     f: ['Zgięcie w stawach międzypaliczkowych dalszych (DIP) palców II–V', 'Zgięcie PIP, MCP i nadgarstka'],
-    k: 'Podwójne unerwienie: uszkodzenie n. pośrodkowego → „ręka błogosławiąca" przy próbie zaciśnięcia pięści; n. łokciowego → osłabienie zgięcia DIP palców IV–V. Od jego ścięgien odchodzą mm. glistowate.',
+    k: 'Podwójne unerwienie: uszkodzenie n. pośrodkowego → „ręka błogosławiąca” przy próbie zaciśnięcia pięści; n. łokciowego → osłabienie zgięcia DIP palców IV–V. Od jego ścięgien odchodzą mm. glistowate.',
     s: 'Jedyny mięsień zginający DIP.',
   },
   flexor_pollicis_longus: {
@@ -304,8 +304,8 @@ export default {
     n: 'N. międzykostny przedni (od n. pośrodkowego, C7–C8).', nr: ['Anterior interosseous nerve of forearm'],
     a: 'A. interossea anterior.', ar: ['Common interosseous artery'],
     f: ['Zgięcie stawu międzypaliczkowego kciuka', 'Zgięcie MCP kciuka'],
-    k: 'Zespół n. międzykostnego przedniego: brak zgięcia IP kciuka i DIP wskaziciela – nie da się zrobić znaku „OK" (kółka).',
-    s: 'Znak „OK" = FPL + FDP wskaziciela = n. międzykostny przedni.',
+    k: 'Zespół n. międzykostnego przedniego: brak zgięcia IP kciuka i DIP wskaziciela – nie da się zrobić znaku „OK” (kółka).',
+    s: 'Znak „OK” = FPL + FDP wskaziciela = n. międzykostny przedni.',
   },
   pronator_quadratus: {
     pl: 'Mięsień nawrotny czworoboczny', lat: 'M. pronator quadratus', grp: 'Przedramię – grupa przednia, warstwa głęboka', reg: 'kg',
@@ -316,7 +316,7 @@ export default {
     a: 'A. interossea anterior.', ar: ['Common interosseous artery'],
     f: ['Pronacja przedramienia (główny pronator, działa w każdym ustawieniu łokcia)', 'Spina dalsze końce kości przedramienia'],
     k: 'Test izolowany: pronacja przy maksymalnie zgiętym łokciu (wyłącza m. nawrotny obły).',
-    s: 'Poprzeczny „plaster" nad nadgarstkiem.',
+    s: 'Poprzeczny „plaster” nad nadgarstkiem.',
   },
   brachioradialis: {
     pl: 'Mięsień ramienno-promieniowy', lat: 'M. brachioradialis', grp: 'Przedramię – grupa boczna', reg: 'kg',
@@ -326,8 +326,8 @@ export default {
     n: 'N. promieniowy (C5–C6).', nr: ['Radial nerve'],
     a: 'A. recurrens radialis.', ar: ['Radial artery'],
     f: ['Zgięcie łokcia – najsilniej w pozycji pośredniej przedramienia', 'Ustawia przedramię w pozycji pośredniej (z pronacji supinuje, z supinacji pronuje)'],
-    k: 'Zginacz unerwiony przez „nerw prostowników". Odruch ramienno-promieniowy – C5–C6.',
-    s: '„Mięsień kufla" – trzymanie kufla lub młotka (chwyt młotkowy).',
+    k: 'Zginacz unerwiony przez „nerw prostowników”. Odruch ramienno-promieniowy – C5–C6.',
+    s: '„Mięsień kufla” – trzymanie kufla lub młotka (chwyt młotkowy).',
   },
   extensor_carpi_radialis_longus: {
     pl: 'Mięsień prostownik promieniowy długi nadgarstka', lat: 'M. extensor carpi radialis longus', grp: 'Przedramię – grupa boczna', reg: 'kg',
@@ -348,7 +348,7 @@ export default {
     n: 'N. promieniowy – gałąź głęboka (C7–C8).', nr: ['Deep branch of radial nerve'],
     a: 'A. radialis.', ar: ['Radial artery'],
     f: ['Wyprost nadgarstka', 'Słabe odwodzenie promieniowe'],
-    k: 'Główne ścięgno objęte zmianami w „łokciu tenisisty" (entezopatia nadkłykcia bocznego). Test: wyprost nadgarstka lub III palca z oporem (Cozena, Maudsleya).',
+    k: 'Główne ścięgno objęte zmianami w „łokciu tenisisty” (entezopatia nadkłykcia bocznego). Test: wyprost nadgarstka lub III palca z oporem (Cozena, Maudsleya).',
     s: 'ECRB = Epicondylitis lateralis.',
   },
   extensor_digitorum: {
@@ -371,7 +371,7 @@ export default {
     a: 'A. interossea posterior.', ar: ['Posterior interosseous artery'],
     f: ['Wyprost palca V'],
     k: 'Dzięki niemu i prostownikowi wskaziciela palce II i V prostują się niezależnie.',
-    s: 'Gest „rogów" – wskaziciel i mały palec mają własne prostowniki.',
+    s: 'Gest „rogów” – wskaziciel i mały palec mają własne prostowniki.',
   },
   extensor_carpi_ulnaris: {
     pl: 'Mięsień prostownik łokciowy nadgarstka', lat: 'M. extensor carpi ulnaris', grp: 'Przedramię – grupa tylna, warstwa powierzchowna', reg: 'kg',
@@ -394,7 +394,7 @@ export default {
     a: 'A. recurrens radialis, a. interossea recurrens.', ar: ['Radial artery'],
     f: ['Supinacja przedramienia (w każdym ustawieniu łokcia; przy wyprostowanym łokciu główny supinator)'],
     k: 'Zespół kanału m. odwracacza: ucisk gałęzi głębokiej n. promieniowego → osłabienie prostowników palców bez zaburzeń czucia.',
-    s: 'Supinacja = „trzymam zupę" na dłoni.',
+    s: 'Supinacja = „trzymam zupę” na dłoni.',
   },
   abductor_pollicis_longus: {
     pl: 'Mięsień odwodziciel długi kciuka', lat: 'M. abductor pollicis longus', grp: 'Przedramię – grupa tylna, warstwa głęboka', reg: 'kg',
@@ -438,7 +438,7 @@ export default {
     a: 'A. interossea posterior.', ar: ['Posterior interosseous artery'],
     f: ['Wyprost wskaziciela (niezależny od pozostałych palców)'],
     k: 'Ścięgno często używane do transferów (np. w miejsce zerwanego EPL).',
-    s: 'Dzięki niemu „wskazujesz palcem".',
+    s: 'Dzięki niemu „wskazujesz palcem”.',
   },
   abductor_pollicis_brevis: {
     pl: 'Mięsień odwodziciel krótki kciuka', lat: 'M. abductor pollicis brevis', grp: 'Ręka – kłąb kciuka', reg: 'kg',
@@ -470,7 +470,7 @@ export default {
     n: 'N. pośrodkowy – gałąź wsteczna (C8–Th1).', nr: ['Median nerve'],
     a: 'R. palmaris superficialis a. radialis.', ar: ['Superficial palmar arch'],
     f: ['Opozycja kciuka – przeciwstawianie go pozostałym palcom (zgięcie + przywiedzenie + rotacja I kości śródręcza)'],
-    k: 'Utrata opozycji = „ręka małpia" przy porażeniu n. pośrodkowego.',
+    k: 'Utrata opozycji = „ręka małpia” przy porażeniu n. pośrodkowego.',
     s: 'Jedyny mięsień kłębu przyczepiony do kości śródręcza, a nie do paliczka.',
   },
   adductor_pollicis: {
@@ -514,7 +514,7 @@ export default {
     n: 'N. łokciowy – gałąź głęboka (C8–Th1).', nr: ['Deep branch of ulnar nerve'],
     a: 'A. ulnaris.', ar: ['Ulnar artery'],
     f: ['Przeciwstawia palec V kciukowi – pogłębia łuk dłoni'],
-    k: '', s: 'Pozwala „zrobić łódkę" z dłoni.',
+    k: '', s: 'Pozwala „zrobić łódkę” z dłoni.',
   },
   lumbricals_hand: {
     pl: 'Mięśnie glistowate ręki', lat: 'Mm. lumbricales manus', grp: 'Ręka – mięśnie środkowe', reg: 'kg',
@@ -525,7 +525,7 @@ export default {
     a: 'Arcus palmaris superficialis et profundus.', ar: ['Superficial palmar arch', 'Deep palmar arch'],
     f: ['Zgięcie w stawach MCP', 'Wyprost w stawach PIP i DIP'],
     k: 'Porażenie → ręka szponowata: przeprost MCP i zgięcie IP (n. łokciowy – palce IV–V).',
-    s: 'Pozycja „lumbrical grip" – jak trzymanie talerza lub pisanie.',
+    s: 'Pozycja „lumbrical grip” – jak trzymanie talerza lub pisanie.',
   },
   dorsal_interossei_hand: {
     pl: 'Mięśnie międzykostne grzbietowe ręki', lat: 'Mm. interossei dorsales manus', grp: 'Ręka – mięśnie środkowe', reg: 'kg',
