@@ -6,6 +6,7 @@ import { MOVES } from './data/movements.js';
 import { Motion } from './motion.js';
 import { initQuiz } from './quiz.js';
 import { initSrs } from './srs.js';
+import { initLearn } from './learn.js';
 import { landmarkPL } from './data/landmarks.js';
 
 const $ = (s, el = document) => el.querySelector(s);
@@ -19,7 +20,7 @@ const REG_PL = Object.fromEntries(REGIONS);
 const engine = new Engine($('#c'));
 const view = {
   layers: { bones: true, joints: false, muscles: true, fascia: false, attachments: false, arteries: false, veins: false, heart: false, nerves: false, cns: false },
-  side: 'both', region: 'all', hidden: new Set(), sel: new Set(), extra: new Set(), tints: new Map(), iso: null, only: null,
+  side: 'both', region: 'all', depth: 'all', hidden: new Set(), sel: new Set(), extra: new Set(), tints: new Map(), iso: null, only: null,
 };
 let model, labels = [], motion, mode = 'atlas', current = null, descCache = {};
 const modes = {};
@@ -27,7 +28,7 @@ const modes = {};
 // ---------- stan widoku ----------
 const CTX = ['att', 'bones', 'nerves', 'path', 'arteries', 'muscles'];
 function stateOf(m) {
-  if (view.hidden.has(m.id)) return null;
+  if (mode === 'atlas' && view.hidden.has(m.id) && !view.iso?.focus.has(m.id)) return null; // ukrycie działa tylko w atlasie
   const t = view.tints.get(m.id);
   if (t) return `tint:${t}`;
   const iso = view.iso;
@@ -41,6 +42,7 @@ function stateOf(m) {
   if (view.only) return view.only.has(m.id) ? `base:${m.layer}` : null;
   if (view.extra.has(m.id)) return view.sel.has(m.id) ? `sel:${m.layer}` : `base:${m.layer}`;
   if (!view.layers[m.layer]) return null;
+  if (m.layer === 'muscles' && view.depth !== 'all' && m.sup !== (view.depth === 'sup')) return null;
   if (view.side !== 'both' && m.s && m.s !== view.side) return null;
   if (view.region !== 'all' && m.reg !== view.region) return null;
   return view.sel.has(m.id) ? `sel:${m.layer}` : `base:${m.layer}`;
@@ -58,6 +60,8 @@ function renderLeft() {
   left.innerHTML = `
     <h4>Warstwy</h4>
     ${LAYERS.map(([k, n, c]) => `<div class="layer ${view.layers[k] ? 'on' : ''}" data-layer="${k}" style="--c:${c}"><i></i><span>${n}</span></div>`).join('')}
+    <h4>Warstwa mięśni</h4>
+    <div class="seg" data-seg="depth">${[['all', 'Wszystkie'], ['sup', 'Powierzchowne'], ['deep', 'Głębokie']].map(([k, n]) => `<button data-v="${k}" class="${view.depth === k ? 'on' : ''}">${n}</button>`).join('')}</div>
     <h4>Strona ciała</h4>
     <div class="seg" data-seg="side">${[['both', 'Obie'], ['r', 'Prawa'], ['l', 'Lewa']].map(([k, n]) => `<button data-v="${k}" class="${view.side === k ? 'on' : ''}">${n}</button>`).join('')}</div>
     <h4>Okolica</h4>
@@ -79,7 +83,7 @@ const PRESETS = {
 left.addEventListener('click', (e) => {
   const L = e.target.closest('[data-layer]'), S = e.target.closest('[data-seg] button'), P = e.target.closest('[data-preset]'), A = e.target.closest('[data-act]');
   if (L) { const k = L.dataset.layer; view.layers[k] = !view.layers[k]; exitIso(false); if (view.layers[k]) { hintLoad(k); need(k); } }
-  else if (S) { view[S.parentElement.dataset.seg] = S.dataset.v; exitIso(false); if (view.region !== 'all' || view.side !== 'both') focusVisible(); }
+  else if (S) { const k = S.parentElement.dataset.seg; view[k] = S.dataset.v; exitIso(false); if (k === 'depth' && !view.layers.muscles) { view.layers.muscles = true; need('muscles'); } if (k !== 'depth' && (view.region !== 'all' || view.side !== 'both')) focusVisible(); }
   else if (P) { for (const k in view.layers) view.layers[k] = PRESETS[P.dataset.preset].includes(k); exitIso(false); need(...PRESETS[P.dataset.preset]); }
   else if (A?.dataset.act === 'showall') view.hidden.clear();
   else if (A?.dataset.act === 'reset') { if (mode !== 'atlas') setMode('atlas'); resetView(); }
@@ -89,7 +93,7 @@ left.addEventListener('click', (e) => {
 function hintLoad(layer) { if (!engine.loaded.has(LAYER_FILE[layer])) hint(`Wczytywanie: ${LAYER_PL[layer]}…`, '', 1500); }
 function resetView() {
   Object.assign(view.layers, { bones: true, joints: false, muscles: true, fascia: false, attachments: false, arteries: false, veins: false, heart: false, nerves: false, cns: false });
-  view.side = 'both'; view.region = 'all'; view.hidden.clear(); view.sel.clear(); view.extra.clear(); view.tints.clear(); view.iso = null; view.only = null;
+  view.side = 'both'; view.region = 'all'; view.depth = 'all'; view.hidden.clear(); view.sel.clear(); view.extra.clear(); view.tints.clear(); view.iso = null; view.only = null;
   current = null; clearMarks(); home(); if (mode === 'atlas') renderAtlas();
 }
 function home() { engine.focus(new THREE.Box3(new THREE.Vector3(-0.45, 0, -0.2), new THREE.Vector3(0.45, 1.72, 0.2)), { dir: new THREE.Vector3(0, 0, 1), pad: 1.06, frontal: true }); }
@@ -131,6 +135,7 @@ function openItem(it) {
 function select(ent, { isolate = false, focus = true } = {}) {
   current = ent; clearMarks();
   view.sel = new Set(ent.ids); view.extra.clear();
+  ent.ids.forEach((i) => view.hidden.delete(i)); // wybranie struktury z wyszukiwarki lub listy cofa jej ukrycie
   if (isolate || view.iso) isolateEntity(ent, focus);
   else if (ent.clicked && !view.layers.muscles) { // klik w pole przyczepu przy wyłączonych mięśniach: pokaż tylko ten mięsień
     ent.att.forEach((i) => view.sel.add(i)); view.extra = new Set(ent.ids); need('muscles');
@@ -168,8 +173,14 @@ function isolateEntity(ent, focus = true) {
 function entDir(ent) {
   if (ent.type !== 'muscle' || !ent.bones.length || !ent.ids.length) return null;
   const c = engine.boxOf(ent.ids).getCenter(new THREE.Vector3()), b = engine.boxOf(ent.bones).getCenter(new THREE.Vector3());
-  const d = c.sub(b); d.y *= 0.25;
-  return d.length() > 0.012 ? d.normalize() : null;
+  const d = c.clone().sub(b); d.y *= 0.25;
+  if (d.length() <= 0.012) return null;
+  d.normalize();
+  if (Math.abs(d.y) > 0.55) { // mięsień leży nad/pod kośćmi – patrzymy z boku ciała, lekko z góry, zamiast pionowo
+    const h = new THREE.Vector3(c.x, 0, c.z).normalize();
+    d.set(h.x * 0.85, 0.35 * Math.sign(d.y), h.z * 0.85).normalize();
+  }
+  return d;
 }
 function exitIso(render = true) { if (!view.iso) return; view.iso = null; applyView(); if (render && mode === 'atlas') renderAtlas(); }
 
@@ -248,7 +259,7 @@ function renderAtlas() {
   let h = `<h2>${esc(ent.title)}</h2>${ent.lat ? `<div class="lat">${esc(ent.lat)}</div>` : ''}`;
   if (ent.type === 'muscle') {
     const k = ent.kb, moves = MOVES.filter((m) => m.ago.includes(ent.key) || m.syn.includes(ent.key));
-    h += `<div class="tags"><span class="tag">${esc(k.grp)}</span>${ent.side ? `<span class="tag">${SIDE_PL[ent.side]}</span>` : ''}</div>`;
+    h += `<div class="tags"><span class="tag">${esc(k.grp)}</span><span class="tag">warstwa ${k.sup ? 'powierzchowna' : 'głęboka'}</span>${ent.side ? `<span class="tag">${SIDE_PL[ent.side]}</span>` : ''}</div>`;
     if (ent.clicked) h += `<p class="en">Kliknięto pole przyczepu ${ent.clicked.role === 'origin' ? '<b style="color:#ff6b6b">początkowego</b>' : '<b style="color:#6ea0ff">końcowego</b>'} na: ${esc(boneTitle(ent.clicked.bone))}${ent.clicked.shared.length ? ` (wspólne z: ${ent.clicked.shared.map((s) => esc(MUSCLES[s].lat)).join(', ')})` : ''}</p>`;
     else if (ent.part) h += `<p class="en">Kliknięta część: ${esc(model.latin[ent.part] ?? ent.part)}</p>`;
     h += actions(ent) + isoControls();
@@ -263,6 +274,7 @@ function renderAtlas() {
     h += `<div class="tags"><span class="tag">Nerw</span><span class="tag">${esc(k.roots)}</span>${ent.side ? `<span class="tag">${SIDE_PL[ent.side]}</span>` : ''}</div>`;
     if (ent.part && ent.part !== k.mesh[0]) h += `<p class="en">Kliknięta gałąź: ${esc(model.latin[ent.part] ?? ent.part)}</p>`;
     h += actions(ent) + isoControls();
+    h += `<div class="acts"><button data-act="trace">Śledź drogę nerwu i jego mięśnie →</button></div>`;
     h += card('Przebieg', p(k.course), '#f5cc33') + card('Zakres ruchowy', p(k.motor) + (ent.muscles.length ? `<p style="margin-top:6px">${ent.muscles.map((m) => `<span class="link" data-muscle="${m.key}">${esc(m.lat)}</span>`).join(' · ')}</p>` : ''), '#a83d36');
     h += card('Zakres czuciowy', p(k.sensory), '#93a0b4') + card('Uszkodzenie – objawy', p(k.palsy), null, 'clin') + card('Skojarzenie', p(k.tip), null, 'tip');
   } else {
@@ -302,6 +314,7 @@ panelBody.addEventListener('click', (e) => {
   else if (A) {
     const a = A.dataset.act;
     if (a === 'iso') { if (view.iso) exitIso(); else { isolateEntity(current); renderAtlas(); } }
+    else if (a === 'trace') { const key = current.key; modes.learn.openNerve(key); setMode('learn'); }
     else if (a === 'center') engine.focus(current.ids, { pad: 1.8 });
     else if (a === 'hide') { current.ids.forEach((i) => view.hidden.add(i)); view.sel.clear(); view.extra.clear(); current = null; view.iso = null; clearMarks(); applyView(); renderLeft(); renderAtlas(); hint('Ukryto. „Pokaż ukryte” w panelu warstw przywraca.'); }
     else if (a === 'side') {
@@ -444,6 +457,8 @@ window.addEventListener('keydown', (e) => {
     }
     const ctx = { engine, model, view, applyView, need, hint, panelBody, esc, card, setMode, select, entDir, MUSCLES, NERVES, modeIs: (m) => mode === m, home };
     modes.quiz = initQuiz(ctx); modes.srs = initSrs(ctx);
+    ctx.quizScoped = (keys, label) => { setMode('quiz'); modes.quiz.scoped(keys, label); };
+    modes.learn = initLearn(ctx);
     renderLeft(); renderAtlas();
     if (isPhone()) app.classList.add('sheet-min');
     await engine.ensureAll(['skeleton', 'muscles']);

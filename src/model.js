@@ -71,6 +71,10 @@ export function buildModel(meta, latin) {
   for (const [key, e] of Object.entries(NERVES)) { e.key = key; e.type = 'nerve'; for (const n of e.mesh) if (!meshNerve.has(n)) meshNerve.set(n, key); }
   for (const m of meta) if (m.f === 'insertions' && attMuscle.has(m.n)) m.reg = MUSCLES[attMuscle.get(m.n)[0]].reg;
   for (const m of meta) if (m.f === 'muscles' && meshMuscle.has(m.n)) m.reg = MUSCLES[meshMuscle.get(m.n)].reg;
+  // warstwa: mięsień jest powierzchowny, jeśli którakolwiek jego część należy w modelu do „Superficial muscles”
+  for (const e of Object.values(MUSCLES)) e.sup = false;
+  for (const m of meta) if (m.f === 'muscles' && m.colls.includes('Superficial muscles') && meshMuscle.has(m.n)) MUSCLES[meshMuscle.get(m.n)].sup = true;
+  for (const m of meta) if (m.f === 'muscles') m.sup = meshMuscle.has(m.n) ? MUSCLES[meshMuscle.get(m.n)].sup : m.colls.includes('Superficial muscles');
 
   const sidesOf = (list) => { const s = new Set(list.map((id) => meta[id].s)); return s; };
 

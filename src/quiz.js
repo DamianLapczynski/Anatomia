@@ -12,10 +12,11 @@ const FACTS = [
 
 export function initQuiz(ctx) {
   const { engine, model, view, applyView, panelBody, esc, MUSCLES, NERVES } = ctx;
-  const S = { sys: 'muscles', reg: 'all', type: 'point', deep: false, side: 'r', ok: 0, bad: 0, streak: 0, cur: null, answered: false, last: null };
+  const S = { sys: 'muscles', reg: 'all', type: 'point', deep: false, side: 'r', ok: 0, bad: 0, streak: 0, cur: null, answered: false, last: null, scope: null };
 
   const superficial = (key) => model.muscleEntity(key, 'r').ids.some((i) => model.meta[i].colls.includes('Superficial muscles'));
   function pool() {
+    if (S.scope) return S.scope.keys.map((k) => ({ kind: 'muscle', key: k, title: MUSCLES[k].pl, lat: MUSCLES[k].lat }));
     if (S.type === 'facts' || S.sys === 'muscles') {
       let ks = Object.keys(MUSCLES).filter((k) => S.reg === 'all' || MUSCLES[k].reg === S.reg);
       if (S.type === 'point') ks = ks.filter((k) => superficial(k) !== S.deep);
@@ -38,18 +39,21 @@ export function initQuiz(ctx) {
   function scoreHtml() { return `<div class="score"><span>Dobrze: <b>${S.ok}</b></span><span>Źle: <b>${S.bad}</b></span><span>Seria: <b>${S.streak}</b></span></div>`; }
   function menu() {
     S.cur = null; view.only = null; view.tints.clear(); view.iso = null; applyView();
+    const minPool = S.scope ? 1 : 4;
     panelBody.innerHTML = `<h2>Quiz</h2>${scoreHtml()}
+      ${S.scope ? `<div class="card"><h5>Zakres</h5><p><b>${esc(S.scope.label)}</b> (${S.scope.keys.length} mięśni) <span class="link" data-act="unscope">usuń zakres</span></p></div>` : ''}
       <h4>Rodzaj pytań</h4><div class="seg" data-k="type">${TYPES.map(([k, n]) => `<button data-v="${k}" class="${S.type === k ? 'on' : ''}">${n}</button>`).join('')}</div>
-      ${S.type !== 'facts' ? `<h4>Układ</h4><div class="seg" data-k="sys">${SYS.map(([k, n]) => `<button data-v="${k}" class="${S.sys === k ? 'on' : ''}">${n}</button>`).join('')}</div>` : ''}
-      ${S.sys !== 'nerves' || S.type === 'facts' ? `<h4>Okolica</h4><div class="seg" data-k="reg">${REGIONS.map(([k, n]) => `<button data-v="${k}" class="${S.reg === k ? 'on' : ''}">${n}</button>`).join('')}</div>` : ''}
-      ${S.type === 'point' && S.sys === 'muscles' ? `<h4>Warstwa mięśni</h4><div class="seg" data-k="deep"><button data-v="0" class="${!S.deep ? 'on' : ''}">Powierzchowne</button><button data-v="1" class="${S.deep ? 'on' : ''}">Głębokie</button></div>` : ''}
+      ${S.type !== 'facts' && !S.scope ? `<h4>Układ</h4><div class="seg" data-k="sys">${SYS.map(([k, n]) => `<button data-v="${k}" class="${S.sys === k ? 'on' : ''}">${n}</button>`).join('')}</div>` : ''}
+      ${(S.sys !== 'nerves' || S.type === 'facts') && !S.scope ? `<h4>Okolica</h4><div class="seg" data-k="reg">${REGIONS.map(([k, n]) => `<button data-v="${k}" class="${S.reg === k ? 'on' : ''}">${n}</button>`).join('')}</div>` : ''}
+      ${S.type === 'point' && S.sys === 'muscles' && !S.scope ? `<h4>Warstwa mięśni</h4><div class="seg" data-k="deep"><button data-v="0" class="${!S.deep ? 'on' : ''}">Powierzchowne</button><button data-v="1" class="${S.deep ? 'on' : ''}">Głębokie</button></div>` : ''}
       <p class="en" style="margin-top:12px">Pula pytań: <b>${pool().length}</b></p>
-      <div class="acts"><button class="primary" data-act="start" ${pool().length < 4 ? 'disabled' : ''}>Start</button><button data-act="zero">Wyzeruj wynik</button></div>
+      <div class="acts"><button class="primary" data-act="start" ${pool().length < minPool ? 'disabled' : ''}>Start</button><button data-act="zero">Wyzeruj wynik</button></div>
       <p class="note">Błędne odpowiedzi dotyczące mięśni trafiają od razu do Powtórek.</p>`;
   }
 
   async function next() {
-    const P = pool(); if (P.length < 4) return menu();
+    const P = pool(); if (P.length < (S.scope ? 1 : 4)) return menu();
+    const ALL = Object.keys(MUSCLES).map((k) => ({ kind: 'muscle', key: k, title: MUSCLES[k].pl, lat: MUSCLES[k].lat })); // rezerwa błędnych odpowiedzi dla małych zakresów
     let it; do { it = P[Math.floor(Math.random() * P.length)]; } while (S.last && it.key === S.last && P.length > 1);
     S.last = it.key; S.answered = false; view.tints.clear(); view.iso = null; view.sel.clear();
     const ent = entOf(it);
@@ -62,7 +66,7 @@ export function initQuiz(ctx) {
         if (m.s && m.s !== S.side) continue;
         if (m.layer === 'bones' && (layer !== 'bones' || !reg || S.reg === 'all' || m.reg === reg)) only.add(m.id);
         else if (m.layer === layer && (S.reg === 'all' || !reg || m.reg === reg)) {
-          if (layer === 'muscles' && S.deep && m.colls.includes('Superficial muscles')) continue;
+          if (S.scope) { if (!S.scope.ids.has(m.id)) continue; } else if (layer === 'muscles' && S.deep && m.colls.includes('Superficial muscles')) continue;
           only.add(m.id);
         }
       }
@@ -77,7 +81,8 @@ export function initQuiz(ctx) {
       view.iso = { focus: new Set(ent.ids), side: S.side, others: 'ghost', show: {} };
       ent.ids.forEach((i) => view.tints.set(i, '#35c98a'));
       applyView(); engine.focus(ent.ids, { pad: 2.6, dir: ctx.entDir(ent) });
-      const opts = shuffle([it, ...shuffle(P.filter((x) => x.key !== it.key)).slice(0, 3)]);
+      const pick = shuffle(P.filter((x) => x.key !== it.key)); if (pick.length < 3 && it.kind === 'muscle') pick.push(...shuffle(ALL.filter((x) => x.key !== it.key && !pick.some((q) => q.key === x.key) && MUSCLES[x.key].reg === MUSCLES[it.key].reg)));
+      const opts = shuffle([it, ...pick.slice(0, 3)]);
       S.cur = { it, ent, opts };
       panelBody.innerHTML = `${scoreHtml()}<div class="qtext">Co to za struktura (podświetlona na zielono)?</div>
         <div class="opts">${opts.map((o, i) => `<button data-opt="${i}"><b>${esc(o.title)}</b><br><span class="lat">${esc(o.lat)}</span></button>`).join('')}</div>
@@ -86,7 +91,8 @@ export function initQuiz(ctx) {
       const [field, ask] = FACTS[Math.floor(Math.random() * FACTS.length)];
       const val = (k) => { const v = MUSCLES[k][field]; return Array.isArray(v) ? v[0] : v; };
       const right = val(it.key), used = new Set([right]), opts = [{ t: right, ok: true }];
-      for (const o of shuffle(P.filter((x) => x.key !== it.key && MUSCLES[x.key].grp === MUSCLES[it.key].grp).concat(shuffle(P.slice())))) {
+      for (const o of shuffle(P.filter((x) => x.key !== it.key && MUSCLES[x.key].grp === MUSCLES[it.key].grp).concat(shuffle(P.slice()), shuffle(ALL.filter((x) => MUSCLES[x.key].reg === MUSCLES[it.key].reg)), shuffle(ALL.slice())))) {
+        if (o.key === it.key) continue;
         const v = val(o.key); if (!v || used.has(v)) continue; used.add(v); opts.push({ t: v }); if (opts.length === 4) break;
       }
       view.only = null; view.iso = { focus: new Set(ent.ids), side: S.side, others: 'ghost', show: {} }; applyView(); engine.focus(ent.ids, { pad: 2.2, dir: ctx.entDir(ent) });
@@ -106,10 +112,22 @@ export function initQuiz(ctx) {
     const fb = panelBody.querySelector('#fb');
     panelBody.querySelector('[data-act="skip"]')?.parentElement.remove();
     panelBody.querySelectorAll('.acts [data-act="menu"]').forEach((b) => { if (b.parentElement.children.length === 1) b.parentElement.remove(); });
-    if (fb) fb.innerHTML = `<div class="card ${ok ? '' : 'clin'}"><h5>${ok ? '✔ Dobrze' : '✘ Poprawna odpowiedź'}</h5><p><b>${esc(it.title)}</b> – <span class="lat">${esc(it.lat)}</span></p>${extra}</div>
+    if (fb) fb.innerHTML = `<div class="card ${ok ? '' : 'clin'}"><h5>${ok ? '✔ Dobrze' : '✘ Poprawna odpowiedź'}</h5><p><b>${esc(it.title)}</b> – <span class="lat">${esc(it.lat)}</span></p>${extra}</div>${about(it)}
       <div class="acts"><button class="primary" data-act="next">Dalej →</button><button data-act="show">Zobacz w atlasie</button><button data-act="menu">Zakończ</button></div>`;
     panelBody.querySelector('.score')?.replaceWith(Object.assign(document.createElement('div'), { innerHTML: scoreHtml() }).firstChild);
     fb?.scrollIntoView({ block: 'nearest' });
+  }
+  // pełniejsza informacja po odpowiedzi – żeby każde pytanie czegoś uczyło
+  function about(it) {
+    const c = (t, b, col) => `<div class="card"><h5>${col ? `<i style="background:${col}"></i>` : ''}${t}</h5>${b}</div>`;
+    if (it.kind === 'muscle') {
+      const m = MUSCLES[it.key];
+      return c('Przyczepy', `<p><b style="color:#ff6b6b">Początek:</b> ${esc(m.o)}</p><p style="margin-top:5px"><b style="color:#6ea0ff">Koniec:</b> ${esc(m.i)}</p>`)
+        + c('Unerwienie', `<p>${esc(m.n)}</p>`, '#f5cc33') + c('Czynność', `<ul>${m.f.slice(0, 4).map((x) => `<li>${esc(x)}</li>`).join('')}</ul>`, '#3ecf8e')
+        + (m.s ? `<div class="card tip"><h5>Skojarzenie</h5><p>${esc(m.s)}</p></div>` : '') + `<p class="en">${esc(m.grp)} · warstwa ${m.sup ? 'powierzchowna' : 'głęboka'}</p>`;
+    }
+    if (it.kind === 'nerve') { const n = NERVES[it.key]; return c('Korzenie i zakres ruchowy', `<p><b>${esc(n.roots)}</b></p><p style="margin-top:5px">${esc(n.motor)}</p>`, '#f5cc33') + `<div class="card clin"><h5>Uszkodzenie</h5><p>${esc(n.palsy)}</p></div>`; }
+    return '';
   }
   function reveal() { S.cur.ent.ids.forEach((i) => view.tints.set(i, '#35c98a')); applyView(); engine.focus(S.cur.ent.ids, { pad: 2.6 }); }
 
@@ -121,12 +139,13 @@ export function initQuiz(ctx) {
       const i = +O.dataset.opt, o = S.cur.opts[i], ok = S.type === 'name' ? o.key === S.cur.it.key : !!o.ok;
       panelBody.querySelectorAll('[data-opt]').forEach((b, j) => { const oo = S.cur.opts[j]; const good = S.type === 'name' ? oo.key === S.cur.it.key : oo.ok; if (good) b.classList.add('ok'); else if (j === i) b.classList.add('bad'); b.disabled = true; });
       const kb = MUSCLES[S.cur.it.key];
-      finish(ok, S.type === 'facts' && kb.s ? `<p style="margin-top:6px">💡 ${esc(kb.s)}</p>` : '');
+      finish(ok);
     } else if (A) {
       const a = A.dataset.act;
       if (a === 'start' || a === 'next') next();
       else if (a === 'menu') menu();
       else if (a === 'zero') { S.ok = S.bad = S.streak = 0; menu(); }
+      else if (a === 'unscope') { S.scope = null; menu(); }
       else if (a === 'skip' && !S.answered) { reveal(); finish(false); }
       else if (a === 'show') { const ent = S.cur.ent; ctx.setMode('atlas'); ctx.select(ent, { isolate: true }); }
     }
@@ -134,6 +153,7 @@ export function initQuiz(ctx) {
 
   return {
     enter: menu,
+    scoped(keys, label) { S.scope = { keys, label, ids: new Set(keys.flatMap((k) => model.muscleEntity(k, S.side).ids)) }; S.sys = 'muscles'; if (S.type === 'point' && keys.length < 2) S.type = 'facts'; menu(); },
     leave() { view.only = null; view.tints.clear(); view.iso = null; ctx.hint('', '', 1); },
     onPick(hit) {
       if (S.type !== 'point' || !S.cur || S.answered) return true;
