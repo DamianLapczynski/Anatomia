@@ -50,7 +50,7 @@ export class Engine extends EventTarget {
     loader.setMeshoptDecoder(MeshoptDecoder);
     this.loader = loader;
 
-    new ResizeObserver(() => this.resize()).observe(canvas.parentElement);
+    new ResizeObserver(() => this.resize()).observe(canvas);
     this.resize();
     this._bindPointer();
     this.renderer.setAnimationLoop((t) => this._tick(t));
@@ -78,6 +78,12 @@ export class Engine extends EventTarget {
         for (let i = 0; i < pos.count; i++) { f[i * 3] = pos.getX(i); f[i * 3 + 1] = pos.getY(i); f[i * 3 + 2] = pos.getZ(i); }
         mesh.geometry.setAttribute('position', new THREE.BufferAttribute(f, 3));
         mesh.geometry.applyMatrix4(mesh.matrixWorld);
+        const nrm = mesh.geometry.attributes.normal;
+        if (nrm && !(nrm.array instanceof Float32Array)) {
+          const fn = new Float32Array(nrm.count * 3);
+          for (let i = 0; i < nrm.count; i++) { fn[i * 3] = nrm.getX(i); fn[i * 3 + 1] = nrm.getY(i); fn[i * 3 + 2] = nrm.getZ(i); }
+          mesh.geometry.setAttribute('normal', new THREE.BufferAttribute(fn, 3));
+        }
         mesh.geometry.computeBoundingBox();
         mesh.geometry.computeBoundingSphere();
         mesh.position.set(0, 0, 0); mesh.quaternion.identity(); mesh.scale.set(1, 1, 1);
@@ -228,8 +234,7 @@ export class Engine extends EventTarget {
   }
 
   resize() {
-    const p = this.canvas.parentElement;
-    const w = p.clientWidth, h = p.clientHeight;
+    const w = this.canvas.clientWidth, h = this.canvas.clientHeight;
     if (!w || !h) return;
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
