@@ -124,15 +124,27 @@ export async function startReel({ engine, model, motion, MUSCLES, NERVES }, para
   const moves = MOVES.filter((m) => m.joint && m.ago.includes(key)).sort((a, b) => a.ago.indexOf(key) - b.ago.indexOf(key)).concat(MOVES.filter((m) => m.joint && m.syn.includes(key))).slice(0, 3);
   const canMove = side && moves.length;
   const ori = ent.att.filter((i) => meta[i].role === 'origin'), ins = ent.att.filter((i) => meta[i].role === 'insertion');
+  // Tempo czytania: pismo ~24 znaki/s, po każdej linii pauza, na końcu segmentu czas na doczytanie.
+  const CPS = 26, GAP = 0.4;
+  const script = {
+    intro: [['skan układu mięśniowego… ok'], [`cel: ${kb.lat}`, 'hi']],
+    dive: [[`warstwa: ${deep ? 'głęboka' : 'powierzchowna'}`], ...coverNames.map((n) => [`zdejmuję: ${n}`, 'dim']), ['cel namierzony', 'hi']],
+    func: [['CZYNNOŚĆ', 'head'], ...kb.f.slice(0, 2).map((f) => [short(f, 54)])],
+    att: [['PRZYCZEPY', 'head'], [`początek: ${short(kb.o, 50)}`], [`koniec: ${short(kb.i, 50)}`]],
+    nerve: [['UNERWIENIE', 'head'], [short(kb.n, 60)], ...(nerveKbOf()?.palsy ? [[`uszkodzenie: ${short(nerveKbOf().palsy, 54)}`, 'dim']] : [])],
+    outro: [['zapis zakończony.', 'dim']],
+  };
+  function nerveKbOf() { return (kb.nr ?? []).map((n) => model.meshNerve.get(n)).filter(Boolean).map((k) => NERVES[k])[0]; }
+  const need = (lines, start = 0.4) => { const chars = lines.reduce((a, l) => a + l[0].length, 0); return start + chars / CPS + lines.length * GAP + Math.max(1.2, Math.min(2.2, chars / 60)); };
   const segs = []; let T = 0;
   const seg = (name, dur, extra = {}) => { const s = { name, t0: T, t1: T + dur, ...extra }; segs.push(s); T += dur; return s; };
-  seg('intro', 3.2);
-  seg('dive', 3.4 + Math.min(coverNames.length, 4) * 0.35);
-  seg('func', 4.8);
-  if (ori.length || ins.length) seg('att', 5.6);
-  if (canMove) moves.forEach((mv) => seg('move', 3.4, { mv }));
-  seg('nerve', nerve.size ? 5.2 : 3.6);
-  seg('outro', 4.2);
+  seg('intro', Math.max(3.4, need(script.intro)));
+  seg('dive', Math.max(3.6, need(script.dive, 0.5)));
+  seg('func', Math.max(4.6, need(script.func)));
+  if (ori.length || ins.length) seg('att', Math.max(5.4, need(script.att)));
+  if (canMove) moves.forEach((mv, i) => { const lines = mv.rom ? [[`zakres: ${short(mv.rom, 34)}`, 'dim']] : []; seg('move', 3.5, { mv, lines }); });
+  seg('nerve', Math.max(nerve.size ? 5 : 3.6, need(script.nerve)));
+  seg('outro', 4.8);
   const S = (name) => segs.find((s) => s.name === name);
   const at = (t) => segs.find((s) => t < s.t1) ?? segs[segs.length - 1];
 
@@ -181,20 +193,20 @@ export async function startReel({ engine, model, motion, MUSCLES, NERVES }, para
   if (S('att')) {
     const a = S('att');
     if (ori.length) labels.push({ cls: 'o', head: 'PRZYCZEP POCZĄTKOWY', body: bonesOf(ori), a: anchor(ori), x: 64, y: 470, alignR: false, t0: a.t0 + 0.5, t1: a.t1 });
-    if (ins.length) labels.push({ cls: 'i', head: 'PRZYCZEP KOŃCOWY', body: bonesOf(ins), a: anchor(ins), x: W - 64, y: 1010, alignR: true, t0: a.t0 + 1.9, t1: a.t1 });
+    if (ins.length) labels.push({ cls: 'i', head: 'PRZYCZEP KOŃCOWY', body: bonesOf(ins), a: anchor(ins), x: W - 64, y: 1010, alignR: true, t0: a.t0 + 0.5 + (a.t1 - a.t0) * 0.38, t1: a.t1 });
   }
   if (nerveAnchor) { const n = S('nerve'); labels.push({ cls: 'n', head: 'UNERWIENIE', body: `${nerveKb?.lat ?? short(kb.n, 40)}${nerveKb?.roots ? ` · ${nerveKb.roots}` : ''}`, a: nerveAnchor, x: W - 64, y: 480, alignR: true, t0: n.t0 + 0.7, t1: n.t1 }); }
 
   const term = []; // {t0, text, cls, seg}
-  const say = (s, lines, start = 0.35, cps = 34) => { let t = s.t0 + start; for (const [text, cls] of lines) { term.push({ seg: s, t0: t, text, cls: cls ?? '', cps }); t += text.length / cps + 0.28; } };
-  say(S('intro'), [['skan układu mięśniowego… ok'], [`cel: ${kb.lat}`, 'hi']]);
-  say(S('dive'), [[`warstwa: ${deep ? 'głęboka' : 'powierzchowna'}`], ...coverNames.map((n) => [`zdejmuję: ${n}`, 'dim']), ['cel namierzony', 'hi']], 0.5);
-  say(S('func'), [['CZYNNOŚĆ', 'head'], ...kb.f.slice(0, 3).map((f) => [short(f, 78)])], 0.3, 40);
-  if (S('att')) say(S('att'), [['PRZYCZEPY', 'head'], [`początek: ${short(kb.o, 92)}`], [`koniec: ${short(kb.i, 92)}`]], 0.3, 44);
-  segs.filter((s) => s.name === 'move').forEach((s, i) => say(s, [[`ruch ${i + 1}/${moves.length}: ${s.mv.pl.toLowerCase()}`, 'hi'], ...(s.mv.rom ? [[`zakres: ${s.mv.rom}`]] : [])], 0.25, 40));
-  say(S('nerve'), [['UNERWIENIE', 'head'], [short(kb.n, 110)], ...(nerveKb?.palsy ? [[`uszkodzenie: ${short(nerveKb.palsy, 96)}`, 'dim']] : [])], 0.3, 44);
+  const say = (s, lines, start = 0.4) => { let t = s.t0 + start; for (const [text, cls] of lines) { term.push({ seg: s, t0: t, text, cls: cls ?? '', cps: CPS }); t += text.length / CPS + GAP; } };
+  say(S('intro'), script.intro);
+  say(S('dive'), script.dive, 0.5);
+  say(S('func'), script.func);
+  if (S('att')) say(S('att'), script.att);
+  segs.filter((x) => x.name === 'move').forEach((x) => say(x, x.lines, 0.3));
+  say(S('nerve'), script.nerve);
   const tip = kb.s && kb.s.length <= 190 ? kb.s : short(kb.s || kb.k, 170);
-  say(S('outro'), [['zapis zakończony.', 'dim']], 0.3);
+  say(S('outro'), script.outro, 0.3);
 
   const ov = document.createElement('div'); ov.id = 'reel';
   const ep = params.get('ep'), of = params.get('of'), series = params.get('series'), next = params.get('next');
