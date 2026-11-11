@@ -112,7 +112,7 @@ export class Engine extends EventTarget {
       const thin = ['fascia', 'joints', 'attachments', 'cns', 'heart'].includes(arg);
       m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.62, metalness: 0.02, side: thin ? THREE.DoubleSide : THREE.FrontSide });
       if (arg === 'attachments') { m.polygonOffset = true; m.polygonOffsetFactor = -2; m.polygonOffsetUnits = -2; m.roughness = 0.4; }
-      if (arg === 'fascia') { m.transparent = true; m.opacity = 0.55; m.depthWrite = false; }
+      if (arg === 'fascia') { m.transparent = true; m.opacity = 0.3; m.depthWrite = false; }
       if (kind === 'sel') { m.emissive = new THREE.Color(0x1c7dff); m.emissiveIntensity = 0.55; m.transparent = false; m.opacity = 1; m.depthWrite = true; }
     } else if (kind === 'ghost') {
       m = new THREE.MeshStandardMaterial({ color: 0x9fb0c8, transparent: true, opacity: 0.07, depthWrite: false, roughness: 1, side: THREE.DoubleSide });
@@ -196,13 +196,17 @@ export class Engine extends EventTarget {
     return box;
   }
 
-  focus(ids, { dir = null, pad = 1.35, ms = 550 } = {}) {
+  focus(ids, { dir = null, pad = 1.35, ms = 550, frontal = false } = {}) {
     const box = ids instanceof THREE.Box3 ? ids : this.boxOf(ids);
     if (box.isEmpty()) return;
     const sph = box.getBoundingSphere(new THREE.Sphere());
     const aspect = this.camera.aspect;
     const fov = THREE.MathUtils.degToRad(this.camera.fov);
-    const fit = Math.max(sph.radius, 0.03) / Math.sin(Math.min(fov, 2 * Math.atan(Math.tan(fov / 2) * aspect)) / 2);
+    let fit = Math.max(sph.radius, 0.03) / Math.sin(Math.min(fov, 2 * Math.atan(Math.tan(fov / 2) * aspect)) / 2);
+    if (frontal) { // widok z przodu: dopasuj do wysokości i szerokości, nie do kuli
+      const s = box.getSize(new THREE.Vector3()), t = Math.tan(fov / 2);
+      fit = Math.max(s.y / 2 / t, s.x / 2 / (t * aspect)) + s.z / 2;
+    }
     const d = dir ? dir.clone().normalize() : this.camera.position.clone().sub(this.controls.target).normalize();
     const toPos = sph.center.clone().addScaledVector(d, fit * pad);
     const fromPos = this.camera.position.clone(), fromT = this.controls.target.clone(), toT = sph.center.clone();

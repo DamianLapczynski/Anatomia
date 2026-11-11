@@ -92,7 +92,7 @@ function resetView() {
   view.side = 'both'; view.region = 'all'; view.hidden.clear(); view.sel.clear(); view.extra.clear(); view.tints.clear(); view.iso = null; view.only = null;
   current = null; clearMarks(); home(); if (mode === 'atlas') renderAtlas();
 }
-function home() { engine.focus(new THREE.Box3(new THREE.Vector3(-0.45, 0, -0.2), new THREE.Vector3(0.45, 1.72, 0.2)), { dir: new THREE.Vector3(0, 0, 1), pad: 1.05 }); }
+function home() { engine.focus(new THREE.Box3(new THREE.Vector3(-0.45, 0, -0.2), new THREE.Vector3(0.45, 1.72, 0.2)), { dir: new THREE.Vector3(0, 0, 1), pad: 1.06, frontal: true }); }
 function visibleIds() { const out = []; for (const m of model.meta) if (engine.meshes[m.id]?.visible) out.push(m.id); return out; }
 function focusVisible() { applyView(); const ids = visibleIds(); if (ids.length) engine.focus(ids, { pad: 1.1 }); }
 
@@ -143,7 +143,7 @@ function select(ent, { isolate = false, focus = true } = {}) {
     if (focus) engine.focus(ent.ids, { pad: 2.2 });
   }
   if (mode === 'atlas') renderAtlas();
-  app.classList.remove('sheet-min');
+  app.classList.remove('sheet-min', 'sheet-max');
 }
 function isolateEntity(ent, focus = true) {
   const prev = view.iso;
@@ -235,7 +235,7 @@ function actions(ent) {
 function renderAtlas() {
   const ent = current;
   if (!ent) {
-    panelBody.innerHTML = `<h2>Atlas 3D</h2><div class="empty"><ul>
+    panelBody.innerHTML = `<h2>Atlas 3D <small class="swipe">– dotknij strukturę; przeciągnij ten panel w górę</small></h2><div class="empty"><ul>
       <li><b>Dotknij / kliknij</b> strukturę, aby zobaczyć jej opis.</li>
       <li><b>Izoluj</b> – mięsień z polami przyczepów na kościach, nerwem i tętnicą.</li>
       <li><b>Ukryj</b> – zdejmuj kolejne warstwy, żeby dojść do głębokich mięśni.</li>
@@ -391,19 +391,37 @@ function setMode(m) {
   modes[mode]?.leave?.();
   mode = m; app.dataset.mode = m;
   document.querySelectorAll('#modes button').forEach((b) => b.classList.toggle('on', b.dataset.mode === m));
-  app.classList.remove('sheet-min', 'menu');
+  app.classList.remove('sheet-min', 'sheet-max', 'menu');
   modes[m].enter();
   applyView();
 }
 $('#modes').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) setMode(b.dataset.mode); });
 $('#menuBtn').addEventListener('click', () => app.classList.toggle('menu'));
 $('#stage').addEventListener('pointerdown', () => app.classList.remove('menu'));
-$('#grip').addEventListener('click', () => {
-  if (app.classList.contains('sheet-min')) app.classList.remove('sheet-min');
-  else if (app.classList.contains('sheet-max')) { app.classList.remove('sheet-max'); app.classList.add('sheet-min'); }
-  else app.classList.add('sheet-max');
-  setTimeout(() => engine.resize(), 250);
-});
+// Dolny panel na telefonie: trzy wysokości (zwinięty / połowa / pełny); przeciągnięcie uchwytu lub stuknięcie.
+const isPhone = () => matchMedia('(max-width:820px)').matches;
+const sheetLevel = () => (app.classList.contains('sheet-min') ? 0 : app.classList.contains('sheet-max') ? 2 : 1);
+function setSheet(level) {
+  app.classList.toggle('sheet-min', level <= 0); app.classList.toggle('sheet-max', level >= 2);
+  setTimeout(() => engine.resize(), 260);
+}
+{
+  const grip = $('#grip'), panel = $('#panel'); let d = null;
+  grip.addEventListener('pointerdown', (e) => { d = { y: e.clientY, h: panel.offsetHeight, moved: false }; grip.setPointerCapture(e.pointerId); });
+  grip.addEventListener('pointermove', (e) => {
+    if (!d) return; const dy = e.clientY - d.y;
+    if (Math.abs(dy) > 6) d.moved = true;
+    if (d.moved) { panel.style.transition = 'none'; panel.style.height = `${Math.max(56, d.h - dy)}px`; }
+  });
+  const end = (e) => {
+    if (!d) return; const dy = e.clientY - d.y, lv = sheetLevel(); panel.style.transition = ''; panel.style.height = '';
+    if (!d.moved) setSheet(lv === 0 ? 1 : 0);
+    else if (dy > 30) setSheet(dy > 260 ? 0 : lv - 1);
+    else if (dy < -30) setSheet(dy < -260 ? 2 : lv + 1);
+    d = null;
+  };
+  grip.addEventListener('pointerup', end); grip.addEventListener('pointercancel', end);
+}
 $('#hud').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.view) engine.view(b.dataset.view); else home(); });
 window.addEventListener('keydown', (e) => {
   if (e.target.matches('input,select,textarea')) { if (e.key === 'Escape') e.target.blur(); return; }
@@ -421,6 +439,7 @@ window.addEventListener('keydown', (e) => {
     const ctx = { engine, model, view, applyView, need, hint, panelBody, esc, card, setMode, select, entDir, MUSCLES, NERVES, modeIs: (m) => mode === m, home };
     modes.quiz = initQuiz(ctx); modes.srs = initSrs(ctx);
     renderLeft(); renderAtlas();
+    if (isPhone()) app.classList.add('sheet-min');
     await engine.ensureAll(['skeleton', 'muscles']);
     applyView(); home();
     $('#loading').classList.add('hide');
