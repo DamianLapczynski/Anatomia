@@ -450,6 +450,11 @@ window.addEventListener('keydown', (e) => {
     const [meta, latin, lab] = await Promise.all([engine.init(), fetch(`${BASE}data/latin.json`).then((r) => r.json()), fetch(`${BASE}data/labels.json`).then((r) => r.json())]);
     model = buildModel(meta, latin); labels = lab; motion = new Motion(engine, model);
     const rp = new URLSearchParams(location.search);
+    if (rp.get('post')) { // tryb posta: slajd karuzeli 1080×1350
+      const { startPost } = await import('./post.js');
+      await startPost({ engine, model, motion, MUSCLES, NERVES }, rp);
+      return;
+    }
     if (rp.get('reel')) { // tryb rolki: pionowa animacja jednego mięśnia zamiast interfejsu atlasu
       const { startReel } = await import('./reel.js');
       await startReel({ engine, model, motion, MUSCLES, NERVES }, rp);

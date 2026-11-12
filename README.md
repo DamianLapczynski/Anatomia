@@ -40,6 +40,17 @@ npm run reel:plan             # odświeża docs/plan-rolek.pdf po zmianie kolejn
 
 Podgląd na żywo bez renderowania: dopisz do adresu aplikacji `?reel=deltoid` (klucze z `--list`; stuknięcie zatrzymuje i wznawia).
 
+## Posty (karuzela 5 × 1080×1350)
+
+Z tej samej bazy powstaje karuzela w układzie dotychczasowych postów: okładka, „Co robi?”, przyczepy z odnośnikami, unerwienie, klinika i skojarzenie – z renderami 3D z modelu.
+
+```bash
+npm run post -- naramienny      # → posts/deltoid/01-okladka.png … 05-klinika.png + opis.txt
+npm run post -- --week 1        # karuzele dla dni 1–7 z planu
+```
+
+Na Windows: dwuklik `post.bat`. Własny tekst pod slajdy (hak na okładkę, krótsze przyczepy, skojarzenie) wpisuje się w `src/data/reel_texts.js` w polu `post` danego mięśnia. Podgląd w przeglądarce: `?post=deltoid&slide=1` (slajdy 1–5).
+
 ## Uruchomienie
 
 ```bash

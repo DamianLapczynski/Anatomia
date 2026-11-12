@@ -13,5 +13,6 @@ export default {
   //   i: 'guzowatość naramienna kości ramiennej',
   //   n: 'n. axillaris, C5–C6',
   //   tip: 'Przednia i tylna część są dla siebie antagonistami.',
+  //   post: { hook: 'Jeden mięsień, trzy sprzeczne interesy.', o: 'krótszy opis początku', i: 'krótszy opis końca', n: 'n. axillaris, C5–C6', tip: '…' }, // teksty karuzeli
   // },
 };

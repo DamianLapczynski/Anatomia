@@ -10,7 +10,8 @@
     "models": "node tools/build_models.mjs",
     "reel": "node tools/make_reel.mjs",
     "reel:setup": "npm install --no-save playwright ffmpeg-static && npx playwright install chromium",
-    "reel:plan": "node tools/plan_pdf.mjs"
+    "reel:plan": "node tools/plan_pdf.mjs",
+    "post": "node tools/make_post.mjs"
   },
   "dependencies": {
     "@fontsource/bricolage-grotesque": "^5.3.0",
