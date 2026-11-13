@@ -8,6 +8,7 @@ import { initQuiz } from './quiz.js';
 import { initSrs } from './srs.js';
 import { initLearn } from './learn.js';
 import { landmarkPL } from './data/landmarks.js';
+import { initKeys } from './keys.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -393,7 +394,8 @@ modes.motion = (() => {
     } else if (M) { const key = M.dataset.muscle; leave(); setMode('atlas'); select(model.muscleEntity(key, side), { isolate: true }); }
   });
   function leave() { move = null; motion.reset(); view.only = null; view.tints.clear(); }
-  return { enter() { engine.frameCallbacks.add(tick); list(); }, leave() { engine.frameCallbacks.delete(tick); leave(); applyView(); }, open, onPick(hit) { if (hit) { const ent = model.entityOf(hit.id); hint(`${ent.title}${ent.lat ? ` – ${ent.lat}` : ''}`); } } };
+  const stepMove = (d) => { if (!move) return false; const i = MOVES.indexOf(move); open(MOVES[(i + d + MOVES.length) % MOVES.length].id); return true; };
+  return { stepMove, enter() { engine.frameCallbacks.add(tick); list(); }, leave() { engine.frameCallbacks.delete(tick); leave(); applyView(); }, open, onPick(hit) { if (hit) { const ent = model.entityOf(hit.id); hint(`${ent.title}${ent.lat ? ` – ${ent.lat}` : ''}`); } } };
 })();
 
 modes.atlas = { enter() { renderAtlas(); if (current?.layer === 'bones') showMarks(current); }, leave() { clearMarks(); } };
@@ -436,13 +438,7 @@ function setSheet(level) {
   grip.addEventListener('pointerup', end); grip.addEventListener('pointercancel', end);
 }
 $('#hud').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.view) engine.view(b.dataset.view); else home(); });
-window.addEventListener('keydown', (e) => {
-  if (e.target.matches('input,select,textarea')) { if (e.key === 'Escape') e.target.blur(); return; }
-  if (e.key === '/') { e.preventDefault(); q.focus(); }
-  else if (mode === 'atlas' && current && e.key.toLowerCase() === 'h') panelBody.querySelector('[data-act="hide"]')?.click();
-  else if (mode === 'atlas' && current && e.key.toLowerCase() === 'i') panelBody.querySelector('[data-act="iso"]')?.click();
-  else if (e.key === 'Escape' && mode === 'atlas') exitIso();
-});
+// skróty klawiszowe: src/keys.js (inicjowane po wczytaniu modelu)
 
 // ---------- start ----------
 (async () => {
@@ -469,6 +465,17 @@ window.addEventListener('keydown', (e) => {
     await engine.ensureAll(['skeleton', 'muscles']);
     applyView(); home();
     $('#loading').classList.add('hide');
+    initKeys({
+      engine, model, view, panelBody, left, modes, MUSCLES, MOVES, q, results,
+      getMode: () => mode, getCurrent: () => current, setMode, select, exitIso, home, applyView,
+      stepMuscle: (d) => { // poprzedni / następny mięsień w tej samej grupie
+        if (current?.type !== 'muscle') return false;
+        const keys = Object.keys(MUSCLES).filter((k) => MUSCLES[k].grp === current.kb.grp), i = keys.indexOf(current.key);
+        if (keys.length < 2) return false;
+        select(model.muscleEntity(keys[(i + d + keys.length) % keys.length], current.side || 'r'), { isolate: !!view.iso });
+        return true;
+      },
+    });
     window.__app = { engine, model, view, applyView, select, setMode, modes, motion };
     window.ready = true;
     // pozostałe układy dociągamy w tle

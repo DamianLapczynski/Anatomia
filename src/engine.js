@@ -231,6 +231,22 @@ export class Engine extends EventTarget {
     };
   }
 
+  /** Obrót kamery wokół celu (radiany) – dla klawiatury. */
+  orbit(dAz, dPol) {
+    this._anim = null;
+    const t = this.controls.target, off = this.camera.position.clone().sub(t), sph = new THREE.Spherical().setFromVector3(off);
+    sph.theta += dAz; sph.phi = THREE.MathUtils.clamp(sph.phi + dPol, 0.05, Math.PI - 0.05);
+    off.setFromSpherical(sph); this.camera.position.copy(t).add(off); this.camera.lookAt(t);
+    this.controls.update(); this.invalidate();
+  }
+
+  zoom(f) {
+    this._anim = null;
+    const t = this.controls.target, off = this.camera.position.clone().sub(t);
+    off.setLength(THREE.MathUtils.clamp(off.length() * f, this.controls.minDistance, this.controls.maxDistance));
+    this.camera.position.copy(t).add(off); this.controls.update(); this.invalidate();
+  }
+
   project(v) {
     const p = v.clone().project(this.camera);
     const r = this.canvas.getBoundingClientRect();
