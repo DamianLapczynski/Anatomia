@@ -1,5 +1,6 @@
 // Animacja ruchów w stawach: sztywne segmenty kostne + mięśnie „zginane” w osi stawu.
 import * as THREE from 'three';
+import { RigKit } from './rigs.js';
 
 const HAND = /of hand$|metacarpal bone|^(Scaphoid|Lunate|Triquetrum|Pisiform|Trapezium|Trapezoid|Capitate|Hamate) bone/;
 const FOOT = /of foot$|metatarsal bone|^(Calcaneus|Talus|Navicular bone|Cuboid bone)|cuneiform bone/;
@@ -17,6 +18,7 @@ export class Motion {
   constructor(engine, model) {
     this.engine = engine; this.model = model;
     this.orig = new Map(); // id -> Float32Array pozycji wyjściowych
+    this.skinCache = new Map(); // wagi „skórowania” mięśni dla ruchów wielostawowych (liczone raz na ruch i stronę)
     this.active = null;
   }
 
@@ -60,6 +62,7 @@ export class Motion {
   /** Przygotowuje ruch: zwraca false, jeśli ruch nie ma animacji kości. */
   setup(move, side, muscleKeys) {
     this.reset();
+    if (move.rig) return this._setupRig(move, side, muscleKeys);
     if (!move.joint) return false;
     const { meta } = this.model, eng = this.engine;
     const j = this._joint(move.joint, side);
@@ -127,6 +130,7 @@ export class Motion {
   /** k: 0..1 – postęp ruchu. */
   set(k) {
     const a = this.active; if (!a) return;
+    if (a.rig) return this._setRig(k);
     const kk = a.reverse ? 1 - k : k;
     const M = new THREE.Matrix4().makeTranslation(a.j.p.x, a.j.p.y, a.j.p.z)
       .multiply(new THREE.Matrix4().makeRotationAxis(a.axis, a.max * kk))
@@ -149,13 +153,122 @@ export class Motion {
 
   reset() {
     const a = this.active; if (!a) return;
-    for (const id of a.rigid) { const m = this.engine.meshes[id]; if (m) { m.matrix.identity(); m.matrixWorldNeedsUpdate = true; } }
+    for (const id of (a.rig ? a.rigid.keys() : a.rigid)) { const m = this.engine.meshes[id]; if (m) { m.matrix.identity(); m.matrixWorldNeedsUpdate = true; } }
     for (const s of a.skins) {
       const g = this.engine.meshes[s.id].geometry;
       g.attributes.position.array.set(s.P); g.attributes.position.needsUpdate = true;
       g.computeVertexNormals(); g.computeBoundingBox(); g.computeBoundingSphere();
     }
     this.active = null;
+    this.engine.invalidate();
+  }
+
+  // ---------- ruchy wielostawowe (src/rigs.js) ----------
+  _stepMatrix(st, k) {
+    const kk = st.pre ? 1 : k, p = st.pivot, M = new THREE.Matrix4();
+    if (st.move) M.makeTranslation(st.move.x * kk, st.move.y * kk, st.move.z * kk);
+    if (st.ang) M.multiply(new THREE.Matrix4().makeTranslation(p.x, p.y, p.z)).multiply(new THREE.Matrix4().makeRotationAxis(st.axis, st.ang * kk)).multiply(new THREE.Matrix4().makeTranslation(-p.x, -p.y, -p.z));
+    return M;
+  }
+
+  _setupRig(move, side, muscleKeys) {
+    const { meta } = this.model, eng = this.engine;
+    let steps;
+    try { steps = new RigKit(this, side).build(move.rig); } catch (e) { console.warn('rig', move.rig, e); return false; }
+    steps = steps.filter((st) => st && st.pivot && (st.bones.size || st.move));
+    if (!steps.length) return false;
+    // znaki obrotów: punkt kontrolny ma ruszyć w stronę probe.d (od kroków wewnętrznych do zewnętrznych)
+    for (let i = steps.length - 1; i >= 0; i--) {
+      const st = steps[i]; st.bones.delete(undefined);
+      if (st.rel !== undefined) continue;
+      st.ang = THREE.MathUtils.degToRad(st.deg ?? 0); st.axis = st.axis.clone().normalize();
+      if (!st.ang || !st.probe) continue;
+      const pt = st.probe.p.clone();
+      if (st.probe.bone !== undefined) for (let j = steps.length - 1; j > i; j--) if (steps[j].bones.has(st.probe.bone)) pt.applyMatrix4(this._stepMatrix(steps[j], 1));
+      const q = pt.clone().applyMatrix4(this._stepMatrix({ ...st, ang: 0.05, move: null, pre: true }, 1));
+      if (q.sub(pt).dot(st.probe.d) < 0) st.axis.negate();
+    }
+    for (const st of steps) if (st.rel !== undefined) { const rel = [].concat(st.rel); st.axis = steps[rel[0]].axis.clone(); st.ang = rel.reduce((a, i) => a + steps[i].ang, 0) * st.deg; } // kąt przejęty z innych kroków (kompensacja)
+    // grupy kości o tym samym zestawie kroków = ten sam ruch
+    const sigOf = new Map(), groups = [[]], gIndex = new Map([['', 0]]);
+    steps.forEach((st, i) => { for (const id of st.bones) sigOf.set(id, [...(sigOf.get(id) ?? []), i]); });
+    const groupOf = (id) => { const sig = (sigOf.get(id) ?? []).join(','); if (!gIndex.has(sig)) { gIndex.set(sig, groups.length); groups.push(sig.split(',').map(Number)); } return gIndex.get(sig); };
+    const rigid = new Map();
+    for (const id of sigOf.keys()) if (eng.meshes[id]) rigid.set(id, groupOf(id));
+    const boneOfPatch = (pid) => {
+      const p = meta[pid].par[0]; if (!p) return null;
+      const mm = p.match(/^(.*)\.([lr])$/);
+      return this.model.ids(mm ? mm[1] : p, mm ? mm[2] : '').find((b) => meta[b].f === 'skeleton');
+    };
+    // kości kandydujące do „skórowania” mięśni: strona ruchu + linia pośrodkowa (+ druga strona dla ruchów obustronnych)
+    const both = /^(spine|breath|swallow|jaw)/.test(move.rig);
+    const bones = meta.filter((m) => m.f === 'skeleton' && eng.meshes[m.id] && (both || m.s === side || m.s === '')).map((m) => m.id);
+    const samples = new Map(); // id kości → Float32Array punktów
+    const sample = (id) => {
+      let S = samples.get(id); if (S) return S;
+      const P = this._pos(id), n = P.length / 3, step = Math.max(1, Math.floor(n / 90)), out = [];
+      for (let i = 0; i < n; i += step) out.push(P[i * 3], P[i * 3 + 1], P[i * 3 + 2]);
+      S = new Float32Array(out); samples.set(id, S); return S;
+    };
+    const skins = [];
+    for (const key of muscleKeys) {
+      const e = this.model.muscleEntity(key, side);
+      for (const pid of e.att) { const b = boneOfPatch(pid); if (b != null && sigOf.has(b)) rigid.set(pid, groupOf(b)); }
+      for (const id of e.ids) {
+        if (!eng.meshes[id]) continue;
+        const b = meta[id].bb; if (Math.max(b[3] - b[0], b[4] - b[1], b[5] - b[2]) < 0.03) continue;
+        const pad = 0.06, cand = bones.filter((bi) => { const c = meta[bi].bb; return c[0] < b[3] + pad && c[3] > b[0] - pad && c[1] < b[4] + pad && c[4] > b[1] - pad && c[2] < b[5] + pad && c[5] > b[2] - pad; });
+        const cg = cand.map(groupOf);
+        if (!cg.length || cg.every((g) => g === cg[0])) { if (cg.length && cg[0] !== 0) rigid.set(id, cg[0]); continue; }
+        const P = this._pos(id), n = P.length / 3, G = groups.length, ck = `${move.rig}|${side}|${id}`;
+        const hit = this.skinCache.get(ck);
+        if (hit) { skins.push({ id, P, n, ...hit }); continue; }
+        const gi = new Uint8Array(n * 3), gw = new Float32Array(n * 3), dist = new Float32Array(G);
+        const pts = cand.map((bi, j) => [sample(bi), cg[j]]);
+        for (let v = 0; v < n; v++) {
+          const x = P[v * 3], y = P[v * 3 + 1], z = P[v * 3 + 2];
+          dist.fill(1e9);
+          for (const [S, g] of pts) { let m = dist[g]; for (let i = 0; i < S.length; i += 3) { const dx = S[i] - x, dy = S[i + 1] - y, dz = S[i + 2] - z, d = dx * dx + dy * dy + dz * dz; if (d < m) m = d; } dist[g] = m; }
+          let sum = 0;
+          for (let r = 0; r < 3; r++) { // trzy najbliższe grupy, waga ~ 1/d^4
+            let best = -1, bd = 1e9; for (let g = 0; g < G; g++) if (dist[g] < bd) { bd = dist[g]; best = g; }
+            if (best < 0 || bd >= 1e9) break;
+            const w = 1 / (bd * bd + 1e-12); gi[v * 3 + r] = best; gw[v * 3 + r] = w; sum += w; dist[best] = 1e9;
+          }
+          for (let r = 0; r < 3; r++) gw[v * 3 + r] /= sum || 1;
+        }
+        let dy = null;
+        if (move.rig === 'breath' && key === 'diaphragm') { // kopuła przepony schodzi przy wdechu
+          dy = new Float32Array(n); const lo = b[1] + 0.35 * (b[4] - b[1]);
+          for (let v = 0; v < n; v++) dy[v] = -0.018 * THREE.MathUtils.smoothstep(P[v * 3 + 1], lo, b[4]);
+        }
+        this.skinCache.set(ck, { gi, gw, dy });
+        skins.push({ id, P, n, gi, gw, dy });
+      }
+    }
+    this.active = { rig: true, steps, groups, rigid, skins, reverse: !!move.reverse, j: { p: steps.find((st) => !st.pre && st.ang)?.pivot ?? steps[0].pivot }, moving: [...sigOf.keys()] };
+    this.set(0);
+    return true;
+  }
+
+  _setRig(k) {
+    const a = this.active, kk = a.reverse ? 1 - k : k;
+    const SM = a.steps.map((st) => this._stepMatrix(st, kk));
+    const GM = a.groups.map((sig) => { const M = new THREE.Matrix4(); for (const i of sig) if (!Number.isNaN(i)) M.multiply(SM[i]); return M; });
+    for (const [id, g] of a.rigid) { const m = this.engine.meshes[id]; if (!m) continue; m.matrix.copy(GM[g]); m.matrixWorldNeedsUpdate = true; }
+    const E = GM.map((M) => M.elements);
+    for (const s of a.skins) {
+      const g = this.engine.meshes[s.id].geometry, out = g.attributes.position.array, { P, gi, gw, dy } = s;
+      for (let v = 0; v < s.n; v++) {
+        const x = P[v * 3], y = P[v * 3 + 1], z = P[v * 3 + 2]; let ox = 0, oy = 0, oz = 0;
+        for (let r = 0; r < 3; r++) {
+          const w = gw[v * 3 + r]; if (!w) continue; const e = E[gi[v * 3 + r]];
+          ox += w * (e[0] * x + e[4] * y + e[8] * z + e[12]); oy += w * (e[1] * x + e[5] * y + e[9] * z + e[13]); oz += w * (e[2] * x + e[6] * y + e[10] * z + e[14]);
+        }
+        out[v * 3] = ox; out[v * 3 + 1] = oy + (dy ? dy[v] * kk : 0); out[v * 3 + 2] = oz;
+      }
+      g.attributes.position.needsUpdate = true; g.computeVertexNormals();
+    }
     this.engine.invalidate();
   }
 }

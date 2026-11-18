@@ -337,8 +337,12 @@ function renderAtlasKeepScroll() { const s = panelBody.scrollTop; renderAtlas();
 const COL = { ago: '#e0453c', syn: '#f0a030', ant: '#3d7fe2' };
 modes.motion = (() => {
   let move = null, side = 'r', playing = true, showAnt = false, k = 0, dir = 1, last = 0;
+  const anim = (m) => !!(m.joint || m.rig);
+  const pulseMat = () => engine.material(`tint:${COL.ago}`);
   const tick = (t) => {
-    if (mode !== 'motion' || !move || !motion.active || !playing) return false;
+    if (mode !== 'motion' || !move) return false;
+    if (!motion.active) { if (anim(move)) return false; pulseMat().emissiveIntensity = 0.18 + 0.5 * (0.5 + 0.5 * Math.sin(t / 280)); return true; } // ruch bez kości: pulsują mięśnie główne
+    if (!playing) return false;
     const dt = Math.min(0.05, (t - last) / 1000 || 0); last = t;
     k += dir * dt / 1.6; if (k >= 1) { k = 1; dir = -1; } else if (k <= 0) { k = 0; dir = 1; }
     const e = k * k * (3 - 2 * k); motion.set(e);
@@ -348,7 +352,7 @@ modes.motion = (() => {
   function list() {
     move = null; motion.reset(); view.only = null; view.tints.clear(); applyView();
     let h = '<h2>Ruchy w stawach</h2><p class="en">Wybierz ruch, aby zobaczyć pracę szkieletu oraz mięśnie główne, wspomagające i antagonistyczne.</p>', g = '';
-    for (const m of MOVES) { if (m.g !== g) { g = m.g; h += `<div class="grp">${g}</div><div class="list">`; } h += `<div class="it" data-move="${m.id}"><span>${esc(m.pl)}</span><small>${m.joint ? '▶ animacja' : 'mięśnie'}</small></div>`; if (MOVES[MOVES.indexOf(m) + 1]?.g !== g) h += '</div>'; }
+    for (const m of MOVES) { if (m.g !== g) { g = m.g; h += `<div class="grp">${g}</div><div class="list">`; } h += `<div class="it" data-move="${m.id}"><span>${esc(m.pl)}</span><small>${anim(m) ? '▶ animacja' : 'mięśnie'}</small></div>`; if (MOVES[MOVES.indexOf(m) + 1]?.g !== g) h += '</div>'; }
     panelBody.innerHTML = h; panelBody.scrollTop = 0;
   }
   async function open(id, s = side) {
@@ -357,7 +361,7 @@ modes.motion = (() => {
     stage(); render();
   }
   function stage() {
-    motion.reset(); view.tints.clear(); view.iso = null; view.sel.clear();
+    motion.reset(); view.tints.clear(); view.iso = null; view.sel.clear(); pulseMat().emissiveIntensity = 0.18;
     const only = new Set(model.meta.filter((m) => m.layer === 'bones').map((m) => m.id));
     const groups = [['ago', move.ago], ['syn', move.syn], ...(showAnt ? [['ant', move.ant]] : [])];
     const keys = [];
@@ -366,7 +370,9 @@ modes.motion = (() => {
     const animated = motion.setup(move, side, keys);
     const ids = keys.flatMap((key) => model.muscleEntity(key, side).ids);
     const box = engine.boxOf(ids);
-    if (animated) box.expandByPoint(motion.active.j.p).expandByScalar(0.12);
+    if (animated && move.rig && !/^(spine|breath)/.test(move.rig)) box.copy(engine.boxOf(motion.active.moving)).expandByPoint(motion.active.j.p).expandByScalar(/^swallow/.test(move.rig) ? 0.06 : 0.035); // kadr na poruszające się kości
+    else if (animated) box.expandByPoint(motion.active.j.p).expandByScalar(move.rig ? 0.05 : 0.12);
+    if (move.view) { engine.focus(box, { pad: 1.25, dir: new THREE.Vector3(move.view[0] * (side === 'l' ? 1 : -1), move.view[1], move.view[2]).normalize() }); return; }
     engine.focus(box, { pad: 1.25, dir: move.axis === 'z' || /^(sc_|tr_ext|nk_ext)/.test(move.id) ? new THREE.Vector3(side === 'l' ? 0.35 : -0.35, 0.15, /sh_abd|sc_|tr_ext|nk_ext/.test(move.id) ? -1 : 1) : new THREE.Vector3(side === 'l' ? 1 : -1, 0.12, 0.55) });
   }
   const mlist = (keys, c) => keys.map((key) => `<div class="it" data-muscle="${key}"><span><i class="dot" style="display:inline-block;background:${c};margin-right:8px"></i>${esc(MUSCLES[key].pl)}</span><small>${esc(MUSCLES[key].lat)}</small></div>`).join('');
@@ -374,12 +380,12 @@ modes.motion = (() => {
     const m = move;
     panelBody.innerHTML = `<div class="acts" style="margin-top:0"><button data-act="back">‹ Lista ruchów</button><button data-act="side">${side === 'r' ? 'Strona: prawa' : 'Strona: lewa'}</button></div>
       <h2>${esc(m.pl)}</h2><div class="tags"><span class="tag">${esc(m.g)}</span>${m.rom ? `<span class="tag">zakres: ${esc(m.rom)}</span>` : ''}</div>
-      ${m.joint ? `<div class="card"><h5>Animacja</h5><input id="mvk" type="range" min="0" max="100" value="0"><div class="acts" style="margin-bottom:0"><button data-act="play" class="primary">${playing ? 'Pauza' : 'Odtwórz'}</button><span class="chip ${showAnt ? 'on' : ''}" data-act="ant">Pokaż antagonistów</span></div></div>` : `<div class="card"><p>Dla tego ruchu pokazuję same mięśnie (bez animacji szkieletu).</p><div class="chips" style="margin-top:8px"><span class="chip ${showAnt ? 'on' : ''}" data-act="ant">Pokaż antagonistów</span></div></div>`}
+      ${anim(m) ? `<div class="card"><h5>Animacja</h5><input id="mvk" type="range" min="0" max="100" value="0"><div class="acts" style="margin-bottom:0"><button data-act="play" class="primary">${playing ? 'Pauza' : 'Odtwórz'}</button><span class="chip ${showAnt ? 'on' : ''}" data-act="ant">Pokaż antagonistów</span></div></div>` : `<div class="card"><p>Ten ruch nie przesuwa kości – mięśnie główne pulsują na czerwono.</p><div class="chips" style="margin-top:8px"><span class="chip ${showAnt ? 'on' : ''}" data-act="ant">Pokaż antagonistów</span></div></div>`}
       ${card('Mięśnie główne (agoniści)', `<div class="list">${mlist(m.ago, COL.ago)}</div>`)}
       ${m.syn.length ? card('Mięśnie wspomagające (synergiści)', `<div class="list">${mlist(m.syn, COL.syn)}</div>`) : ''}
       ${m.ant.length ? card('Antagoniści', `<div class="list">${mlist(m.ant, COL.ant)}</div>`) : ''}
       ${card('Warto wiedzieć', p(m.note), null, 'tip')}
-      <p class="note">Animacja jest uproszczona: kości poruszają się jako sztywne segmenty wokół jednej osi, a mięśnie są „zginane” w osi stawu – pokazuje kierunek i zakres ruchu, nie rzeczywistą zmianę kształtu brzuśca.</p>`;
+      <p class="note">Animacja jest uproszczona: kości poruszają się jako sztywne segmenty${m.rig ? ' (w kilku stawach naraz, np. kręg po kręgu), a mięśnie podążają za najbliższymi kośćmi' : ' wokół jednej osi, a mięśnie są „zginane” w osi stawu'} – pokazuje kierunek i zakres ruchu, nie rzeczywistą zmianę kształtu brzuśca.</p>`;
     panelBody.scrollTop = 0;
   }
   panelBody.addEventListener('input', (e) => { if (mode === 'motion' && e.target.id === 'mvk') { playing = false; const b = panelBody.querySelector('[data-act="play"]'); if (b) b.textContent = 'Odtwórz'; const v = e.target.value / 100; k = v; motion.set(v); } });
@@ -395,7 +401,7 @@ modes.motion = (() => {
       else if (a === 'ant') { showAnt = !showAnt; stage(); render(); }
     } else if (M) { const key = M.dataset.muscle; leave(); setMode('atlas'); select(model.muscleEntity(key, side), { isolate: true }); }
   });
-  function leave() { move = null; motion.reset(); view.only = null; view.tints.clear(); }
+  function leave() { move = null; motion.reset(); view.only = null; view.tints.clear(); pulseMat().emissiveIntensity = 0.18; }
   const stepMove = (d) => { if (!move) return false; const i = MOVES.indexOf(move); open(MOVES[(i + d + MOVES.length) % MOVES.length].id); return true; };
   return { stepMove, enter() { engine.frameCallbacks.add(tick); list(); }, leave() { engine.frameCallbacks.delete(tick); leave(); applyView(); }, open, onPick(hit) { if (hit) { const ent = model.entityOf(hit.id); hint(`${ent.title}${ent.lat ? ` – ${ent.lat}` : ''}`); } } };
 })();
@@ -458,6 +464,7 @@ $('#hud').addEventListener('click', (e) => { const b = e.target.closest('button'
       await startReel({ engine, model, motion, MUSCLES, NERVES }, rp);
       return;
     }
+    if (rp.has('debug')) Object.assign(window, { __motion: motion, __model: model, __engine: engine }); // testy automatyczne
     const ctx = { engine, model, view, applyView, need, hint, panelBody, esc, card, setMode, select, entDir, MUSCLES, NERVES, modeIs: (m) => mode === m, home };
     initAccount(ctx);
     modes.quiz = initQuiz(ctx); modes.srs = initSrs(ctx);
