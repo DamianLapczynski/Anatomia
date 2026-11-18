@@ -5,12 +5,18 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { fixWinding } from './geom.js';
-import { patchSurface, addSurfaceAttributes } from './surface.js';
+import { patchSurface, patchFaceForward, addSurfaceAttributes } from './surface.js';
 
 export const FILES = ['skeleton', 'muscles', 'insertions', 'nerves', 'cardio', 'joints', 'cns'];
 const BASE = import.meta.env.BASE_URL;
 const SURFACE = { skeleton: 'bone', muscles: 'muscle' }; // pliki z fakturą powierzchni (src/surface.js)
 const SURF_LAYER = { bones: 'bone', muscles: 'muscle' };
+const THIN = ['fascia', 'joints', 'attachments', 'cns', 'heart'];
+function patchLayer(m, layer) {
+  if (SURF_LAYER[layer]) patchSurface(m, SURF_LAYER[layer]);
+  else if (THIN.includes(layer)) patchFaceForward(m);
+  return m;
+}
 
 export class Engine extends EventTarget {
   constructor(canvas) {
@@ -133,7 +139,7 @@ export class Engine extends EventTarget {
     if (m) return m;
     const [kind, arg] = key.split(':');
     if (kind === 'base' || kind === 'sel') {
-      const thin = ['fascia', 'joints', 'attachments', 'cns', 'heart'].includes(arg);
+      const thin = THIN.includes(arg);
       m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.62, metalness: 0, side: thin ? THREE.DoubleSide : THREE.FrontSide });
       if (arg === 'bones') { m.roughness = 0.52; } // kość: matowa, z delikatnym połyskiem
       if (arg === 'muscles') { m.roughness = 0.46; } // wilgotna powięź – lekki refleks
@@ -141,7 +147,7 @@ export class Engine extends EventTarget {
       if (arg === 'heart') { m.roughness = 0.38; }
       if (arg === 'nerves') { m.roughness = 0.42; }
       if (arg === 'cns') { m.roughness = 0.55; }
-      if (SURF_LAYER[arg]) patchSurface(m, SURF_LAYER[arg]);
+      patchLayer(m, arg);
       if (arg === 'attachments') { m.polygonOffset = true; m.polygonOffsetFactor = -2; m.polygonOffsetUnits = -2; m.roughness = 0.4; }
       if (arg === 'fascia') { m.transparent = true; m.opacity = 0.3; m.depthWrite = false; }
       if (kind === 'sel') { m.emissive = new THREE.Color(0x1c7dff); m.emissiveIntensity = 0.55; m.transparent = false; m.opacity = 1; m.depthWrite = true; }
@@ -152,7 +158,7 @@ export class Engine extends EventTarget {
     } else if (kind === 'fade') { // base z przezroczystością warstwy
       const [layer, op] = arg.split('@');
       m = this.material(`base:${layer}`).clone();
-      if (SURF_LAYER[layer]) patchSurface(m, SURF_LAYER[layer]); // clone() nie kopiuje onBeforeCompile
+      patchLayer(m, layer); // clone() nie kopiuje onBeforeCompile
       m.transparent = true; m.opacity = Number(op); m.depthWrite = Number(op) > 0.6;
     }
     this.materials.set(key, m);

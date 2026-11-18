@@ -24,10 +24,11 @@ const RAYS = 64;
 // cavity – mnożnik koloru w pełnym zagłębieniu; gain – czułość; strength – siła efektu
 const CFG = {
   skeleton: { self: 0.06, neigh: 0.012, gain: 2.1, strength: 0.92, cavity: [0.46, 0.38, 0.3] },
-  muscles: { self: 0.035, neigh: 0.01, gain: 1.9, strength: 0.85, cavity: [0.38, 0.27, 0.27] },
+  muscles: { self: 0.035, neigh: 0.007, gain: 1.6, strength: 0.8, cavity: [0.38, 0.27, 0.27] },
   joints: { self: 0.03, neigh: 0.008, gain: 1.8, strength: 0.8, cavity: [0.5, 0.46, 0.4] },
   cardio: { self: 0.03, neigh: 0.008, gain: 1.8, strength: 0.75, cavity: [0.42, 0.36, 0.4] },
-  cns: { self: 0.025, neigh: 0.008, gain: 2.2, strength: 0.85, cavity: [0.48, 0.38, 0.4] },
+  // zakręty to osobne, ciasno upakowane siatki – zasięg minimalny, inaczej cały mózg robi się szary
+  cns: { self: 0.012, neigh: 0.003, gain: 1.1, strength: 0.6, cavity: [0.55, 0.42, 0.44], tint: [1.06, 0.93, 0.9], twoSided: true },
 };
 
 await MeshoptDecoder.ready; await MeshoptEncoder.ready;
@@ -79,8 +80,9 @@ for (const file of files) {
   for (const p of parts) {
     const P = p.g.attributes.position, N = p.g.attributes.normal, n = P.count;
     const AO = new Float32Array(n);
-    for (let i = 0; i < n; i++) {
-      nrm.fromBufferAttribute(N, i);
+    for (let i = 0; i < n; i++) for (let side = 0; side < (cfg.twoSided ? 2 : 1); side++) {
+      // twoSided: otwarte płaty (zakręty mózgu) nie mają pewnej „zewnętrznej” strony – bierzemy jaśniejszą
+      nrm.fromBufferAttribute(N, i); if (side) nrm.negate();
       t1.set(Math.abs(nrm.x) > 0.9 ? 0 : 1, Math.abs(nrm.x) > 0.9 ? 1 : 0, 0).cross(nrm).normalize(); t2.crossVectors(nrm, t1);
       o.fromBufferAttribute(P, i).addScaledVector(nrm, 0.0004);
       let occ = 0;
@@ -92,7 +94,8 @@ for (const file of files) {
         const hn = allBvh.raycastFirst(ray, THREE.DoubleSide, 0, NEIGH_DIST);
         if (hn) occ += 0.7 * (1 - hn.distance / NEIGH_DIST);
       }
-      AO[i] = 1 - Math.min(1, (occ / RAYS) * cfg.gain); // 1 = otwarte, 0 = pełne zagłębienie
+      const ao = 1 - Math.min(1, (occ / RAYS) * cfg.gain); // 1 = otwarte, 0 = pełne zagłębienie
+      AO[i] = side ? Math.max(AO[i], ao) : ao;
     }
     // dwa przejścia wygładzania po sąsiadach – bez ziarna i „schodków” z próbkowania
     const idx = p.g.index.array;
@@ -108,7 +111,7 @@ for (const file of files) {
       // chrząstka (niebieskawa) – słabiej i bez brązowego odcienia, inaczej wygląda na brudną
       const cart = el[2] > el[0] + 0.03;
       const st = cart ? STRENGTH * 0.45 : STRENGTH;
-      for (let c = 0; c < 3; c++) el[c] *= 1 - st * (1 - k) * (1 - (cart ? 0.55 : CAVITY[c]));
+      for (let c = 0; c < 3; c++) el[c] = Math.min(1, el[c] * (cfg.tint?.[c] ?? 1) * (1 - st * (1 - k) * (1 - (cart ? 0.55 : CAVITY[c]))));
       ca.setElement(i, el);
     }
     done += n;

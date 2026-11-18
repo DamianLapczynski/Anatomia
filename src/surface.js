@@ -114,3 +114,15 @@ export function addSurfaceAttributes(geo, kind) {
   for (let i = 0; i < n; i++) F.set(v, i * 3);
   geo.setAttribute('fiber', new THREE.BufferAttribute(F, 3));
 }
+
+/** Cienkie, dwustronne płaty (mózg, więzadła, powięzi): normalna zawsze w stronę kamery.
+ *  W źródle część płatów ma normalne „do środka” niezależnie od strony – bez tego świecą na szaro. */
+export function patchFaceForward(m) {
+  m.customProgramCacheKey = () => 'surf-ff';
+  m.onBeforeCompile = (sh) => {
+    sh.fragmentShader = sh.fragmentShader.replace('#include <normal_fragment_begin>', `#include <normal_fragment_begin>
+  if (dot(normal, vViewPosition) < 0.0) normal = -normal;
+  nonPerturbedNormal = normal;`);
+  };
+  return m;
+}

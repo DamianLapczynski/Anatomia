@@ -14,8 +14,10 @@ Interaktywny atlas anatomii 3D do nauki na studiach fizjoterapii: układ kostny,
 
 ## Jakość modelu 3D
 
-- Okluzja otoczenia (cienie w dołach, otworach i szparach stawowych) jest wypalona w kolorach wierzchołków kości przez `tools/bake_ao.mjs`. `npm run models` uruchamia go automatycznie po zbudowaniu modeli; ręcznie: `node tools/bake_ao.mjs` (ok. 1,5 min, plik oznaczony jako wypalony nie jest przyciemniany drugi raz).
-- Przy wczytywaniu aplikacja poprawia odwróconą orientację trójkątów w siatkach lustrzanych (prawie cała lewa strona ciała) i liczy normalne od nowa we float – bez tego lewa strona była rysowana „od środka”, a gładkie kości miały schodki.
+- **Okluzja otoczenia** (cienie w dołach, otworach, szparach stawowych, między mięśniami i w bruzdach mózgu) jest wypalona w kolorach wierzchołków przez `tools/bake_ao.mjs` – kości, mięśnie, więzadła, naczynia i OUN. `npm run models` uruchamia go automatycznie; ręcznie: `node tools/bake_ao.mjs [plik.glb …]` (ok. 10 min dla wszystkich; plik oznaczony jako wypalony nie jest przyciemniany drugi raz). Ustawienia dla każdej warstwy są w `CFG` na górze skryptu.
+- **Faktury w shaderze** (`src/surface.js`): włókna mięśniowe wzdłuż osi mięśnia z delikatnym reliefem, porowata powierzchnia kości, połysk ścięgien i chrząstki. Wygaszają się przy oddaleniu, nie wymagają pobierania tekstur.
+- **Poprawki geometrii przy wczytywaniu**: odwrócona orientacja trójkątów w siatkach lustrzanych (prawie cała lewa strona ciała), normalne liczone od nowa we float zamiast 8-bitowych z pliku, a cienkie płaty dwustronne (mózg, więzadła, powięzi) mają normalną zawsze w stronę kamery.
+- **Światło**: oświetlenie otoczenia (IBL) + światło kluczowe, wypełniające i kontra; neutralne mapowanie tonów.
 
 ## Skróty klawiszowe
 
