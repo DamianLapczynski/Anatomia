@@ -1,7 +1,7 @@
-// Wypala okluzję otoczenia (ambient occlusion) w kolorach wierzchołków kości.
+// Wypala okluzję otoczenia (ambient occlusion) w kolorach wierzchołków modeli.
 // Zagłębienia (doły, otwory, szpary stawowe, okolice szwów) ciemnieją w ciepły odcień,
 // dzięki czemu kość ma głębię także przy płaskim świetle i na słabym telefonie.
-// Użycie: node tools/bake_ao.mjs [plik.glb …]   (domyślnie public/models/skeleton.glb)
+// Użycie: node tools/bake_ao.mjs [plik.glb …]   (domyślnie: kości, mięśnie, więzadła, naczynia, OUN)
 // Uruchamiaj po każdym `npm run models` – skrypt czyta kolory bazowe ze źródła,
 // więc ponowne wypalenie tego samego pliku przyciemniłoby go drugi raz (stąd znacznik w extras).
 import fs from 'node:fs';
@@ -12,12 +12,17 @@ import * as THREE from 'three';
 import { MeshBVH } from 'three-mesh-bvh';
 import { fixWinding } from '../src/geom.js';
 
-const files = process.argv.slice(2).length ? process.argv.slice(2) : ['public/models/skeleton.glb'];
+const files = process.argv.slice(2).length ? process.argv.slice(2) : ['skeleton', 'muscles', 'joints', 'cardio', 'cns'].map((f) => `public/models/${f}.glb`);
 const RAYS = 64;
-const SELF_DIST = 0.06; // m – zasięg zasłaniania przez tę samą kość
-const NEIGH_DIST = 0.012; // m – sąsiednie kości liczą się tylko w szparach stawowych
-const STRENGTH = 0.92;
-const CAVITY = [0.46, 0.38, 0.3]; // mnożnik koloru w pełnym zagłębieniu (ciepły brąz)
+// zasięgi w metrach: „self” – zasłanianie przez ten sam obiekt, „neigh” – przez sąsiadów (tylko szpary)
+// cavity – mnożnik koloru w pełnym zagłębieniu; gain – czułość; strength – siła efektu
+const CFG = {
+  skeleton: { self: 0.06, neigh: 0.012, gain: 2.1, strength: 0.92, cavity: [0.46, 0.38, 0.3] },
+  muscles: { self: 0.035, neigh: 0.01, gain: 1.9, strength: 0.85, cavity: [0.38, 0.27, 0.27] },
+  joints: { self: 0.03, neigh: 0.008, gain: 1.8, strength: 0.8, cavity: [0.5, 0.46, 0.4] },
+  cardio: { self: 0.03, neigh: 0.008, gain: 1.8, strength: 0.75, cavity: [0.42, 0.36, 0.4] },
+  cns: { self: 0.025, neigh: 0.008, gain: 2.2, strength: 0.85, cavity: [0.48, 0.38, 0.4] },
+};
 
 await MeshoptDecoder.ready; await MeshoptEncoder.ready;
 const io = new NodeIO().registerExtensions([EXTMeshoptCompression, KHRMeshQuantization])
@@ -32,6 +37,8 @@ for (let i = 0; i < RAYS; i++) {
 }
 
 for (const file of files) {
+  const cfg = CFG[file.replace(/^.*\//, '').replace('.glb', '')] ?? CFG.muscles;
+  const SELF_DIST = cfg.self, NEIGH_DIST = cfg.neigh, STRENGTH = cfg.strength, CAVITY = cfg.cavity;
   const doc = await io.read(file);
   const root = doc.getRoot();
   if (root.getExtras()?.ao) { console.log(`${file}: już wypalony – pomijam (najpierw npm run models)`); continue; }
@@ -78,7 +85,7 @@ for (const file of files) {
         const hn = allBvh.raycastFirst(ray, THREE.DoubleSide, 0, NEIGH_DIST);
         if (hn) occ += 0.7 * (1 - hn.distance / NEIGH_DIST);
       }
-      AO[i] = 1 - Math.min(1, (occ / RAYS) * 2.1); // 1 = otwarte, 0 = pełne zagłębienie
+      AO[i] = 1 - Math.min(1, (occ / RAYS) * cfg.gain); // 1 = otwarte, 0 = pełne zagłębienie
     }
     // dwa przejścia wygładzania po sąsiadach – bez ziarna i „schodków” z próbkowania
     const idx = p.g.index.array;
@@ -97,7 +104,7 @@ for (const file of files) {
     done += n;
     const pc = Math.floor((done / total) * 10); if (pc !== lastPc) { lastPc = pc; process.stdout.write(`\r${file}: ${pc * 10}%  `); }
   }
-  root.setExtras({ ...(root.getExtras() ?? {}), ao: { rays: RAYS, self: SELF_DIST, neigh: NEIGH_DIST } });
+  root.setExtras({ ...(root.getExtras() ?? {}), ao: { rays: RAYS, ...cfg } });
   const before = fs.statSync(file).size;
   await io.write(file, doc);
   console.log(`\n${file}: ${total} wierzchołków, ${((Date.now() - t0) / 1000).toFixed(1)} s, ${Math.round(before / 1024)} → ${Math.round(fs.statSync(file).size / 1024)} kB`);
