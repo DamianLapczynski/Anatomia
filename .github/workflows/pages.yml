@@ -1,7 +1,7 @@
 name: Publikacja na GitHub Pages
 on:
   push:
-    branches: [main, claude/great-cannon-keznti]
+    branches: [main, claude/great-cannon-keznti, claude/vigilant-planck-2thxsq]
   workflow_dispatch:
 permissions:
   contents: read
