@@ -3,6 +3,8 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { fixWinding } from './geom.js';
 
 export const FILES = ['skeleton', 'muscles', 'insertions', 'nerves', 'cardio', 'joints', 'cns'];
 const BASE = import.meta.env.BASE_URL;
@@ -13,7 +15,15 @@ export class Engine extends EventTarget {
     this.canvas = canvas;
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    // neutralne mapowanie tonów: miękkie światła bez przepaleń, kolory warstw bez przesunięcia barw
+    this.renderer.toneMapping = THREE.NeutralToneMapping;
+    this.renderer.toneMappingExposure = 0.95;
     this.scene = new THREE.Scene();
+    // oświetlenie otoczenia (IBL): miękkie odbicia i cieniowanie zamiast płaskiego „plastiku”
+    const pmrem = new THREE.PMREMGenerator(this.renderer);
+    this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    this.scene.environmentIntensity = 0.3;
+    pmrem.dispose();
     this.camera = new THREE.PerspectiveCamera(32, 1, 0.01, 30);
     this.camera.position.set(0, 1.0, 4.2);
     this.controls = new OrbitControls(this.camera, canvas);
@@ -25,10 +35,15 @@ export class Engine extends EventTarget {
     this.controls.zoomToCursor = true;
     this.controls.addEventListener('change', () => this.invalidate());
 
-    this.scene.add(new THREE.HemisphereLight(0xffffff, 0x4a4f5c, 1.5));
-    const head = new THREE.DirectionalLight(0xffffff, 1.9);
-    head.position.set(0.4, 0.6, 1);
-    this.camera.add(head);
+    // światło kluczowe z góry-z boku, wypełnienie z dołu, kontra od tyłu dla czytelnego obrysu
+    this.scene.add(new THREE.HemisphereLight(0xfff6ea, 0x2c303a, 0.3));
+    const key = new THREE.DirectionalLight(0xfff4e6, 1.7);
+    key.position.set(0.7, 0.85, 0.8);
+    const fill = new THREE.DirectionalLight(0xdfe8ff, 0.25);
+    fill.position.set(-0.8, -0.3, 0.6);
+    const rim = new THREE.DirectionalLight(0xffffff, 0.75);
+    rim.position.set(-0.4, 0.5, -1);
+    for (const l of [key, fill, rim]) { l.target.position.set(0, 0, -1); this.camera.add(l, l.target); }
     this.scene.add(this.camera);
     this.root = new THREE.Group();
     this.scene.add(this.root);
@@ -84,6 +99,11 @@ export class Engine extends EventTarget {
           for (let i = 0; i < nrm.count; i++) { fn[i * 3] = nrm.getX(i); fn[i * 3 + 1] = nrm.getY(i); fn[i * 3 + 2] = nrm.getZ(i); }
           mesh.geometry.setAttribute('normal', new THREE.BufferAttribute(fn, 3));
         }
+        // siatki lustrzane (prawie cała lewa strona) mają odwróconą kolejność wierzchołków – bez tego
+        // przeglądarka rysuje wewnętrzną ścianę zamiast powierzchni
+        fixWinding(mesh.geometry);
+        // normalne w pliku są 8-bitowe (schodki na gładkich kościach) – liczymy je od nowa we float
+        mesh.geometry.computeVertexNormals();
         mesh.geometry.computeBoundingBox();
         mesh.geometry.computeBoundingSphere();
         mesh.position.set(0, 0, 0); mesh.quaternion.identity(); mesh.scale.set(1, 1, 1);
@@ -110,7 +130,9 @@ export class Engine extends EventTarget {
     const [kind, arg] = key.split(':');
     if (kind === 'base' || kind === 'sel') {
       const thin = ['fascia', 'joints', 'attachments', 'cns', 'heart'].includes(arg);
-      m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.62, metalness: 0.02, side: thin ? THREE.DoubleSide : THREE.FrontSide });
+      m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.62, metalness: 0, side: thin ? THREE.DoubleSide : THREE.FrontSide });
+      if (arg === 'bones') { m.roughness = 0.5; m.envMapIntensity = 1; } // kość: matowa, z delikatnym połyskiem
+      if (arg === 'muscles') { m.roughness = 0.48; } // wilgotna powięź – lekki refleks
       if (arg === 'attachments') { m.polygonOffset = true; m.polygonOffsetFactor = -2; m.polygonOffsetUnits = -2; m.roughness = 0.4; }
       if (arg === 'fascia') { m.transparent = true; m.opacity = 0.3; m.depthWrite = false; }
       if (kind === 'sel') { m.emissive = new THREE.Color(0x1c7dff); m.emissiveIntensity = 0.55; m.transparent = false; m.opacity = 1; m.depthWrite = true; }

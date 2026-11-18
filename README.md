@@ -12,6 +12,11 @@ Interaktywny atlas anatomii 3D do nauki na studiach fizjoterapii: układ kostny,
 - **Quiz** – wskaż strukturę na modelu, rozpoznaj podświetloną, pytania o unerwienie / przyczepy / czynność.
 - **Powtórki** – fiszki z modelem 3D i algorytmem SM-2; postęp w pamięci przeglądarki, z eksportem i importem.
 
+## Jakość modelu 3D
+
+- Okluzja otoczenia (cienie w dołach, otworach i szparach stawowych) jest wypalona w kolorach wierzchołków kości przez `tools/bake_ao.mjs`. `npm run models` uruchamia go automatycznie po zbudowaniu modeli; ręcznie: `node tools/bake_ao.mjs` (ok. 1,5 min, plik oznaczony jako wypalony nie jest przyciemniany drugi raz).
+- Przy wczytywaniu aplikacja poprawia odwróconą orientację trójkątów w siatkach lustrzanych (prawie cała lewa strona ciała) i liczy normalne od nowa we float – bez tego lewa strona była rysowana „od środka”, a gładkie kości miały schodki.
+
 ## Skróty klawiszowe
 
 Działają na komputerze i na iPadzie z klawiaturą we wszystkich trybach; klawisz `?` (albo przycisk ⌨ u góry) pokazuje ściągę dla bieżącego trybu, a po pierwszym wciśnięciu klawisza przyciski dostają małe oznaczenia skrótów.
