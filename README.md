@@ -12,6 +12,18 @@ Interaktywny atlas anatomii 3D do nauki na studiach fizjoterapii: układ kostny,
 - **Quiz** – wskaż strukturę na modelu, rozpoznaj podświetloną, pytania o unerwienie / przyczepy / czynność.
 - **Powtórki** – fiszki z modelem 3D i algorytmem SM-2; postęp w pamięci przeglądarki, z eksportem i importem.
 
+## Style graficzne
+
+Lewy panel → **Wygląd**. Każdy styl to komplet: kolory i materiały interfejsu, typografia oraz oprawa sceny 3D (światło, tło, kolor półprzezroczystej sylwetki, cień pod stopami – `src/looks.js`). Kolory tkanek są wszędzie te same.
+
+- **Atlas** – ciepły papier z fakturą, szeryf Fraunces, burgund; jak klasyczny atlas anatomiczny.
+- **Noir** – galeria nocą: czerń, punktowe światło ze złotą kontrą, Instrument Serif.
+- **Szkło** – świetliste, kolorowe tło i mleczne szkło z jasną krawędzią.
+- **Głębia** – atrament i morski turkus, chłodne światło z poświatą od tyłu.
+- Klasyczne: Grafit (domyślny), Jasny, Północ, Tytan.
+
+Na komputerze scena zajmuje cały ekran, a panele unoszą się nad nią; model jest kadrowany w odsłoniętej części (`engine.setInsets`). Styl można też wymusić w adresie: `?theme=atlas`.
+
 ## Jakość modelu 3D
 
 - **Okluzja otoczenia** (cienie w dołach, otworach, szparach stawowych, między mięśniami i w bruzdach mózgu) jest wypalona w kolorach wierzchołków przez `tools/bake_ao.mjs` – kości, mięśnie, więzadła, naczynia i OUN. `npm run models` uruchamia go automatycznie; ręcznie: `node tools/bake_ao.mjs [plik.glb …]` (ok. 10 min dla wszystkich; plik oznaczony jako wypalony nie jest przyciemniany drugi raz). Ustawienia dla każdej warstwy są w `CFG` na górze skryptu.

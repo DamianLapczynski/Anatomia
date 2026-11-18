@@ -9,6 +9,15 @@ import { initSrs } from './srs.js';
 import { initLearn } from './learn.js';
 import { landmarkPL } from './data/landmarks.js';
 import { initKeys } from './keys.js';
+// kroje stylów Atlas (Fraunces) i Noir (Instrument Serif) – przeglądarka pobiera je dopiero, gdy styl ich użyje
+import '@fontsource/fraunces/latin-600.css';
+import '@fontsource/fraunces/latin-ext-600.css';
+import '@fontsource/fraunces/latin-500-italic.css';
+import '@fontsource/fraunces/latin-ext-500-italic.css';
+import '@fontsource/instrument-serif/latin-400.css';
+import '@fontsource/instrument-serif/latin-ext-400.css';
+import '@fontsource/instrument-serif/latin-400-italic.css';
+import '@fontsource/instrument-serif/latin-ext-400-italic.css';
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -81,6 +90,10 @@ function renderLeft() {
 }
 // ---------- motywy ----------
 const THEMES = [
+  ['atlas', 'Atlas', 'radial-gradient(circle at 40% 30%,#fdf9f2,#dccdb6)', '#9e2b25'],
+  ['noir', 'Noir', 'radial-gradient(circle at 50% 28%,#3a342c,#000 70%)', '#d8b26e'],
+  ['glass', 'Szkło', 'radial-gradient(circle at 20% 15%,#ffd3e6,transparent 60%),radial-gradient(circle at 85% 30%,#c4e2ff,transparent 60%),linear-gradient(160deg,#f3eeff,#dcd2ff)', '#5856d6'],
+  ['depth', 'Głębia', 'radial-gradient(circle at 50% 35%,#16585a,#020b0f 75%)', '#40e0c8'],
   ['graphite', 'Grafit', 'linear-gradient(145deg,#2c2c2e,#000)', '#0a84ff'],
   ['light', 'Jasny', 'linear-gradient(145deg,#fff,#e5e5ea)', '#007aff'],
   ['midnight', 'Północ', 'linear-gradient(145deg,#2a2870,#03050c)', '#7d7aff'],
@@ -92,7 +105,17 @@ function setTheme(k) {
   try { localStorage.setItem('theme', k); } catch { /* tryb prywatny */ }
   const meta = document.querySelector('meta[name=theme-color]');
   if (meta) meta.content = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#000';
+  engine.setLook(k);
 }
+// pływające panele na komputerze: model centrujemy w odsłoniętej części sceny
+function updateInsets() {
+  const vis = (el) => { const r = el.getBoundingClientRect(); return r.width && r.height ? r : null; };
+  if (!matchMedia('(min-width: 821px)').matches || document.body.matches('.post, .reel')) return engine.setInsets({});
+  const L = vis(left), P = vis($('#panel')), T = vis($('#top'));
+  engine.setInsets({ l: L ? L.right : 0, r: P ? innerWidth - P.left : 0, t: T ? T.bottom : 0 });
+}
+addEventListener('resize', updateInsets);
+requestAnimationFrame(updateInsets);
 setTheme(theme());
 const PRESETS = {
   skeleton: ['bones'], muscles: ['bones', 'muscles'], neuro: ['bones', 'nerves', 'cns'], vessels: ['bones', 'arteries', 'veins', 'heart'],

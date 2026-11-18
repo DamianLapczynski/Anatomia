@@ -6,6 +6,7 @@ import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { fixWinding } from './geom.js';
 import { patchSurface, patchFaceForward, addSurfaceAttributes } from './surface.js';
+import { LOOKS } from './looks.js';
 
 export const FILES = ['skeleton', 'muscles', 'insertions', 'nerves', 'cardio', 'joints', 'cns'];
 const BASE = import.meta.env.BASE_URL;
@@ -44,16 +45,22 @@ export class Engine extends EventTarget {
     this.controls.zoomToCursor = true;
     this.controls.addEventListener('change', () => this.invalidate());
 
-    // światło kluczowe z góry-z boku, wypełnienie z dołu, kontra od tyłu dla czytelnego obrysu
-    this.scene.add(new THREE.HemisphereLight(0xfff6ea, 0x2c303a, 0.3));
-    const key = new THREE.DirectionalLight(0xfff4e6, 1.7);
-    key.position.set(0.7, 0.85, 0.8);
-    const fill = new THREE.DirectionalLight(0xdfe8ff, 0.25);
-    fill.position.set(-0.8, -0.3, 0.6);
-    const rim = new THREE.DirectionalLight(0xffffff, 0.75);
-    rim.position.set(-0.4, 0.5, -1);
+    // światło kluczowe z góry-z boku, wypełnienie z dołu, kontra od tyłu dla czytelnego obrysu (wartości: src/looks.js)
+    const hemi = new THREE.HemisphereLight(), key = new THREE.DirectionalLight(), fill = new THREE.DirectionalLight(), rim = new THREE.DirectionalLight();
+    this.scene.add(hemi);
     for (const l of [key, fill, rim]) { l.target.position.set(0, 0, -1); this.camera.add(l, l.target); }
+    this.lights = { hemi, key, fill, rim };
     this.scene.add(this.camera);
+    // miękki cień pod stopami – „uziemia” sylwetkę w jasnych stylach
+    const sc = document.createElement('canvas'); sc.width = sc.height = 128;
+    const g2 = sc.getContext('2d'), grd = g2.createRadialGradient(64, 64, 0, 64, 64, 64);
+    grd.addColorStop(0, 'rgba(255,255,255,1)'); grd.addColorStop(0.45, 'rgba(255,255,255,.45)'); grd.addColorStop(1, 'rgba(255,255,255,0)');
+    g2.fillStyle = grd; g2.fillRect(0, 0, 128, 128);
+    this.shadow = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.7), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(sc), transparent: true, depthWrite: false, toneMapped: false }));
+    this.shadow.rotation.x = -Math.PI / 2; this.shadow.position.y = -0.004; this.shadow.renderOrder = -1;
+    this.scene.add(this.shadow);
+    this.insets = { l: 0, r: 0, t: 0, b: 0 };
+    this.setLook('graphite');
     this.root = new THREE.Group();
     this.scene.add(this.root);
     this.overlay = new THREE.Group(); // linie działania, znaczniki
@@ -150,9 +157,9 @@ export class Engine extends EventTarget {
       patchLayer(m, arg);
       if (arg === 'attachments') { m.polygonOffset = true; m.polygonOffsetFactor = -2; m.polygonOffsetUnits = -2; m.roughness = 0.4; }
       if (arg === 'fascia') { m.transparent = true; m.opacity = 0.3; m.depthWrite = false; }
-      if (kind === 'sel') { m.emissive = new THREE.Color(0x1c7dff); m.emissiveIntensity = 0.55; m.transparent = false; m.opacity = 1; m.depthWrite = true; }
+      if (kind === 'sel') { m.emissive = new THREE.Color(this.look.sel); m.emissiveIntensity = 0.55; m.transparent = false; m.opacity = 1; m.depthWrite = true; }
     } else if (kind === 'ghost') {
-      m = new THREE.MeshStandardMaterial({ color: 0x9fb0c8, transparent: true, opacity: 0.1, depthWrite: false, roughness: 1, side: THREE.FrontSide }); // jedna strona = połowa kosztu wypełniania ekranu
+      m = new THREE.MeshStandardMaterial({ color: this.look.ghost[0], transparent: true, opacity: this.look.ghost[1], depthWrite: false, roughness: 1, side: THREE.FrontSide }); // jedna strona = połowa kosztu wypełniania ekranu
     } else if (kind === 'tint') {
       m = new THREE.MeshStandardMaterial({ color: new THREE.Color(arg), roughness: 0.5, side: THREE.DoubleSide, emissive: new THREE.Color(arg), emissiveIntensity: 0.18 });
     } else if (kind === 'fade') { // base z przezroczystością warstwy
@@ -238,8 +245,11 @@ export class Engine extends EventTarget {
     const box = ids instanceof THREE.Box3 ? ids : this.boxOf(ids);
     if (box.isEmpty()) return;
     const sph = box.getBoundingSphere(new THREE.Sphere());
-    const aspect = this.camera.aspect;
-    const fov = THREE.MathUtils.degToRad(this.camera.fov);
+    // dopasowanie do widocznego okna, nie do całego płótna pod panelami
+    const w = this.canvas.clientWidth || 1, h = this.canvas.clientHeight || 1, I = this.insets;
+    const vw = Math.max(80, w - I.l - I.r), vh = Math.max(80, h - I.t - I.b);
+    const aspect = vw / vh;
+    const fov = 2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2) * (vh / h));
     let fit = Math.max(sph.radius, 0.03) / Math.sin(Math.min(fov, 2 * Math.atan(Math.tan(fov / 2) * aspect)) / 2);
     if (frontal) { // widok z przodu: dopasuj do wysokości i szerokości, nie do kuli
       const s = box.getSize(new THREE.Vector3()), t = Math.tan(fov / 2);
@@ -296,11 +306,39 @@ export class Engine extends EventTarget {
     if (!w || !h) return;
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
+    // przesunięcie środka rzutowania na środek widocznej części (między panelami)
+    const { l, r, t, b } = this.insets;
+    if (l || r || t || b) this.camera.setViewOffset(w, h, (r - l) / 2, (b - t) / 2, w, h); else this.camera.clearViewOffset();
     this.camera.updateProjectionMatrix();
     this.invalidate();
   }
 
   invalidate() { this._dirty = true; }
+
+  /** Oprawa sceny dla stylu (src/looks.js): światło, ekspozycja, duch, zaznaczenie, cień. */
+  setLook(name) {
+    const L = LOOKS[name] ?? LOOKS.graphite;
+    this.look = L;
+    this.renderer.toneMappingExposure = L.exposure;
+    this.scene.environmentIntensity = L.env;
+    const { hemi, key, fill, rim } = this.lights;
+    hemi.color.set(L.hemi[0]); hemi.groundColor.set(L.hemi[1]); hemi.intensity = L.hemi[2];
+    for (const [l, [c, i, p]] of [[key, L.key], [fill, L.fill], [rim, L.rim]]) { l.color.set(c); l.intensity = i; l.position.set(...p); }
+    for (const [k, m] of this.materials ?? []) {
+      if (k === 'ghost') { m.color.set(L.ghost[0]); m.opacity = L.ghost[1]; }
+      else if (k.startsWith('sel:')) m.emissive.set(L.sel);
+    }
+    this.shadow.material.color.set(L.shadow[0]); this.shadow.material.opacity = L.shadow[1];
+    this.shadow.visible = L.shadow[1] > 0;
+    this.invalidate();
+  }
+
+  /** Obszar zasłonięty przez pływające panele (px) – środek kadru i dopasowanie liczymy dla reszty. */
+  setInsets(ins) {
+    const n = { l: 0, r: 0, t: 0, b: 0, ...ins };
+    if (['l', 'r', 't', 'b'].every((k) => Math.abs(n[k] - this.insets[k]) < 0.5)) return;
+    this.insets = n; this.resize();
+  }
 
   _tick(t) {
     if (this._anim) { this._anim(performance.now()); this._dirty = true; }
