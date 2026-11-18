@@ -3,10 +3,11 @@ import upper from './data/muscles_upper.js';
 import lower from './data/muscles_lower.js';
 import trunk from './data/muscles_trunk.js';
 import NERVES from './data/nerves.js';
+import COMPLEXES from './data/complexes.js';
 import { polishName } from './data/names.js';
 
 export const MUSCLES = { ...upper, ...lower, ...trunk };
-export { NERVES };
+export { NERVES, COMPLEXES };
 
 export const LAYERS = [
   ['bones', 'Kości', '#e6dcc2'], ['joints', 'Stawy i więzadła', '#cfcbb5'], ['muscles', 'Mięśnie', '#a83d36'],
@@ -130,6 +131,7 @@ export function buildModel(meta, latin) {
   // indeks wyszukiwania
   const search = [];
   for (const [key, e] of Object.entries(MUSCLES)) search.push({ kind: 'muscle', key, label: e.pl, sub: e.lat, text: `${e.pl} ${e.lat} ${e.mesh.join(' ')}`.toLowerCase() });
+  for (const [key, e] of Object.entries(COMPLEXES)) search.push({ kind: 'complex', key, label: e.pl, sub: `${e.lat} · ${e.keys.length} mięśnie`, text: `${e.pl} ${e.lat} ${e.alias.join(' ')}`.toLowerCase() });
   for (const [key, e] of Object.entries(NERVES)) search.push({ kind: 'nerve', key, label: e.pl, sub: e.lat, text: `${e.pl} ${e.lat} ${e.mesh[0]}`.toLowerCase() });
   for (const [n, list] of names) {
     const m = meta[list[0]];
@@ -144,7 +146,7 @@ export function buildModel(meta, latin) {
     if (!words.length) return [];
     const out = [];
     for (const s of search) if (words.every((w) => s.text.includes(w))) { out.push(s); }
-    const rank = (s) => (s.kind === 'muscle' ? 0 : s.kind === 'nerve' ? 1 : 2) + (fold(s.label).startsWith(words[0]) ? -0.5 : 0);
+    const rank = (s) => (s.kind === 'complex' ? -1 : s.kind === 'muscle' ? 0 : s.kind === 'nerve' ? 1 : 2) + (fold(s.label).startsWith(words[0]) ? -0.5 : 0);
     return out.sort((a, b) => rank(a) - rank(b) || a.label.length - b.label.length).slice(0, limit);
   }
 

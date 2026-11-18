@@ -36,6 +36,7 @@ const D = {
   'Iliotibial tract': 'Pasmo biodrowo-piszczelowe', 'Calcaneal tendon': 'Ścięgno piętowe (Achillesa)', 'Fascia lata': 'Powięź szeroka', 'Plantar aponeurosis': 'Rozcięgno podeszwowe', 'Palmar aponeurosis': 'Rozcięgno dłoniowe',
   'Flexor retinaculum of wrist': 'Troczek zginaczy (nadgarstka)', 'Extensor retinaculum of wrist': 'Troczek prostowników (nadgarstka)', 'Linea alba': 'Kresa biała', 'Epicranial aponeurosis': 'Czepiec ścięgnisty',
   'Posterior layer of thoracolumbar fascia': 'Powięź piersiowo-lędźwiowa – blaszka tylna', 'Common flexor tendon': 'Wspólne ścięgno zginaczy (nadkłykieć przyśrodkowy)', 'Common extensor tendon': 'Wspólne ścięgno prostowników (nadkłykieć boczny)',
+  'Anserine bursa': 'Kaletka gęsiej stopy', 'Subtendinous bursa of sartorius muscle': 'Kaletka podścięgnowa m. krawieckiego',
   // --- tętnice ---
   'Ascending aorta': 'Aorta wstępująca', 'Aortic arch': 'Łuk aorty', 'Thoracic aorta': 'Aorta piersiowa', 'Abdominal aorta': 'Aorta brzuszna', 'Brachiocephalic trunk': 'Pień ramienno-głowowy',
   'Right common carotid artery': 'Tętnica szyjna wspólna prawa', 'Left common carotid artery': 'Tętnica szyjna wspólna lewa', 'Internal carotid artery': 'Tętnica szyjna wewnętrzna', 'External carotid artery': 'Tętnica szyjna zewnętrzna',

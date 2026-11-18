@@ -103,7 +103,7 @@ function focusVisible() { applyView(); const ids = visibleIds(); if (ids.length)
 
 // ---------- wyszukiwarka ----------
 const q = $('#q'), results = $('#results');
-const KIND_COLOR = { muscle: '#a83d36', nerve: '#f5cc33' };
+const KIND_COLOR = { muscle: '#a83d36', nerve: '#f5cc33', complex: '#3ecf8e' };
 q.addEventListener('input', () => {
   const list = model ? model.find(q.value) : [];
   results.hidden = !list.length;
@@ -114,6 +114,7 @@ results.addEventListener('click', (e) => {
   const r = e.target.closest('.r'); if (!r) return;
   const it = results._list[+r.dataset.i];
   results.hidden = true; q.blur();
+  if (it.kind === 'complex') { modes.learn.openComplex(it.key); setMode('learn'); return; }
   setMode('atlas');
   openItem(it);
 });
