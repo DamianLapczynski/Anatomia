@@ -10,7 +10,8 @@ Interaktywny atlas anatomii 3D do nauki na studiach fizjoterapii: układ kostny,
 - **Nauka** – małe sektory mięśni (ok. 50 grup), kompleksy uczone razem (np. gęsia stopa – mięśnie, kaletka i wspólny przyczep) i drogi 24 nerwów: przegląd w kolorach, przejście mięsień po mięśniu, quiz z tego samego zakresu. Filtr warstwy: mięśnie powierzchowne / głębokie.
 - **Ruch** – 82 ruchy z podziałem na agonistów, synergistów i antagonistów (stawy kończyn, kciuk i palce, tułów i miednica, dno miednicy, szyja, żuchwa, mimika, gałka oczna); 26 z animacją szkieletu.
 - **Quiz** – wskaż strukturę na modelu, rozpoznaj podświetloną, pytania o unerwienie / przyczepy / czynność.
-- **Powtórki** – fiszki z modelem 3D i algorytmem SM-2; postęp w pamięci przeglądarki, z eksportem i importem.
+- **Powtórki** – fiszki z modelem 3D i algorytmem SM-2; eksport i import jako kopia zapasowa.
+- **Postęp i synchronizacja** – powtórki, statystyki quizów (najsłabsze mięśnie, wynik wg rodzaju pytania i okolicy, „Ćwicz słabe”) i przerobione sektory Nauki. Bez konta zapisują się w przeglądarce; po zalogowaniu kontem Google (☁ u góry) – we własnej bazie Firestore, wspólnej dla telefonu, iPada i komputera, także offline.
 
 ## Skróty klawiszowe
 
@@ -63,6 +64,18 @@ npm run post -- --week 1        # karuzele dla dni 1–7 z planu
 ```
 
 Na Windows: dwuklik `post.bat`. Własny tekst pod slajdy (hak na okładkę, krótsze przyczepy, skojarzenie) wpisuje się w `src/data/reel_texts.js` w polu `post` danego mięśnia. Podgląd w przeglądarce: `?post=deltoid&slide=1` (slajdy 1–5).
+
+## Synchronizacja postępu (Firebase)
+
+Aplikacja działa bez tego – wtedy postęp zostaje w przeglądarce. Żeby włączyć synchronizację między urządzeniami (raz, ok. 10 minut, darmowy plan Spark wystarcza):
+
+1. [console.firebase.google.com](https://console.firebase.google.com) → **Dodaj projekt** (Google Analytics niepotrzebne).
+2. **Ustawienia projektu → Twoje aplikacje → Web (`</>`)** → zarejestruj aplikację i skopiuj obiekt `firebaseConfig` do `src/firebase-config.js` (zamiast `null`). Te wartości są publiczne – dane chronią reguły.
+3. **Authentication → Rozpocznij → Google** → włącz. W **Ustawienia → Autoryzowane domeny** dodaj domenę, pod którą działa aplikacja (np. `twoj-login.github.io`).
+4. **Firestore Database → Utwórz bazę** → region `europe-central2` (Warszawa), tryb produkcyjny.
+5. **Firestore → Reguły** → wklej zawartość `firestore.rules` i opublikuj. Po pierwszym logowaniu możesz zawęzić dostęp do swojego konta (uid z zakładki Authentication).
+
+Dane: `users/{uid}/srs|quiz|learn|settings/{id}` – jeden dokument na fiszkę, pytanie i sektor; przy dwóch urządzeniach wygrywa nowsza zmiana, a liczniki quizu się sumują. Test lokalny bez prawdziwego projektu: `npx firebase-tools emulators:start --only auth,firestore --project demo-anatomia` i adres aplikacji z `?emu`.
 
 ## Uruchomienie
 

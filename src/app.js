@@ -9,6 +9,7 @@ import { initSrs } from './srs.js';
 import { initLearn } from './learn.js';
 import { landmarkPL } from './data/landmarks.js';
 import { initKeys } from './keys.js';
+import { initAccount } from './account.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -458,8 +459,9 @@ $('#hud').addEventListener('click', (e) => { const b = e.target.closest('button'
       return;
     }
     const ctx = { engine, model, view, applyView, need, hint, panelBody, esc, card, setMode, select, entDir, MUSCLES, NERVES, modeIs: (m) => mode === m, home };
+    initAccount(ctx);
     modes.quiz = initQuiz(ctx); modes.srs = initSrs(ctx);
-    ctx.quizScoped = (keys, label) => { setMode('quiz'); modes.quiz.scoped(keys, label); };
+    ctx.quizScoped = (keys, label, lid) => { setMode('quiz'); modes.quiz.scoped(keys, label, lid); };
     modes.learn = initLearn(ctx);
     renderLeft(); renderAtlas();
     if (isPhone()) app.classList.add('sheet-min');

@@ -92,3 +92,7 @@ body.kb .chip[data-kh]::after,body.kb .seg button[data-kh]::after{margin-left:6p
 #keys kbd{font:600 12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:2px 7px;border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;background:var(--bg3);white-space:nowrap;margin-left:4px}
 #keys .cur h5{color:var(--ok)}
 #keys .row .k{display:flex;align-items:center;gap:2px;flex-wrap:wrap;justify-content:flex-end;flex:none;max-width:48%}#keys .or{color:var(--mut);font-size:12px;margin:0 4px}
+.bar{display:inline-block;width:46px;height:6px;border-radius:3px;background:var(--bg3);vertical-align:middle;margin-right:4px;overflow:hidden}.bar i{display:block;height:100%}
+.prog{color:var(--ok);font-weight:600}.prog.seen{color:var(--mut);font-weight:400}
+#acctBtn{position:relative}#acctBtn img{width:22px;height:22px;border-radius:50%;display:block}#acctBtn .dot{position:absolute;right:3px;bottom:3px;width:8px;height:8px;border-radius:50%;border:2px solid var(--bg2)}
+#acct{position:absolute;top:52px;right:10px;z-index:60;width:min(300px,calc(100vw - 20px));background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.45)}#acct h5{margin:0 0 6px;font-size:14px}#acct p{margin:4px 0;color:var(--mut);font-size:13px}#acct .acts{margin-top:10px}

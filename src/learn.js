@@ -1,6 +1,7 @@
 // Tryb „Nauka”: małe sektory mięśni (grupy z bazy wiedzy) oraz śledzenie drogi nerwu z mięśniami, które unerwia.
 import * as THREE from 'three';
 import { REGIONS, COMPLEXES } from './model.js';
+import { store } from './store.js';
 
 const PALETTE = ['#ff6b4a', '#4c9dff', '#3ecf8e', '#ffb454', '#c084fc', '#f472b6', '#22d3ee', '#a3e635', '#fb7185', '#facc15', '#60a5fa', '#34d399', '#f97316'];
 
@@ -24,12 +25,15 @@ export function initLearn(ctx) {
   const cur = () => (S.kind === 'sector' ? { title: S.id, keys: sectors.get(S.id).keys, sub: 'Sektor mięśni' }
     : S.kind === 'complex' ? { title: COMPLEXES[S.id].pl, keys: COMPLEXES[S.id].keys, sub: COMPLEXES[S.id].lat, extra: extraIds(COMPLEXES[S.id]) } : { title: NERVES[S.id].pl, keys: nerveMuscles(S.id), sub: `${NERVES[S.id].lat} · ${NERVES[S.id].roots}`, nerve: model.nerveEntity(S.id, S.side) });
 
+  const lidOf = (kind, id) => `${kind}~${id}`;
+  const prog = (kind, id) => { const r = store.get('learn', lidOf(kind, id)); return !r ? '' : r.done ? `<span class="prog">✔ ${r.best}%</span> · ` : r.best != null ? `<span class="prog seen">${r.best}%</span> · ` : r.seen ? '<span class="prog seen">przerobione</span> · ' : ''; };
+  store.on((ns, id, remote) => { if (ns === 'learn' && remote && ctx.modeIs('learn') && S.screen === 'home') home(); });
   function home() {
     S.screen = 'home'; S.step = -1; view.iso = null; view.tints.clear(); applyView();
     let h = '<h2>Nauka</h2><p class="en">Małe porcje zamiast całego ciała naraz: wybierz sektor mięśni albo nerw i przejdź go krok po kroku, a potem sprawdź się w quizie z tego samego zakresu.</p>';
-    h += '<h4>Drogi nerwów</h4><div class="list">' + nerveList.map((x) => `<div class="it" data-nerve="${x.k}"><span>${esc(x.n.pl)}</span><small>${esc(x.n.roots)} · ${x.count} mięśni</small></div>`).join('') + '</div>';
+    h += '<h4>Drogi nerwów</h4><div class="list">' + nerveList.map((x) => `<div class="it" data-nerve="${x.k}"><span>${esc(x.n.pl)}</span><small>${prog('nerve', x.k)}${esc(x.n.roots)} · ${x.count} mięśni</small></div>`).join('') + '</div>';
     for (const [rk, rn] of REGIONS.slice(1)) {
-      h += `<h4>Sektory – ${rn}</h4><div class="list">` + Object.entries(COMPLEXES).filter(([, x]) => x.reg === rk).map(([k, x]) => `<div class="it" data-complex="${k}"><span>◆ ${esc(x.pl)}</span><small>${x.keys.length}</small></div>`).join('') + [...sectors.values()].filter((s) => s.reg === rk).map((s) => `<div class="it" data-sector="${esc(s.name)}"><span>${esc(s.name)}</span><small>${s.keys.length}</small></div>`).join('') + '</div>';
+      h += `<h4>Sektory – ${rn}</h4><div class="list">` + Object.entries(COMPLEXES).filter(([, x]) => x.reg === rk).map(([k, x]) => `<div class="it" data-complex="${k}"><span>◆ ${esc(x.pl)}</span><small>${prog('complex', k)}${x.keys.length}</small></div>`).join('') + [...sectors.values()].filter((s) => s.reg === rk).map((s) => `<div class="it" data-sector="${esc(s.name)}"><span>${esc(s.name)}</span><small>${prog('sector', s.name)}${s.keys.length}</small></div>`).join('') + '</div>';
     }
     panelBody.innerHTML = h; panelBody.scrollTop = 0;
   }
@@ -106,8 +110,10 @@ export function initLearn(ctx) {
       else if (a === 'side') { S.side = S.side === 'r' ? 'l' : 'r'; overview(); }
       else if (a === 'start') { S.step = 0; stepView(); }
       else if (a === 'prev') { S.step--; stepView(); }
-      else if (a === 'next') { if (S.step < c.keys.length - 1) { S.step++; stepView(); } else ctx.quizScoped(c.keys, c.title); }
-      else if (a === 'quiz') ctx.quizScoped(c.keys, c.title);
+      else if (a === 'next') {
+        if (S.step < c.keys.length - 1) { S.step++; stepView(); }
+        else { const lid = lidOf(S.kind, S.id), prev = store.get('learn', lid); if (!prev?.seen) store.put('learn', lid, { ...(prev ?? {}), seen: true }); ctx.quizScoped(c.keys, c.title, lid); }
+      } else if (a === 'quiz') ctx.quizScoped(c.keys, c.title, lidOf(S.kind, S.id));
       else if (a === 'atlas') { const ent = model.muscleEntity(c.keys[S.step], S.side); ctx.setMode('atlas'); ctx.select(ent, { isolate: true }); }
     }
   });

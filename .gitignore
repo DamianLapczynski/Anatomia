@@ -3,3 +3,5 @@ dist
 .DS_Store
 reels
 posts
+firebase-debug.log
+firestore-debug.log
