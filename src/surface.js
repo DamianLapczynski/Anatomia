@@ -32,7 +32,7 @@ const SAMPLE = /* glsl */ `
     vec3 d = normalize(vFiber);
     vec3 a = abs(d.y) < 0.9 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
     vec3 u = normalize(cross(d, a)), v = cross(d, u);
-    vec3 q = vec3(dot(vRest, d) * 22.0, dot(vRest, u) * 520.0, dot(vRest, v) * 520.0);
+    vec3 q = vec3(dot(vRest, d) * 34.0, dot(vRest, u) * 520.0, dot(vRest, v) * 520.0);
     sH = sNoise(q) * 0.62 + sNoise(q * vec3(1.7, 2.3, 2.3) + 11.3) * 0.38;
     sAA = clamp(1.6 - length(fwidth(q.yz)) * 0.9, 0.0, 1.0);
     sK = clamp((vColor.r - vColor.g) * 3.2 - 0.25, 0.0, 1.0);
@@ -73,7 +73,7 @@ ${SAMPLE}
   diffuseColor.rgb *= mix(vec3(1.0), vec3(0.93, 0.8, 0.8), sK);
   diffuseColor.rgb *= mix(1.0, 0.8 + 0.4 * sH, sK * sAA);
 #else
-  diffuseColor.rgb *= mix(1.0, 0.94 + 0.12 * sH, sK * sAA);
+  diffuseColor.rgb *= mix(1.0, 0.88 + 0.22 * sH, sK * sAA);
 #endif`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
 #ifdef SURF_MUSCLE
@@ -85,7 +85,7 @@ ${SAMPLE}
 #ifdef SURF_MUSCLE
   normal = sPerturb(-vViewPosition, normal, vec2(dFdx(sH), dFdy(sH)) * 0.55 * sK * sAA, faceDirection);
 #else
-  normal = sPerturb(-vViewPosition, normal, vec2(dFdx(sH), dFdy(sH)) * 0.22 * sK * sAA, faceDirection);
+  normal = sPerturb(-vViewPosition, normal, vec2(dFdx(sH), dFdy(sH)) * 0.4 * sK * sAA, faceDirection);
 #endif`);
   };
   return m;

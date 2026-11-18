@@ -12,6 +12,12 @@ import * as THREE from 'three';
 import { MeshBVH } from 'three-mesh-bvh';
 import { fixWinding } from '../src/geom.js';
 
+// powięzie, rozcięgna, pochewki i kaletki są zwykle ukryte – nie mogą zacieniać mięśni pod spodem
+const META = JSON.parse(fs.readFileSync(new URL('../public/data/meta.json', import.meta.url)));
+const FASCIA_MAT = new Set(['Bursa', 'Fascia', 'Articular capsule', 'Ligament']);
+const FASCIA_NAME = /fascia|retinacul|septum|sheath|aponeurosis|bursa|Linea alba|ligament|Iliopectineal arch|tarsus|Common tendinous ring/i;
+const isFascia = (m) => m && m.f === 'muscles' && (FASCIA_MAT.has(m.mat) || FASCIA_NAME.test(m.n));
+
 const files = process.argv.slice(2).length ? process.argv.slice(2) : ['skeleton', 'muscles', 'joints', 'cardio', 'cns'].map((f) => `public/models/${f}.glb`);
 const RAYS = 64;
 // zasięgi w metrach: „self” – zasłanianie przez ten sam obiekt, „neigh” – przez sąsiadów (tylko szpary)
@@ -55,14 +61,15 @@ for (const file of files) {
       g.setIndex(new THREE.BufferAttribute(Uint32Array.from(ia.getArray()), 1));
       fixWinding(g); // ta sama poprawka co w aplikacji – inaczej lewa strona „patrzy do środka”
       g.computeVertexNormals();
-      parts.push({ prim, g, bvh: new MeshBVH(g) });
+      parts.push({ prim, g, bvh: new MeshBVH(g), fascia: isFascia(META[Number(node.getName())]) });
     }
   }
   // jedna wspólna struktura dla sąsiadów
   const all = new THREE.BufferGeometry();
-  { let nv = 0, ni = 0; for (const p of parts) { nv += p.g.attributes.position.count; ni += p.g.index.count; }
+  const occluders = parts.filter((p) => !p.fascia);
+  { let nv = 0, ni = 0; for (const p of occluders) { nv += p.g.attributes.position.count; ni += p.g.index.count; }
     const P = new Float32Array(nv * 3), I = new Uint32Array(ni); let ov = 0, oi = 0;
-    for (const p of parts) { P.set(p.g.attributes.position.array, ov * 3); const src = p.g.index.array; for (let k = 0; k < src.length; k++) I[oi + k] = src[k] + ov; ov += p.g.attributes.position.count; oi += src.length; }
+    for (const p of occluders) { P.set(p.g.attributes.position.array, ov * 3); const src = p.g.index.array; for (let k = 0; k < src.length; k++) I[oi + k] = src[k] + ov; ov += p.g.attributes.position.count; oi += src.length; }
     all.setAttribute('position', new THREE.BufferAttribute(P, 3)); all.setIndex(new THREE.BufferAttribute(I, 1)); }
   const allBvh = new MeshBVH(all);
 
@@ -98,7 +105,10 @@ for (const file of files) {
     for (let i = 0; i < n; i++) {
       const k = Math.pow(AO[i], 0.9);
       ca.getElement(i, el);
-      for (let c = 0; c < 3; c++) el[c] *= 1 - STRENGTH * (1 - k) * (1 - CAVITY[c]);
+      // chrząstka (niebieskawa) – słabiej i bez brązowego odcienia, inaczej wygląda na brudną
+      const cart = el[2] > el[0] + 0.03;
+      const st = cart ? STRENGTH * 0.45 : STRENGTH;
+      for (let c = 0; c < 3; c++) el[c] *= 1 - st * (1 - k) * (1 - (cart ? 0.55 : CAVITY[c]));
       ca.setElement(i, el);
     }
     done += n;
