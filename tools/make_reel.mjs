@@ -42,7 +42,7 @@ if (planArg) {
   const { plan } = await import('./reel_plan.mjs');
   const [a, b = a] = planArg.split('-').map(Number);
   jobs = plan().filter((d) => d.day >= a && d.day <= b).map((d) => ({ key: d.key, ep: d.ep, of: d.of, series: d.chapter.toUpperCase(), next: d.nextKey ? MUSCLES[d.nextKey].lat : null, prefix: `d${String(d.day).padStart(3, '0')}-${d.date}-` }));
-  if (!jobs.length) { console.error('Brak dni w tym zakresie (plan ma 144 dni).'); process.exit(1); }
+  if (!jobs.length) { console.error(`Brak dni w tym zakresie (plan ma ${plan().length} dni).`); process.exit(1); }
 } else if (nerveArg) {
   const nk = find(NERVES, nerveArg); if (!nk) { console.error(`Nie znam nerwu „${nerveArg}”. Zobacz --list.`); process.exit(1); }
   const keys = Object.keys(MUSCLES).filter((k) => (MUSCLES[k].nr ?? []).some((x) => NERVES[nk].mesh.includes(x)));

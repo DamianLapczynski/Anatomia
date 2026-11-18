@@ -20,7 +20,7 @@ export const SEASONS = [
     ['Plexus lumbalis, n. femoralis', ['psoas_major', 'iliacus', 'sartorius', 'rectus_femoris', 'vastus_lateralis', 'vastus_medialis', 'vastus_intermedius', 'pectineus']],
     ['N. obturatorius', ['adductor_longus', 'adductor_brevis', 'adductor_magnus', 'gracilis', 'obturator_externus']],
     ['Nn. glutei', ['gluteus_maximus', 'gluteus_medius', 'gluteus_minimus', 'tensor_fasciae_latae']],
-    ['Plexus sacralis – rotatory zewnętrzne', ['piriformis', 'obturator_internus', 'gemelli', 'quadratus_femoris']],
+    ['Plexus sacralis – rotatory zewnętrzne', ['piriformis', 'obturator_internus', 'gemellus_superior', 'gemellus_inferior', 'quadratus_femoris']],
     ['N. ischiadicus', ['biceps_femoris', 'semitendinosus', 'semimembranosus']],
   ] },
   { name: 'Goleń i stopa', chapters: [
@@ -33,15 +33,17 @@ export const SEASONS = [
   { name: 'Tułów', chapters: [
     ['Mięśnie oddechowe', ['diaphragm', 'external_intercostals', 'internal_intercostals', 'transversus_thoracis', 'serratus_posterior_superior', 'serratus_posterior_inferior', 'levatores_costarum']],
     ['Ściana brzucha', ['rectus_abdominis', 'external_oblique', 'internal_oblique', 'transversus_abdominis', 'pyramidalis', 'quadratus_lumborum']],
-    ['Głębokie mięśnie grzbietu', ['iliocostalis', 'longissimus', 'spinalis', 'semispinalis', 'multifidus', 'rotatores', 'interspinales']],
-    ['Dno miednicy', ['levator_ani', 'coccygeus', 'anal_sphincter']],
+    ['Głębokie mięśnie grzbietu', ['iliocostalis', 'longissimus', 'spinalis', 'semispinalis', 'multifidus', 'rotatores', 'interspinales', 'intertransversarii']],
+    ['Dno miednicy', ['pubococcygeus', 'iliococcygeus', 'puboanalis', 'coccygeus', 'anal_sphincter']],
   ] },
   { name: 'Głowa i szyja', chapters: [
-    ['Szyja i kark', ['sternocleidomastoid', 'scalenes', 'platysma', 'longus_colli', 'splenius', 'suboccipitals']],
-    ['Mięśnie nad- i podgnykowe', ['digastric', 'mylohyoid', 'geniohyoid', 'stylohyoid', 'infrahyoids']],
+    ['Szyja i kark', ['sternocleidomastoid', 'scalenus_anterior', 'scalenus_medius', 'scalenus_posterior', 'platysma', 'longus_colli', 'longus_capitis', 'rectus_capitis_anterior', 'rectus_capitis_lateralis', 'splenius_capitis', 'splenius_cervicis', 'rectus_capitis_posterior_major', 'rectus_capitis_posterior_minor', 'obliquus_capitis_superior', 'obliquus_capitis_inferior']],
+    ['Mięśnie nad- i podgnykowe', ['digastric', 'mylohyoid', 'geniohyoid', 'stylohyoid', 'sternohyoid', 'omohyoid', 'sternothyroid', 'thyrohyoid']],
     ['N. trigeminus (V3) – mięśnie żucia', ['masseter', 'temporalis', 'medial_pterygoid', 'lateral_pterygoid']],
-    ['N. facialis (VII) – mięśnie wyrazowe', ['epicranius', 'orbicularis_oculi', 'orbicularis_oris', 'buccinator', 'facial_small']],
-    ['Nerwy czaszkowe III–XII', ['extraocular', 'tongue', 'pharynx', 'larynx']],
+    ['N. facialis (VII) – sklepienie, oko i nos', ['epicranius', 'orbicularis_oculi', 'corrugator_supercilii', 'procerus', 'nasalis', 'depressor_septi_nasi', 'levator_nasolabialis']],
+    ['N. facialis (VII) – okolica ust', ['orbicularis_oris', 'buccinator', 'zygomaticus_major', 'zygomaticus_minor', 'levator_labii_superioris', 'levator_anguli_oris', 'risorius', 'depressor_anguli_oris', 'depressor_labii_inferioris', 'mentalis']],
+    ['Nn. III, IV, VI – mięśnie gałki ocznej', ['levator_palpebrae_superioris', 'rectus_superior_oculi', 'rectus_inferior_oculi', 'rectus_medialis_oculi', 'obliquus_inferior_oculi', 'obliquus_superior_oculi', 'rectus_lateralis_oculi']],
+    ['Nerwy czaszkowe IX–XII', ['tongue', 'pharynx', 'larynx']],
   ] },
 ];
 export function plan() {

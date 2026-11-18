@@ -1,5 +1,6 @@
 // Powtórki rozłożone w czasie (algorytm SM-2) – fiszki generowane z bazy wiedzy, postęp w localStorage.
 import { REGIONS } from './model.js';
+import { migrateKeys } from './data/renames.js';
 
 const KEY = 'anatomia.srs.v1', DAY = 86400000;
 const today = () => new Date().toISOString().slice(0, 10);
@@ -11,6 +12,7 @@ export function initSrs(ctx) {
   try { st = JSON.parse(localStorage.getItem(KEY)); } catch { st = null; }
   st = Object.assign({ cards: {}, perDay: 15, day: { date: today(), n: 0 }, decks: { gs: true, tu: true, kg: true, kd: true, nv: true }, side: 'r' }, st ?? {});
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch { /* tryb prywatny */ } badge(); };
+  if (!st.mig1) { migrateKeys(st.cards); st.mig1 = true; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch { /* tryb prywatny */ } }
 
   // talia
   const CARDS = [];

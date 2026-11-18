@@ -6,9 +6,9 @@ Interaktywny atlas anatomii 3D do nauki na studiach fizjoterapii: układ kostny,
 
 - **Atlas** – 3300 osobnych struktur (kości, więzadła, mięśnie, pola przyczepów, tętnice, żyły, nerwy, mózg i rdzeń). Warstwy, strona ciała, okolice, wyszukiwarka PL / łac. / ang., ukrywanie kolejnych warstw.
 - **Izolacja mięśnia** – mięsień + pola przyczepu początkowego (czerwone) i końcowego (niebieskie) na kościach + nerw z drogą od korzeni + tętnica; resztę ciała można przyciemnić albo ukryć, a każdy element kontekstu włączać osobno.
-- **Baza wiedzy** – 144 pozycje mięśniowe (przyczepy, unerwienie z segmentami, unaczynienie, czynność, klinika / fizjoterapia, skojarzenie), 25 nerwów (przebieg, zakres ruchowy i czuciowy, objawy uszkodzenia), ok. 760 punktów kostnych (dla głównych kości kończyn, obręczy i kości krzyżowej z polskimi nazwami).
-- **Nauka** – małe sektory mięśni (ok. 50 grup) i drogi 24 nerwów: przegląd w kolorach, przejście mięsień po mięśniu, quiz z tego samego zakresu. Filtr warstwy: mięśnie powierzchowne / głębokie.
-- **Ruch** – 37 ruchów z podziałem na agonistów, synergistów i antagonistów; 26 z animacją szkieletu.
+- **Baza wiedzy** – 178 pozycji mięśniowych (przyczepy, unerwienie z segmentami, unaczynienie, czynność, klinika / fizjoterapia, skojarzenie), 25 nerwów (przebieg, zakres ruchowy i czuciowy, objawy uszkodzenia), ok. 760 punktów kostnych (dla głównych kości kończyn, obręczy i kości krzyżowej z polskimi nazwami).
+- **Nauka** – małe sektory mięśni (ok. 50 grup), kompleksy uczone razem (np. gęsia stopa – mięśnie, kaletka i wspólny przyczep) i drogi 24 nerwów: przegląd w kolorach, przejście mięsień po mięśniu, quiz z tego samego zakresu. Filtr warstwy: mięśnie powierzchowne / głębokie.
+- **Ruch** – 82 ruchy z podziałem na agonistów, synergistów i antagonistów (stawy kończyn, kciuk i palce, tułów i miednica, dno miednicy, szyja, żuchwa, mimika, gałka oczna); 26 z animacją szkieletu.
 - **Quiz** – wskaż strukturę na modelu, rozpoznaj podświetloną, pytania o unerwienie / przyczepy / czynność.
 - **Powtórki** – fiszki z modelem 3D i algorytmem SM-2; postęp w pamięci przeglądarki, z eksportem i importem.
 
@@ -41,7 +41,7 @@ Skrypt działa samodzielnie na komputerze, bez Claude'a i bez internetu (po inst
 
 **Instalacja (raz):** Node.js LTS, potem w folderze projektu `npm install` i `npm run reel:setup` (pobiera Playwright, Chromium i ffmpeg). Na Windows wystarczy dwukrotnie kliknąć `rolka.bat` – zainstaluje brakujące rzeczy i zapyta o mięsień.
 
-**Praca z planem serii** (`tools/reel_plan.mjs`, 144 dni):
+**Praca z planem serii** (`tools/reel_plan.mjs`, 178 dni):
 
 ```bash
 npm run reel -- --week 1      # dni 1–7; gotowe pliki są pomijane (--force renderuje ponownie)
