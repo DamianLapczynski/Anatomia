@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="theme-color" content="#0f1319">
+<meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Anatomia 3D">
@@ -11,6 +11,7 @@
 <link rel="apple-touch-icon" href="./icon.svg">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <title>Anatomia 3D</title>
+<script>try{var t=new URLSearchParams(location.search).get('theme')||localStorage.getItem('theme');if(t&&t!=='graphite')document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="stylesheet" href="./src/style.css">
 </head>
 <body>
@@ -24,11 +25,11 @@
     </div>
     <button id="keysBtn" class="icon" title="Skróty klawiszowe (?)" aria-label="Skróty klawiszowe">⌨</button>
     <nav id="modes">
-      <button data-mode="atlas" class="on">Atlas</button>
-      <button data-mode="learn">Nauka</button>
-      <button data-mode="motion">Ruch</button>
-      <button data-mode="quiz">Quiz</button>
-      <button data-mode="srs">Powtórki<span id="dueBadge" hidden></span></button>
+      <button data-mode="atlas" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4.6" r="2.3"/><path d="M5 9h14M12 9v6m0 0-3 6.5M12 15l3 6.5"/></svg>Atlas</button>
+      <button data-mode="learn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5C5.8 4 9 4 12 6c3-2 6.2-2 9-.5v13c-2.8-1.5-6-1.5-9 .5-3-2-6.2-2-9-.5z"/><path d="M12 6v13"/></svg>Nauka</button>
+      <button data-mode="motion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="4.5" r="2.2"/><path d="M6 11l4-3 4 1.5 2 4h3M10 8l-1.5 6.5L12 17v4.5M8.5 14.5 6 21"/></svg>Ruch</button>
+      <button data-mode="quiz"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.4 9.3a2.7 2.7 0 0 1 5.2 1c0 1.8-2.6 2.3-2.6 3.9"/><circle cx="12" cy="17.2" r=".6" fill="currentColor"/></svg>Quiz</button>
+      <button data-mode="srs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.4-5.7M20 4v4.5h-4.5"/><path d="M12 8v4.3l2.8 1.7"/></svg>Powtórki<span id="dueBadge" hidden></span></button>
     </nav>
   </header>
   <aside id="left"></aside>

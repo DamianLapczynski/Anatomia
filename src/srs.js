@@ -15,7 +15,7 @@ export function initSrs(ctx) {
   // talia
   const CARDS = [];
   for (const [k, m] of Object.entries(MUSCLES)) {
-    CARDS.push({ id: `${k}:att`, deck: m.reg, kind: 'muscle', key: k, q: 'Przyczepy – początkowy i końcowy?', a: () => `<p><b style="color:#ff6b6b">Początek:</b> ${esc(m.o)}</p><p style="margin-top:6px"><b style="color:#6ea0ff">Koniec:</b> ${esc(m.i)}</p>`, hideAtt: true });
+    CARDS.push({ id: `${k}:att`, deck: m.reg, kind: 'muscle', key: k, q: 'Przyczepy – początkowy i końcowy?', a: () => `<p><b style="color:var(--orig)">Początek:</b> ${esc(m.o)}</p><p style="margin-top:6px"><b style="color:var(--ins)">Koniec:</b> ${esc(m.i)}</p>`, hideAtt: true });
     CARDS.push({ id: `${k}:n`, deck: m.reg, kind: 'muscle', key: k, q: 'Unerwienie?', a: () => `<p>${esc(m.n)}</p>`, hideNerve: true });
     CARDS.push({ id: `${k}:f`, deck: m.reg, kind: 'muscle', key: k, q: 'Czynność?', a: () => `<ul>${m.f.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>${m.s ? `<p style="margin-top:6px">💡 ${esc(m.s)}</p>` : ''}` });
   }

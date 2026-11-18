@@ -122,7 +122,7 @@ export function initQuiz(ctx) {
     const c = (t, b, col) => `<div class="card"><h5>${col ? `<i style="background:${col}"></i>` : ''}${t}</h5>${b}</div>`;
     if (it.kind === 'muscle') {
       const m = MUSCLES[it.key];
-      return c('Przyczepy', `<p><b style="color:#ff6b6b">Początek:</b> ${esc(m.o)}</p><p style="margin-top:5px"><b style="color:#6ea0ff">Koniec:</b> ${esc(m.i)}</p>`)
+      return c('Przyczepy', `<p><b style="color:var(--orig)">Początek:</b> ${esc(m.o)}</p><p style="margin-top:5px"><b style="color:var(--ins)">Koniec:</b> ${esc(m.i)}</p>`)
         + c('Unerwienie', `<p>${esc(m.n)}</p>`, '#f5cc33') + c('Czynność', `<ul>${m.f.slice(0, 4).map((x) => `<li>${esc(x)}</li>`).join('')}</ul>`, '#3ecf8e')
         + (m.s ? `<div class="card tip"><h5>Skojarzenie</h5><p>${esc(m.s)}</p></div>` : '') + `<p class="en">${esc(m.grp)} · warstwa ${m.sup ? 'powierzchowna' : 'głęboka'}</p>`;
     }
