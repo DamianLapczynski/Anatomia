@@ -1,5 +1,5 @@
 // Prosty cache offline: modele i dane „cache-first", reszta „network-first".
-const C = 'anatomia-v1';
+const C = 'anatomia-v2'; // zmień przy każdej podmianie modeli – stara pamięć zostanie usunięta
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== C).map((k) => caches.delete(k)))).then(() => self.clients.claim())));
 self.addEventListener('fetch', (e) => {
