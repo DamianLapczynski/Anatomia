@@ -45,8 +45,8 @@ table{border-collapse:collapse;width:100%}td,th{padding:4pt 6pt;border-bottom:.6
 <div class="box"><b>Zanim ruszysz z całością (tydzień 0)</b><ul><li>Zatwierdź szablon na 2–3 rolkach próbnych: jedna powierzchowna (m. deltoideus), jedna głęboka (m. supraspinatus), jedna drobna (np. m. anconeus).</li><li>Zdecyduj o długości (obecnie ok. 45 s) i o tym, czy dogrywasz głos.</li><li>Po pierwszych 14 dniach sprawdź w statystykach średni czas oglądania i zapisy; jeśli widzowie odpadają przed sceną ruchu, przestawiamy kolejność scen.</li></ul></div>
 <h2>Ryzyka, o których warto wiedzieć</h2>
 <ul>
-<li><b>Monotonia.</b> 144 rolki z jednego szablonu mogą się znudzić. Co 7–10 dni warto wstawić rolkę innego typu: podsumowanie nerwu, quiz „co to za mięsień”, porównanie dwóch mięśni.</li>
-<li><b>Słabsze odcinki.</b> Drobne mięśnie ręki i stopy oraz rolki grupowe (np. mm. infrahyoidei) będą mniej efektowne – tam hak musi robić klinika albo skojarzenie.</li>
+<li><b>Monotonia.</b> ${plan().length} rolek z jednego szablonu mogą się znudzić. Co 7–10 dni warto wstawić rolkę innego typu: podsumowanie nerwu, quiz „co to za mięsień”, porównanie dwóch mięśni.</li>
+<li><b>Słabsze odcinki.</b> Drobne mięśnie ręki i stopy oraz rolki grupowe (np. mm. gardła i krtani) oraz drobne mięśnie mimiczne będą mniej efektowne – tam hak musi robić klinika albo skojarzenie.</li>
 <li><b>Poprawność.</b> Teksty pochodzą z bazy wiedzy aplikacji, która nie była recenzowana. Kontrola niedzielna jest obowiązkowa, nie opcjonalna.</li>
 <li><b>Braki w modelu.</b> Nie ma w nim m.in. n. gluteus inferior i n. phrenicus, więc dla m. gluteus maximus i przepony scena unerwienia pokaże sam tekst.</li>
 </ul>

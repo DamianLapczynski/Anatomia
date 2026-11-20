@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="./icon.svg">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <title>Anatomia 3D</title>
-<script>try{var t=new URLSearchParams(location.search).get('theme')||localStorage.getItem('theme');if(t&&t!=='graphite')document.documentElement.dataset.theme=t}catch(e){}</script>
+<script>try{var t=new URLSearchParams(location.search).get('theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="stylesheet" href="./src/style.css">
 </head>
 <body>
@@ -24,6 +24,7 @@
       <div id="results" hidden></div>
     </div>
     <button id="keysBtn" class="icon" title="Skróty klawiszowe (?)" aria-label="Skróty klawiszowe">⌨</button>
+    <button id="setBtn" class="icon" aria-label="Ustawienia" title="Ustawienia">⚙</button>
     <nav id="modes">
       <button data-mode="atlas" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4.6" r="2.3"/><path d="M5 9h14M12 9v6m0 0-3 6.5M12 15l3 6.5"/></svg>Atlas</button>
       <button data-mode="learn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5C5.8 4 9 4 12 6c3-2 6.2-2 9-.5v13c-2.8-1.5-6-1.5-9 .5-3-2-6.2-2-9-.5z"/><path d="M12 6v13"/></svg>Nauka</button>
@@ -32,6 +33,7 @@
       <button data-mode="srs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.4-5.7M20 4v4.5h-4.5"/><path d="M12 8v4.3l2.8 1.7"/></svg>Powtórki<span id="dueBadge" hidden></span></button>
     </nav>
   </header>
+  <div id="settings" hidden></div>
   <aside id="left"></aside>
   <main id="stage">
     <canvas id="c"></canvas>

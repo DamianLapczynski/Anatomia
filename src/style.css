@@ -13,6 +13,8 @@
   --font-display:var(--font);--display-wt:700;--display-ls:-.025em;--h2:24px;
   --lat-font:var(--font);--lat-wt:500;--cap-ls:.02em;--cap-size:12px;
   --card:var(--surface2);--grain:none;
+  /* nazwy z panelu ustawień (src/settings.js) – wskazują na tokeny stylu, więc panel pasuje do każdego stylu */
+  --bg2:var(--surface);--bg3:var(--surface2);--onacc:var(--acc-tx);--stagebg:var(--stage);
 
   /* graphite – ciemny iOS */
   --bg:#000;--surface:#1c1c1e;--surface2:#2c2c2e;--surface3:#3a3a3c;
@@ -273,6 +275,7 @@ input[type=range]{width:100%;padding:0;accent-color:var(--acc);background:transp
 :root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald]) .lat{font-size:1.22em;color:var(--acc)}
 :root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald]) button.on,:root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald]) button.primary{background:linear-gradient(180deg,var(--acc-hi),var(--acc-lo));box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
 :root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald]) .seg button.on,:root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald]) #modes button.on{background:var(--seg-on);color:var(--acc);box-shadow:inset 0 0 0 .5px var(--acc-edge)}
+:root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald]) .themes button.on{background:transparent;box-shadow:none}
 :root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald]) .brand:before{background:linear-gradient(145deg,var(--acc-hi),var(--acc-lo))}
 :root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald]) h4,:root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald]) .card h5{font-weight:600}
 
@@ -414,3 +417,34 @@ body.kb #modes button[data-kh]::after{margin-left:2px}
 #keys kbd{font:600 12px var(--mono);padding:2px 7px;border-radius:6px;background:var(--surface2);box-shadow:inset 0 -1.5px 0 var(--fill),inset 0 0 0 .5px var(--line);white-space:nowrap;margin-left:4px}
 #keys .cur h5{color:var(--ok)}
 #keys .row .k{display:flex;align-items:center;gap:2px;flex-wrap:wrap;justify-content:flex-end;flex:none;max-width:48%}#keys .or{color:var(--mut);font-size:12px;margin:0 4px}
+.bar{display:inline-block;width:46px;height:6px;border-radius:3px;background:var(--bg3);vertical-align:middle;margin-right:4px;overflow:hidden}.bar i{display:block;height:100%}
+.prog{color:var(--ok);font-weight:600}.prog.seen{color:var(--mut);font-weight:400}
+
+/* ---- Ustawienia → Wygląd: kolor akcentu działa w stylach klasycznych (Grafit, Jasny); pozostałe mają akcent zaprojektowany razem z resztą ---- */
+:root:is(:not([data-theme]),[data-theme=graphite])[data-accent=green]{--acc:#30d158}:root:is(:not([data-theme]),[data-theme=graphite])[data-accent=violet]{--acc:#9b7bff}:root:is(:not([data-theme]),[data-theme=graphite])[data-accent=orange]{--acc:#ff9f0a;--acc-tx:#1a1000}:root:is(:not([data-theme]),[data-theme=graphite])[data-accent=pink]{--acc:#ff6fae}
+:root[data-theme=light][data-accent=green]{--acc:#14935a}:root[data-theme=light][data-accent=violet]{--acc:#6d4ce0}:root[data-theme=light][data-accent=orange]{--acc:#d9670d}:root[data-theme=light][data-accent=pink]{--acc:#d33c80}
+:root[data-font=sm] body{font-size:14px}:root[data-font=lg] body{font-size:16.5px}:root[data-font=xl] body{font-size:18px}
+#marks.always .mark em{display:block}
+#marks.always .mark:not(.act) em{opacity:.85;font-size:11.5px}
+
+/* ---- ustawienia ---- */
+#setBtn{position:relative;font-size:19px}#setBtn .dot{position:absolute;right:4px;bottom:4px;width:8px;height:8px;border-radius:50%;border:2px solid var(--bg2)}
+#settings{position:fixed;inset:0;z-index:95;background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:flex;justify-content:flex-end}
+#settings[hidden]{display:none}
+#settings .box{background:var(--bg);border-left:1px solid var(--line);width:min(460px,100%);height:100%;overflow:auto;padding:0 0 calc(24px + env(safe-area-inset-bottom));box-shadow:-20px 0 60px #0008}
+#settings .head{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top)) 18px 12px;background:var(--bg2);border-bottom:1px solid var(--line)}
+#settings .head h3{margin:0;font-size:19px}
+#settings section{margin:14px 14px 0;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+#settings section h4{margin:0 0 8px;font-size:11.5px;letter-spacing:.9px;text-transform:uppercase;color:var(--acc)}
+#settings .opt{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line)}#settings h4+.opt{border-top:0;padding-top:2px}
+#settings .opt>span{display:flex;flex-direction:column}#settings .opt small{color:var(--mut);font-size:12.5px;line-height:1.3}
+#settings .seg{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end}#settings .seg button{padding:5px 10px;font-size:13px}
+#settings .sw{width:44px;height:26px;border-radius:13px;padding:0;position:relative;flex:none}#settings .sw:after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--mut);transition:left .15s}#settings .sw.on:after{left:21px;background:var(--onacc,#06121f)}
+#settings .sw-col{width:24px;height:24px;border-radius:50%;padding:0;border:2px solid transparent}#settings .sw-col.on{border-color:var(--tx);box-shadow:0 0 0 2px var(--bg2) inset}
+#settings .acct-row{display:flex;gap:10px;align-items:center;margin-bottom:6px}#settings .acct-row img,#settings .ava{width:38px;height:38px;border-radius:50%;flex:none}#settings .ava{display:grid;place-items:center;background:var(--acc);color:var(--onacc,#06121f);font-weight:700}#settings .acct-row small{display:block;color:var(--mut)}
+#settings .acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+#settings .about{color:var(--mut);font-size:13px}#settings .about p{margin:4px 0}
+
+/* style w panelu ustawień – te same miniatury co w panelu warstw */
+#settings .themes{grid-template-columns:repeat(4,1fr);margin-top:6px}
+#settings .opt.col{flex-direction:column;align-items:stretch}

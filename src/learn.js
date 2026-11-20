@@ -1,11 +1,14 @@
 // Tryb „Nauka”: małe sektory mięśni (grupy z bazy wiedzy) oraz śledzenie drogi nerwu z mięśniami, które unerwia.
-import { REGIONS } from './model.js';
+import * as THREE from 'three';
+import { REGIONS, COMPLEXES } from './model.js';
+import { store } from './store.js';
+import { prefs } from './settings.js';
 
 const PALETTE = ['#ff6b4a', '#4c9dff', '#3ecf8e', '#ffb454', '#c084fc', '#f472b6', '#22d3ee', '#a3e635', '#fb7185', '#facc15', '#60a5fa', '#34d399', '#f97316'];
 
 export function initLearn(ctx) {
   const { engine, model, view, applyView, panelBody, esc, card, MUSCLES, NERVES } = ctx;
-  const S = { screen: 'home', kind: null, id: null, step: -1, side: 'r' };
+  const S = { screen: 'home', kind: null, id: null, step: -1, side: prefs().side };
   const p = (t) => (t ? `<p>${esc(t)}</p>` : '');
   const depth = (k) => (MUSCLES[k].sup ? 'powierzchowny' : 'głęboki');
 
@@ -19,14 +22,19 @@ export function initLearn(ctx) {
   };
   const nerveList = Object.keys(NERVES).map((k) => ({ k, n: NERVES[k], count: Object.keys(MUSCLES).filter((m) => (MUSCLES[m].nr ?? []).some((x) => NERVES[k].mesh.includes(x))).length })).filter((x) => x.count && model.nerveEntity(x.k, 'r').ids.length);
 
-  const cur = () => (S.kind === 'sector' ? { title: S.id, keys: sectors.get(S.id).keys, sub: 'Sektor mięśni' } : { title: NERVES[S.id].pl, keys: nerveMuscles(S.id), sub: `${NERVES[S.id].lat} · ${NERVES[S.id].roots}`, nerve: model.nerveEntity(S.id, S.side) });
+  const extraIds = (cx) => (cx.extra ?? []).flatMap((n) => model.ids(n, S.side));
+  const cur = () => (S.kind === 'sector' ? { title: S.id, keys: sectors.get(S.id).keys, sub: 'Sektor mięśni' }
+    : S.kind === 'complex' ? { title: COMPLEXES[S.id].pl, keys: COMPLEXES[S.id].keys, sub: COMPLEXES[S.id].lat, extra: extraIds(COMPLEXES[S.id]) } : { title: NERVES[S.id].pl, keys: nerveMuscles(S.id), sub: `${NERVES[S.id].lat} · ${NERVES[S.id].roots}`, nerve: model.nerveEntity(S.id, S.side) });
 
+  const lidOf = (kind, id) => `${kind}~${id}`;
+  const prog = (kind, id) => { const r = store.get('learn', lidOf(kind, id)); return !r ? '' : r.done ? `<span class="prog">✔ ${r.best}%</span> · ` : r.best != null ? `<span class="prog seen">${r.best}%</span> · ` : r.seen ? '<span class="prog seen">przerobione</span> · ' : ''; };
+  store.on((ns, id, remote) => { if (ns === 'learn' && remote && ctx.modeIs('learn') && S.screen === 'home') home(); });
   function home() {
     S.screen = 'home'; S.step = -1; view.iso = null; view.tints.clear(); applyView();
     let h = '<h2>Nauka</h2><p class="en">Małe porcje zamiast całego ciała naraz: wybierz sektor mięśni albo nerw i przejdź go krok po kroku, a potem sprawdź się w quizie z tego samego zakresu.</p>';
-    h += '<h4>Drogi nerwów</h4><div class="list">' + nerveList.map((x) => `<div class="it" data-nerve="${x.k}"><span>${esc(x.n.pl)}</span><small>${esc(x.n.roots)} · ${x.count} mięśni</small></div>`).join('') + '</div>';
+    h += '<h4>Drogi nerwów</h4><div class="list">' + nerveList.map((x) => `<div class="it" data-nerve="${x.k}"><span>${esc(x.n.pl)}</span><small>${prog('nerve', x.k)}${esc(x.n.roots)} · ${x.count} mięśni</small></div>`).join('') + '</div>';
     for (const [rk, rn] of REGIONS.slice(1)) {
-      h += `<h4>Sektory – ${rn}</h4><div class="list">` + [...sectors.values()].filter((s) => s.reg === rk).map((s) => `<div class="it" data-sector="${esc(s.name)}"><span>${esc(s.name)}</span><small>${s.keys.length}</small></div>`).join('') + '</div>';
+      h += `<h4>Sektory – ${rn}</h4><div class="list">` + Object.entries(COMPLEXES).filter(([, x]) => x.reg === rk).map(([k, x]) => `<div class="it" data-complex="${k}"><span>◆ ${esc(x.pl)}</span><small>${prog('complex', k)}${x.keys.length}</small></div>`).join('') + [...sectors.values()].filter((s) => s.reg === rk).map((s) => `<div class="it" data-sector="${esc(s.name)}"><span>${esc(s.name)}</span><small>${prog('sector', s.name)}${s.keys.length}</small></div>`).join('') + '</div>';
     }
     panelBody.innerHTML = h; panelBody.scrollTop = 0;
   }
@@ -37,11 +45,18 @@ export function initLearn(ctx) {
     view.tints.clear(); view.sel.clear(); view.only = null;
     const ents = c.keys.map((k) => model.muscleEntity(k, S.side));
     const all = new Set(ents.flatMap((e) => e.ids));
+    const extra = c.extra ?? [];
     if (S.step < 0) {
       const iso = { focus: all, side: S.side, others: 'ghost', bonesOnly: true, show: { path: true, nerves: true }, nerves: new Set(c.nerve?.ids ?? []), path: new Set(c.nerve?.nervePath ?? []) };
       ents.forEach((e, i) => e.ids.forEach((id) => view.tints.set(id, PALETTE[i % PALETTE.length])));
+      extra.forEach((id) => { iso.focus.add(id); view.tints.set(id, '#e8e2d0'); });
+      if (c.extra) { iso.att = new Set(ents.flatMap((e) => e.att)); iso.show.att = true; }
       view.iso = iso; applyView();
-      if (refocus) engine.focus([...all, ...(c.nerve?.ids ?? [])], { pad: 1.3 });
+      if (refocus && extra.length) { // kompleks z przyczepem wspólnym – zbliżenie na przyczep od strony przyśrodkowej
+        const ins = [...iso.att].filter((i) => model.meta[i].role === 'insertion');
+        const sx = S.side === 'l' ? -1 : 1;
+        engine.focus([...extra, ...ins], { pad: 2.6, dir: new THREE.Vector3(sx * 0.8, 0.15, 0.6).normalize() });
+      } else if (refocus) engine.focus([...all, ...(c.nerve?.ids ?? [])], { pad: 1.3 });
     } else {
       const e = ents[S.step];
       view.iso = { focus: new Set(e.ids), side: S.side, others: 'ghost', bonesOnly: true, show: { att: true, bones: true, nerves: true, path: true, muscles: true },
@@ -59,8 +74,11 @@ export function initLearn(ctx) {
       <h2>${esc(c.title)}</h2><div class="lat">${esc(c.sub)}</div>
       <div class="acts"><button class="primary" data-act="start">Ucz się po kolei (${c.keys.length})</button><button data-act="quiz">Quiz z tego zakresu</button></div>`;
     if (S.kind === 'nerve') { const n = NERVES[S.id]; h += card('Droga nerwu', p(n.course), '#f5cc33') + card('Uszkodzenie – objawy', p(n.palsy), null, 'clin'); }
+    const cx = S.kind === 'complex' ? COMPLEXES[S.id] : null;
+    if (cx) h += card('Położenie', p(cx.loc), '#e62929') + card('Unerwienie', p(cx.n), '#f5cc33') + card('Czynność', `<ul>${cx.f.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>`, '#3ecf8e');
     h += card(S.kind === 'nerve' ? 'Mięśnie unerwiane – w kolejności wzdłuż nerwu' : 'Mięśnie sektora', `<div class="list">${c.keys.map((k, i) => `<div class="it" data-step="${i}"><span><i class="dot" style="display:inline-block;background:${PALETTE[i % PALETTE.length]};margin-right:8px"></i>${esc(MUSCLES[k].pl)}</span><small>${esc(MUSCLES[k].lat)} · ${depth(k)}</small></div>`).join('')}</div>`);
     if (S.kind === 'nerve' && NERVES[S.id].tip) h += card('Skojarzenie', p(NERVES[S.id].tip), null, 'tip');
+    if (cx) h += card('Klinika i fizjoterapia', p(cx.k), null, 'clin') + card('Skojarzenie', p(cx.s), null, 'tip');
     panelBody.innerHTML = h; panelBody.scrollTop = 0;
     stage();
   }
@@ -81,8 +99,9 @@ export function initLearn(ctx) {
 
   panelBody.addEventListener('click', (e) => {
     if (!ctx.modeIs('learn')) return;
-    const t = e.target, N = t.closest('[data-nerve]'), C = t.closest('[data-sector]'), P = t.closest('[data-step]'), A = t.closest('[data-act]');
-    if (N) { S.kind = 'nerve'; S.id = N.dataset.nerve; overview(); }
+    const t = e.target, X = t.closest('[data-complex]'), N = t.closest('[data-nerve]'), C = t.closest('[data-sector]'), P = t.closest('[data-step]'), A = t.closest('[data-act]');
+    if (X) { S.kind = 'complex'; S.id = X.dataset.complex; overview(); }
+    else if (N) { S.kind = 'nerve'; S.id = N.dataset.nerve; overview(); }
     else if (C) { S.kind = 'sector'; S.id = C.dataset.sector; overview(); }
     else if (P) { S.step = +P.dataset.step; stepView(); }
     else if (A) {
@@ -92,8 +111,10 @@ export function initLearn(ctx) {
       else if (a === 'side') { S.side = S.side === 'r' ? 'l' : 'r'; overview(); }
       else if (a === 'start') { S.step = 0; stepView(); }
       else if (a === 'prev') { S.step--; stepView(); }
-      else if (a === 'next') { if (S.step < c.keys.length - 1) { S.step++; stepView(); } else ctx.quizScoped(c.keys, c.title); }
-      else if (a === 'quiz') ctx.quizScoped(c.keys, c.title);
+      else if (a === 'next') {
+        if (S.step < c.keys.length - 1) { S.step++; stepView(); }
+        else { const lid = lidOf(S.kind, S.id), prev = store.get('learn', lid); if (!prev?.seen) store.put('learn', lid, { ...(prev ?? {}), seen: true }); ctx.quizScoped(c.keys, c.title, lid); }
+      } else if (a === 'quiz') ctx.quizScoped(c.keys, c.title, lidOf(S.kind, S.id));
       else if (a === 'atlas') { const ent = model.muscleEntity(c.keys[S.step], S.side); ctx.setMode('atlas'); ctx.select(ent, { isolate: true }); }
     }
   });
@@ -109,5 +130,6 @@ export function initLearn(ctx) {
       return true;
     },
     openNerve(k) { S.kind = 'nerve'; S.id = k; S.screen = 'group'; },
+    openComplex(k) { S.kind = 'complex'; S.id = k; S.screen = 'group'; },
   };
 }

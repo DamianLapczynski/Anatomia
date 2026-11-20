@@ -3,10 +3,11 @@ import upper from './data/muscles_upper.js';
 import lower from './data/muscles_lower.js';
 import trunk from './data/muscles_trunk.js';
 import NERVES from './data/nerves.js';
+import COMPLEXES from './data/complexes.js';
 import { polishName } from './data/names.js';
 
 export const MUSCLES = { ...upper, ...lower, ...trunk };
-export { NERVES };
+export { NERVES, COMPLEXES };
 
 export const LAYERS = [
   ['bones', 'Kości', '#e6dcc2'], ['joints', 'Stawy i więzadła', '#cfcbb5'], ['muscles', 'Mięśnie', '#a83d36'],
@@ -130,6 +131,7 @@ export function buildModel(meta, latin) {
   // indeks wyszukiwania
   const search = [];
   for (const [key, e] of Object.entries(MUSCLES)) search.push({ kind: 'muscle', key, label: e.pl, sub: e.lat, text: `${e.pl} ${e.lat} ${e.mesh.join(' ')}`.toLowerCase() });
+  for (const [key, e] of Object.entries(COMPLEXES)) search.push({ kind: 'complex', key, label: e.pl, sub: `${e.lat} · ${e.keys.length} mięśnie`, text: `${e.pl} ${e.lat} ${e.alias.join(' ')}`.toLowerCase() });
   for (const [key, e] of Object.entries(NERVES)) search.push({ kind: 'nerve', key, label: e.pl, sub: e.lat, text: `${e.pl} ${e.lat} ${e.mesh[0]}`.toLowerCase() });
   for (const [n, list] of names) {
     const m = meta[list[0]];
@@ -144,9 +146,58 @@ export function buildModel(meta, latin) {
     if (!words.length) return [];
     const out = [];
     for (const s of search) if (words.every((w) => s.text.includes(w))) { out.push(s); }
-    const rank = (s) => (s.kind === 'muscle' ? 0 : s.kind === 'nerve' ? 1 : 2) + (fold(s.label).startsWith(words[0]) ? -0.5 : 0);
+    const rank = (s) => (s.kind === 'complex' ? -1 : s.kind === 'muscle' ? 0 : s.kind === 'nerve' ? 1 : s.kind === 'landmark' ? 1.5 : 2) + (fold(s.label).startsWith(words[0]) ? -0.5 : 0);
     return out.sort((a, b) => rank(a) - rank(b) || a.label.length - b.label.length).slice(0, limit);
   }
 
-  return { meta, latin, ids, entityOf, muscleEntity, nerveEntity, structEntity, find, sidesOf, meshMuscle, meshNerve, names };
+  // ---- punkty kostne (labels.json): wyszukiwarka + mięśnie przyczepiające się w ich pobliżu ----
+  let landmarks = [];
+  function addLandmarks(labels, plName) {
+    landmarks = [];
+    labels.forEach((l, li) => {
+      const bone = l.p.replace(/\.[lr]$/, ''), paired = bone !== l.p;
+      const bid = names.get(bone)?.find((i) => meta[i].f === 'skeleton'); if (bid === undefined) return; // punkty narządów pomijamy
+      const pl = plName(l.n), la = latin[l.n], bonePl = polishName(bone) ?? latin[bone] ?? bone;
+      const lm = { li, n: l.n, b: l.b, bone, paired, title: pl ?? la ?? l.n, lat: la ?? l.n, bonePl };
+      landmarks.push(lm);
+      search.push({ kind: 'landmark', li, label: lm.title, sub: `Punkt kostny · ${bonePl}`, text: fold(`${pl ?? ''} ${la ?? ''} ${l.n} ${bonePl}`) });
+    });
+  }
+  const norm = (s) => fold(s).replace(/\(.*?\)/g, ' ').replace(/\s+/g, ' ').trim();
+  /** Encja punktu kostnego. near: mięśnie z polami przyczepów do ~2 cm od punktu (wymaga wczytanych przyczepów) + mięśnie, których opis przyczepu wymienia ten punkt. */
+  function landmarkEntity(li, side) {
+    const lm = landmarks.find((x) => x.li === li); if (!lm) return null;
+    const s = lm.paired ? (side || 'r') : '';
+    const boneIds = ids(lm.bone, s).filter((i) => meta[i].f === 'skeleton');
+    const point = [s === 'l' ? -lm.b[0] : lm.b[0], lm.b[1], lm.b[2]];
+    return { type: 'landmark', key: `lm${li}`, li, side: s, title: lm.title, lat: lm.lat, en: lm.n, bonePl: lm.bonePl, boneKey: lm.paired ? `${lm.bone}.${s}` : lm.bone, ids: boneIds, bones: boneIds, point };
+  }
+  function nearMuscles(ent, posOf, radius = 0.02) {
+    const out = new Map(), [px, py, pz] = ent.point;
+    const add = (key, role, d, how) => { const r = out.get(key) ?? { key, roles: new Set(), d: Infinity, how: new Set() }; r.roles.add(role); r.d = Math.min(r.d, d); r.how.add(how); out.set(key, r); };
+    const patches = [];
+    for (const m of meta) {
+      if (m.f !== 'insertions' || m.par[0] !== ent.boneKey) continue;
+      const P = posOf(m.id); if (!P) continue;
+      let d2 = Infinity; for (let i = 0; i < P.length; i += 3) { const dx = P[i] - px, dy = P[i + 1] - py, dz = P[i + 2] - pz, d = dx * dx + dy * dy + dz * dz; if (d < d2) d2 = d; }
+      const d = Math.sqrt(d2); if (d > radius) continue;
+      patches.push(m.id);
+      for (const key of attMuscle.get(m.n) ?? []) add(key, m.role, d, 'model');
+    }
+    // opis w bazie wiedzy: nazwa punktu (PL lub łac.) w tekście przyczepu początkowego / końcowego
+    // polska odmiana: porównujemy początki kolejnych słów („krętarz większy” ~ „krętarza większego”, „guzowatość kości piszczelowej” ~ „guzowatość piszczeli”)
+    const lm = landmarks.find((x) => x.li === ent.li);
+    const words = (t) => norm(t).split(/[^a-z0-9]+/).filter(Boolean);
+    const stems = (t) => words(t).filter((w) => !/^(kosc|kosci|m|mm|n)$/.test(w)).map((w) => w.slice(0, Math.max(3, Math.ceil(w.length * 0.6))));
+    const qs = [lm && plNameOf(lm), latin[ent.en]].filter(Boolean).map(stems).filter((q) => q.join('').length >= 6);
+    const has = (text, q) => { const w = words(text); for (let i = 0; i + q.length <= w.length; i++) if (q.every((st, j) => w[i + j].startsWith(st))) return true; return false; };
+    for (const [key, e] of Object.entries(MUSCLES)) for (const q of qs) {
+      if (has(e.o ?? '', q)) add(key, 'origin', Infinity, 'opis');
+      if (has(e.i ?? '', q)) add(key, 'insertion', Infinity, 'opis');
+    }
+    return { patches, muscles: [...out.values()].sort((a, b) => a.d - b.d) };
+  }
+  const plNameOf = (lm) => (lm.title !== lm.lat && lm.title !== lm.n ? lm.title : null);
+
+  return { meta, latin, ids, entityOf, muscleEntity, nerveEntity, structEntity, find, sidesOf, meshMuscle, meshNerve, names, addLandmarks, landmarkEntity, nearMuscles, landmarks: () => landmarks };
 }

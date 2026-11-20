@@ -10,7 +10,9 @@ import { LOOKS } from './looks.js';
 
 export const FILES = ['skeleton', 'muscles', 'insertions', 'nerves', 'cardio', 'joints', 'cns'];
 const BASE = import.meta.env.BASE_URL;
-const SURFACE = { skeleton: 'bone', muscles: 'muscle' }; // pliki z fakturą powierzchni (src/surface.js)
+const EXTRA = { muscles: 'muscles_extra' };
+// pliki z fakturą powierzchni (src/surface.js); muscles_extra to mięśnie dodane z BodyParts3D
+const SURFACE = { skeleton: 'bone', muscles: 'muscle', muscles_extra: 'muscle' };
 const SURF_LAYER = { bones: 'bone', muscles: 'muscle' };
 const THIN = ['fascia', 'joints', 'attachments', 'cns', 'heart'];
 function patchLayer(m, layer) {
@@ -93,6 +95,11 @@ export class Engine extends EventTarget {
   }
 
   ensure(file) {
+    if (EXTRA[file]) return Promise.all([this._ensure(file), this._ensure(EXTRA[file])]).then(() => {}); // mięśnie dodane z BodyParts3D (tools/add_bp3d.mjs)
+    return this._ensure(file);
+  }
+
+  _ensure(file) {
     if (this.loaded.has(file)) return Promise.resolve();
     if (this.loading.has(file)) return this.loading.get(file);
     const p = this.loader.loadAsync(`${BASE}models/${file}.glb`).then((gltf) => {

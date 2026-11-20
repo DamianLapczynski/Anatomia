@@ -1,16 +1,24 @@
-// Powtórki rozłożone w czasie (algorytm SM-2) – fiszki generowane z bazy wiedzy, postęp w localStorage.
+// Powtórki rozłożone w czasie (algorytm SM-2) – fiszki generowane z bazy wiedzy, postęp w src/store.js (lokalnie + chmura).
 import { REGIONS } from './model.js';
+import { store } from './store.js';
 
-const KEY = 'anatomia.srs.v1', DAY = 86400000;
+const DAY = 86400000;
 const today = () => new Date().toISOString().slice(0, 10);
 const DECKS = [...REGIONS.slice(1), ['nv', 'Nerwy']];
 
 export function initSrs(ctx) {
   const { engine, model, view, applyView, panelBody, esc, MUSCLES, NERVES } = ctx;
-  let st;
-  try { st = JSON.parse(localStorage.getItem(KEY)); } catch { st = null; }
-  st = Object.assign({ cards: {}, perDay: 15, day: { date: today(), n: 0 }, decks: { gs: true, tu: true, kg: true, kd: true, nv: true }, side: 'r' }, st ?? {});
-  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch { /* tryb prywatny */ } badge(); };
+  const DEF = { perDay: 15, day: { date: today(), n: 0 }, decks: { gs: true, tu: true, kg: true, kd: true, nv: true }, side: 'r' };
+  const cards = store.all('srs'); // id karty → { ef, iv, reps, lapses, due, t }
+  let st = { ...DEF, ...(store.get('settings', 'srs') ?? {}) };
+  const save = () => { const { perDay, day, decks, side } = st; store.put('settings', 'srs', { perDay, day, decks, side }); badge(); };
+  const putCard = (id, c) => { const { t, ...v } = c; store.put('srs', id, v); };
+  store.on((ns, id, remote) => {
+    if (ns === 'settings' && remote) st = { ...DEF, ...(store.get('settings', 'srs') ?? {}) };
+    if (ns !== 'srs' && ns !== 'settings') return;
+    badge();
+    if (remote && ctx.modeIs('srs') && !cur) homeView(); // zmiana z innego urządzenia – odśwież ekran startowy
+  });
 
   // talia
   const CARDS = [];
@@ -25,8 +33,8 @@ export function initSrs(ctx) {
   }
   const byId = new Map(CARDS.map((c) => [c.id, c]));
   const active = () => CARDS.filter((c) => st.decks[c.deck]);
-  const dueList = () => { const now = Date.now(); return active().filter((c) => st.cards[c.id] && st.cards[c.id].due <= now).sort((a, b) => st.cards[a.id].due - st.cards[b.id].due); };
-  const newList = () => { if (st.day.date !== today()) st.day = { date: today(), n: 0 }; return active().filter((c) => !st.cards[c.id]).slice(0, Math.max(0, st.perDay - st.day.n)); };
+  const dueList = () => { const now = Date.now(); return active().filter((c) => cards[c.id] && cards[c.id].due <= now).sort((a, b) => cards[a.id].due - cards[b.id].due); };
+  const newList = () => { if (st.day.date !== today()) st.day = { date: today(), n: 0 }; return active().filter((c) => !cards[c.id]).slice(0, Math.max(0, st.perDay - st.day.n)); };
   function badge() { const el = document.getElementById('dueBadge'), n = dueList().length; el.hidden = !n; el.textContent = n; }
 
   let queue = [], cur = null, shown = false, done = 0;
@@ -34,7 +42,7 @@ export function initSrs(ctx) {
   function homeView() {
     cur = null; view.iso = null; view.tints.clear(); applyView();
     const due = dueList().length, nw = newList().length, all = active().length;
-    const learned = active().filter((c) => st.cards[c.id]).length, mature = active().filter((c) => (st.cards[c.id]?.iv ?? 0) >= 21).length;
+    const learned = active().filter((c) => cards[c.id]).length, mature = active().filter((c) => (cards[c.id]?.iv ?? 0) >= 21).length;
     panelBody.innerHTML = `<h2>Powtórki</h2><p class="en">Fiszki z modelem 3D. Algorytm sam wyznacza, kiedy wrócić do danej karty.</p>
       <div class="stat"><div><b>${due}</b>do powtórki</div><div><b>${nw}</b>nowe dziś</div><div><b>${mature}</b>utrwalone</div></div>
       <p class="en">W nauce: ${learned} / ${all} kart</p>
@@ -43,7 +51,7 @@ export function initSrs(ctx) {
       <div class="field" style="margin-top:14px"><label>Nowe / dzień</label><select data-set="perDay">${[5, 10, 15, 20, 30, 50].map((n) => `<option ${st.perDay === n ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
       <div class="field"><label>Strona ciała</label><select data-set="side"><option value="r" ${st.side === 'r' ? 'selected' : ''}>prawa</option><option value="l" ${st.side === 'l' ? 'selected' : ''}>lewa</option></select></div>
       <div class="acts"><button data-act="export">Eksport postępu</button><button data-act="import">Import</button><button data-act="wipe">Wyzeruj postęp</button></div>
-      <p class="note">Postęp zapisuje się w tej przeglądarce (osobno na każdym urządzeniu). Eksport / import pozwala przenieść go między telefonem, tabletem i komputerem.</p>`;
+      <p class="note">${ctx.cloudUser?.() ? 'Postęp synchronizuje się z Twoim kontem – na każdym urządzeniu, na którym się zalogujesz. Eksport zostaje jako kopia zapasowa.' : 'Postęp zapisuje się w tej przeglądarce. Zaloguj się (☁ u góry), żeby synchronizować go między telefonem, tabletem i komputerem – albo przenieś go eksportem / importem.'}</p>`;
     badge();
   }
 
@@ -65,7 +73,7 @@ export function initSrs(ctx) {
       muscles: new Set(ent.type === 'nerve' ? ent.muscles.flatMap((m) => m.mesh.flatMap((n) => model.ids(n, st.side))) : []) };
     applyView();
   }
-  const preview = (q) => { const c = { ef: 2.5, iv: 0, reps: 0, ...(st.cards[cur.id] ?? {}) }; const r = calc(c, q); return r.iv === 0 ? '10 min' : r.iv < 30 ? `${r.iv} d` : `${Math.round(r.iv / 30)} mies.`; };
+  const preview = (q) => { const c = { ef: 2.5, iv: 0, reps: 0, ...(cards[cur.id] ?? {}) }; const r = calc(c, q); return r.iv === 0 ? '10 min' : r.iv < 30 ? `${r.iv} d` : `${Math.round(r.iv / 30)} mies.`; };
   function calc(c, q) {
     let { ef, iv, reps } = c;
     if (q < 3) return { ef: Math.max(1.3, ef - 0.2), iv: 0, reps: 0 };
@@ -75,10 +83,10 @@ export function initSrs(ctx) {
     return { ef, iv, reps };
   }
   function grade(q) {
-    const isNew = !st.cards[cur.id];
-    const c = { ef: 2.5, iv: 0, reps: 0, lapses: 0, ...(st.cards[cur.id] ?? {}) };
+    const isNew = !cards[cur.id];
+    const c = { ef: 2.5, iv: 0, reps: 0, lapses: 0, ...(cards[cur.id] ?? {}) };
     const r = calc(c, q);
-    st.cards[cur.id] = { ...c, ...r, lapses: c.lapses + (q < 3 ? 1 : 0), due: r.iv === 0 ? Date.now() + 600000 : Date.now() + r.iv * DAY - 4 * 3600000 };
+    putCard(cur.id, { ...c, ...r, lapses: c.lapses + (q < 3 ? 1 : 0), due: r.iv === 0 ? Date.now() + 600000 : Date.now() + r.iv * DAY - 4 * 3600000 });
     if (isNew) { if (st.day.date !== today()) st.day = { date: today(), n: 0 }; st.day.n++; }
     if (q < 3) queue.splice(Math.min(queue.length, 4), 0, cur);
     done++; save(); nextCard();
@@ -107,18 +115,25 @@ export function initSrs(ctx) {
       else if (a === 'home') homeView();
       else if (a === 'reveal') { shown = true; stage(true); render(); }
       else if (a === 'atlas') { const ent = cur.ent; ctx.setMode('atlas'); ctx.select(ent, { isolate: true }); }
-      else if (a === 'wipe') { if (confirm('Na pewno wyzerować cały postęp powtórek?')) { st.cards = {}; st.day = { date: today(), n: 0 }; save(); homeView(); } }
-      else if (a === 'export') { const blob = new Blob([JSON.stringify(st)], { type: 'application/json' }); const u = URL.createObjectURL(blob); Object.assign(document.createElement('a'), { href: u, download: `anatomia-postep-${today()}.json` }).click(); URL.revokeObjectURL(u); }
+      else if (a === 'wipe') { if (confirm('Na pewno wyzerować cały postęp powtórek?' + (ctx.cloudUser?.() ? ' Zniknie też z pozostałych urządzeń.' : ''))) { store.clear('srs'); st.day = { date: today(), n: 0 }; save(); homeView(); } }
+      else if (a === 'export') { const blob = new Blob([JSON.stringify({ ...st, cards })], { type: 'application/json' }); const u = URL.createObjectURL(blob); Object.assign(document.createElement('a'), { href: u, download: `anatomia-postep-${today()}.json` }).click(); URL.revokeObjectURL(u); }
       else if (a === 'import') {
         const inp = Object.assign(document.createElement('input'), { type: 'file', accept: 'application/json' });
-        inp.onchange = async () => { try { const d = JSON.parse(await inp.files[0].text()); if (!d.cards) throw 0; Object.assign(st, d); save(); homeView(); ctx.hint('Zaimportowano postęp', 'ok'); } catch { ctx.hint('Nieprawidłowy plik', 'bad'); } };
+        inp.onchange = async () => {
+          try {
+            const d = JSON.parse(await inp.files[0].text()); if (!d.cards) throw 0;
+            for (const [id, c] of Object.entries(d.cards)) putCard(id, c);
+            for (const k of ['perDay', 'decks', 'side', 'day']) if (d[k] !== undefined) st[k] = d[k];
+            save(); homeView(); ctx.hint('Zaimportowano postęp', 'ok');
+          } catch { ctx.hint('Nieprawidłowy plik', 'bad'); }
+        };
         inp.click();
       }
     }
   });
 
   // błędna odpowiedź w quizie → karty mięśnia wracają do powtórki od razu
-  ctx.srsFlag = (key) => { for (const s of ['att', 'n', 'f']) { const id = `${key}:${s}`; if (byId.has(id)) st.cards[id] = { ef: 2.5, iv: 0, reps: 0, lapses: 0, ...(st.cards[id] ?? {}), due: Date.now() }; } save(); };
+  ctx.srsFlag = (key) => { for (const s of ['att', 'n', 'f']) { const id = `${key}:${s}`; if (byId.has(id)) putCard(id, { ef: 2.5, iv: 0, reps: 0, lapses: 0, ...(cards[id] ?? {}), due: Date.now() }); } badge(); };
   badge();
   return { enter: homeView, leave() { view.iso = null; view.tints.clear(); cur = null; }, onPick() { return true; } };
 }

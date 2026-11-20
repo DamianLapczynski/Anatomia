@@ -5,12 +5,15 @@ Interaktywny atlas anatomii 3D do nauki na studiach fizjoterapii: układ kostny,
 ## Co potrafi
 
 - **Atlas** – 3300 osobnych struktur (kości, więzadła, mięśnie, pola przyczepów, tętnice, żyły, nerwy, mózg i rdzeń). Warstwy, strona ciała, okolice, wyszukiwarka PL / łac. / ang., ukrywanie kolejnych warstw.
+- **Punkty kostne w wyszukiwarce** – ok. 560 punktów (PL / łac. / ang.), np. „guzowatość kości piszczelowej”, „SIAS”, „guz kulszowy”: kość ze znacznikiem punktu, pola przyczepów leżące przy nim i lista mięśni (początek / koniec) – z modelu 3D (do 2 cm od punktu) i z opisów przyczepów w bazie.
 - **Izolacja mięśnia** – mięsień + pola przyczepu początkowego (czerwone) i końcowego (niebieskie) na kościach + nerw z drogą od korzeni + tętnica; resztę ciała można przyciemnić albo ukryć, a każdy element kontekstu włączać osobno.
-- **Baza wiedzy** – 144 pozycje mięśniowe (przyczepy, unerwienie z segmentami, unaczynienie, czynność, klinika / fizjoterapia, skojarzenie), 25 nerwów (przebieg, zakres ruchowy i czuciowy, objawy uszkodzenia), ok. 760 punktów kostnych (dla głównych kości kończyn, obręczy i kości krzyżowej z polskimi nazwami).
-- **Nauka** – małe sektory mięśni (ok. 50 grup) i drogi 24 nerwów: przegląd w kolorach, przejście mięsień po mięśniu, quiz z tego samego zakresu. Filtr warstwy: mięśnie powierzchowne / głębokie.
-- **Ruch** – 37 ruchów z podziałem na agonistów, synergistów i antagonistów; 26 z animacją szkieletu.
+- **Baza wiedzy** – 180 pozycji mięśniowych (przyczepy, unerwienie z segmentami, unaczynienie, czynność, klinika / fizjoterapia, skojarzenie), 25 nerwów (przebieg, zakres ruchowy i czuciowy, objawy uszkodzenia), ok. 760 punktów kostnych (dla głównych kości kończyn, obręczy i kości krzyżowej z polskimi nazwami).
+- **Nauka** – małe sektory mięśni (ok. 50 grup), kompleksy uczone razem (np. gęsia stopa – mięśnie, kaletka i wspólny przyczep) i drogi 24 nerwów: przegląd w kolorach, przejście mięsień po mięśniu, quiz z tego samego zakresu. Filtr warstwy: mięśnie powierzchowne / głębokie.
+- **Ruch** – 82 ruchy z podziałem na agonistów, synergistów i antagonistów (stawy kończyn, kciuk i palce, tułów i miednica, dno miednicy, szyja, żuchwa, mimika, gałka oczna); 70 z animacją szkieletu – także wielostawowe: pięść i opozycja kciuka, palce stopy, rotacja goleni w zgiętym kolanie, łopatka, kręgosłup kręg po kręgu, głowa, żuchwa, oddychanie, połykanie. Ruchy bez udziału kości (mimika, gałka oczna, dno miednicy) pokazują pulsujące mięśnie główne.
 - **Quiz** – wskaż strukturę na modelu, rozpoznaj podświetloną, pytania o unerwienie / przyczepy / czynność.
-- **Powtórki** – fiszki z modelem 3D i algorytmem SM-2; postęp w pamięci przeglądarki, z eksportem i importem.
+- **Powtórki** – fiszki z modelem 3D i algorytmem SM-2; eksport i import jako kopia zapasowa.
+- **Ustawienia (⚙)** – konto i baza danych (logowanie Google), motyw jasny / ciemny / systemowy, kolor akcentu, wielkość tekstu, jakość grafiki, domyślna strona ciała, tempo animacji, nazwy punktów kostnych, liczba nowych fiszek, eksport / import całego postępu, pobranie najnowszej wersji. Ustawienia synchronizują się z kontem.
+- **Postęp i synchronizacja** – powtórki, statystyki quizów (najsłabsze mięśnie, wynik wg rodzaju pytania i okolicy, „Ćwicz słabe”) i przerobione sektory Nauki. Bez konta zapisują się w przeglądarce; po zalogowaniu kontem Google (⚙ Ustawienia) – we własnej bazie Firestore, wspólnej dla telefonu, iPada i komputera, także offline.
 
 ## Style graficzne
 
@@ -61,7 +64,7 @@ Skrypt działa samodzielnie na komputerze, bez Claude'a i bez internetu (po inst
 
 **Instalacja (raz):** Node.js LTS, potem w folderze projektu `npm install` i `npm run reel:setup` (pobiera Playwright, Chromium i ffmpeg). Na Windows wystarczy dwukrotnie kliknąć `rolka.bat` – zainstaluje brakujące rzeczy i zapyta o mięsień.
 
-**Praca z planem serii** (`tools/reel_plan.mjs`, 144 dni):
+**Praca z planem serii** (`tools/reel_plan.mjs`, 180 dni):
 
 ```bash
 npm run reel -- --week 1      # dni 1–7; gotowe pliki są pomijane (--force renderuje ponownie)
@@ -84,6 +87,18 @@ npm run post -- --week 1        # karuzele dla dni 1–7 z planu
 
 Na Windows: dwuklik `post.bat`. Własny tekst pod slajdy (hak na okładkę, krótsze przyczepy, skojarzenie) wpisuje się w `src/data/reel_texts.js` w polu `post` danego mięśnia. Podgląd w przeglądarce: `?post=deltoid&slide=1` (slajdy 1–5).
 
+## Synchronizacja postępu (Firebase)
+
+Aplikacja działa bez tego – wtedy postęp zostaje w przeglądarce. Żeby włączyć synchronizację między urządzeniami (raz, ok. 10 minut, darmowy plan Spark wystarcza):
+
+1. [console.firebase.google.com](https://console.firebase.google.com) → **Dodaj projekt** (Google Analytics niepotrzebne).
+2. **Ustawienia projektu → Twoje aplikacje → Web (`</>`)** → zarejestruj aplikację i skopiuj obiekt `firebaseConfig` do `src/firebase-config.js` (zamiast `null`). Te wartości są publiczne – dane chronią reguły.
+3. **Authentication → Rozpocznij → Google** → włącz. W **Ustawienia → Autoryzowane domeny** dodaj domenę, pod którą działa aplikacja (np. `twoj-login.github.io`).
+4. **Firestore Database → Utwórz bazę** → region `europe-central2` (Warszawa), tryb produkcyjny.
+5. **Firestore → Reguły** → wklej zawartość `firestore.rules` i opublikuj. Po pierwszym logowaniu możesz zawęzić dostęp do swojego konta (uid z zakładki Authentication).
+
+Dane: `users/{uid}/srs|quiz|learn|settings/{id}` – jeden dokument na fiszkę, pytanie i sektor; przy dwóch urządzeniach wygrywa nowsza zmiana, a liczniki quizu się sumują. Test lokalny bez prawdziwego projektu: `npx firebase-tools emulators:start --only auth,firestore --project demo-anatomia` i adres aplikacji z `?emu`.
+
 ## Uruchomienie
 
 ```bash
@@ -104,11 +119,13 @@ python3 -I tools/export_blend.py <Startup.blend> <katalog_raw>   # plik czytany 
 node tools/build_models.mjs <katalog_raw> public                 # upraszczanie siatek + kompresja meshopt
 node tools/build_text.mjs <TA2.csv> <katalog_raw>/texts.json     # nazwy łacińskie (TA2) i krótkie opisy
 node tools/validate_kb.mjs                                       # spójność bazy wiedzy z modelem
+node tools/add_bp3d.mjs <katalog_stl_BodyParts3D>               # mięśnie spoza Z-Anatomy (półkolcowy głowy, łonowo-odbytniczy, międzypoprzeczne szyjne) → muscles_extra.glb
 ```
 
 ## Źródła i licencje
 
 - Modele 3D, pola przyczepów i punkty kostne: **Z-Anatomy** (Gauthier Kervyn, Marcin Zieliński), licencja **CC BY-SA 4.0**, oparte na **BodyParts3D** © The Database Center for Life Science, CC BY-SA 2.1 Japan. Zmiany: uproszczenie i kompresja siatek, własna paleta barw, podział na pliki.
+- Mięśnie półkolcowy głowy, łonowo-odbytniczy i międzypoprzeczne szyjne: **BodyParts3D** (DBCLS), CC BY-SA 2.1 Japan – siatki przeliczone do układu modelu i uproszczone (`tools/add_bp3d.mjs`, plik `public/models/muscles_extra.glb`).
 - Krótkie opisy angielskie: Wikipedia za pośrednictwem Z-Anatomy, CC BY-SA.
 - Nazwy łacińskie: Terminologia Anatomica 2 (zestawienie z repozytorium Z-Anatomy).
 - Pliki w `public/models` i `public/data` jako utwory zależne pozostają na licencji CC BY-SA 4.0.

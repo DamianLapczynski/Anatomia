@@ -1,10 +1,13 @@
 // Quiz na modelu 3D: wskaż strukturę, rozpoznaj podświetloną, pytania o fakty.
 import { polishName } from './data/names.js';
 import { REGIONS } from './model.js';
+import { store } from './store.js';
+import { prefs } from './settings.js';
 
 const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const SYS = [['muscles', 'Mięśnie'], ['bones', 'Kości'], ['nerves', 'Nerwy'], ['arteries', 'Tętnice']];
 const TYPES = [['point', 'Wskaż na modelu'], ['name', 'Rozpoznaj strukturę'], ['facts', 'Fakty o mięśniach']];
+const QNAME = { point: 'wskaż', name: 'rozpoznaj', 'facts.n': 'unerwienie', 'facts.i': 'przyczep końcowy', 'facts.o': 'przyczep początkowy', 'facts.f': 'czynność' };
 const FACTS = [
   ['n', (m) => `Co unerwia: ${m.lat}?`], ['i', (m) => `Gdzie jest przyczep końcowy: ${m.lat}?`],
   ['o', (m) => `Gdzie jest przyczep początkowy: ${m.lat}?`], ['f', (m) => `Jaka jest główna czynność: ${m.lat}?`],
@@ -12,7 +15,7 @@ const FACTS = [
 
 export function initQuiz(ctx) {
   const { engine, model, view, applyView, panelBody, esc, MUSCLES, NERVES } = ctx;
-  const S = { sys: 'muscles', reg: 'all', type: 'point', deep: false, side: 'r', ok: 0, bad: 0, streak: 0, cur: null, answered: false, last: null, scope: null };
+  const S = { sys: 'muscles', reg: 'all', type: 'point', deep: false, side: prefs().side, ok: 0, bad: 0, streak: 0, cur: null, answered: false, last: null, scope: null };
 
   const superficial = (key) => model.muscleEntity(key, 'r').ids.some((i) => model.meta[i].colls.includes('Superficial muscles'));
   function pool() {
@@ -48,7 +51,44 @@ export function initQuiz(ctx) {
       ${S.type === 'point' && S.sys === 'muscles' && !S.scope ? `<h4>Warstwa mięśni</h4><div class="seg" data-k="deep"><button data-v="0" class="${!S.deep ? 'on' : ''}">Powierzchowne</button><button data-v="1" class="${S.deep ? 'on' : ''}">Głębokie</button></div>` : ''}
       <p class="en" style="margin-top:12px">Pula pytań: <b>${pool().length}</b></p>
       <div class="acts"><button class="primary" data-act="start" ${pool().length < minPool ? 'disabled' : ''}>Start</button><button data-act="zero">Wyzeruj wynik</button></div>
-      <p class="note">Błędne odpowiedzi dotyczące mięśni trafiają od razu do Powtórek.</p>`;
+      <div class="acts"><button data-act="stats">Statystyki i słabe punkty</button></div>
+      <p class="note">${prefs().quizToSrs ? 'Błędne odpowiedzi dotyczące mięśni trafiają od razu do Powtórek.' : 'Błędne odpowiedzi nie trafiają do Powtórek (zmienisz to w Ustawieniach).'} Każda odpowiedź zapisuje się w statystykach${ctx.cloudUser?.() ? ' (synchronizowanych z kontem)' : ''}.</p>`;
+  }
+  // ---- statystyki z całej historii odpowiedzi ----
+  const titleOf = (r) => (r.kind === 'muscle' ? MUSCLES[r.key]?.pl : r.kind === 'nerve' ? NERVES[r.key]?.pl : polishName(r.key) ?? r.key);
+  function itemStats() { // łączy typy pytań: wynik na strukturę
+    const by = new Map();
+    for (const r of Object.values(store.all('quiz'))) {
+      if (!r.kind || (r.kind === 'muscle' && !MUSCLES[r.key])) continue;
+      const k = `${r.kind}~${r.key}`, x = by.get(k) ?? { kind: r.kind, key: r.key, ok: 0, bad: 0, last: 0, q: {} };
+      x.ok += r.ok ?? 0; x.bad += r.bad ?? 0; x.last = Math.max(x.last, r.last ?? 0);
+      const qq = (x.q[r.q] ??= { ok: 0, bad: 0 }); qq.ok += r.ok ?? 0; qq.bad += r.bad ?? 0;
+      by.set(k, x);
+    }
+    return [...by.values()].map((x) => ({ ...x, n: x.ok + x.bad, pct: Math.round((100 * x.ok) / Math.max(1, x.ok + x.bad)) }));
+  }
+  const weakList = (min = 3) => itemStats().filter((x) => x.n >= min && x.pct < 80).sort((a, b) => a.pct - b.pct || b.n - a.n);
+  function stats() {
+    S.cur = null; view.only = null; view.tints.clear(); view.iso = null; applyView(); ctx.home();
+    const all = itemStats(), n = all.reduce((a, x) => a + x.n, 0), ok = all.reduce((a, x) => a + x.ok, 0);
+    const pctBar = (p) => `<span class="bar"><i style="width:${p}%;background:${p >= 80 ? 'var(--ok)' : p >= 50 ? 'var(--warn)' : 'var(--bad)'}"></i></span>`;
+    const byQ = {}, byReg = {};
+    for (const r of Object.values(store.all('quiz'))) {
+      if (!r.q) continue;
+      const a = (byQ[r.q] ??= { ok: 0, n: 0 }); a.ok += r.ok ?? 0; a.n += (r.ok ?? 0) + (r.bad ?? 0);
+      const reg = r.kind === 'muscle' ? MUSCLES[r.key]?.reg : r.kind === 'nerve' ? 'nv' : null;
+      if (reg) { const b = (byReg[reg] ??= { ok: 0, n: 0 }); b.ok += r.ok ?? 0; b.n += (r.ok ?? 0) + (r.bad ?? 0); }
+    }
+    const rows = (obj, name) => Object.entries(obj).filter(([, v]) => v.n).map(([k, v]) => { const p = Math.round((100 * v.ok) / v.n); return `<div class="it"><span>${esc(name(k))}</span><small>${pctBar(p)} ${p}% · ${v.n}</small></div>`; }).join('');
+    const weak = weakList();
+    const weakM = weak.filter((x) => x.kind === 'muscle');
+    panelBody.innerHTML = `<div class="acts" style="margin-top:0"><button data-act="menu">‹ Quiz</button></div><h2>Statystyki</h2>
+      ${n ? `<div class="stat"><div><b>${n}</b>odpowiedzi</div><div><b>${Math.round((100 * ok) / n)}%</b>poprawnych</div><div><b>${all.length}</b>struktur</div></div>` : '<p class="en">Jeszcze nie ma odpowiedzi – zrób kilka quizów.</p>'}
+      ${weakM.length ? `<div class="acts"><button class="primary" data-act="weak">Ćwicz słabe mięśnie (${Math.min(weakM.length, 20)})</button></div>` : ''}
+      ${weak.length ? `<h4>Najsłabsze (min. 3 próby, poniżej 80%)</h4><div class="list">${weak.slice(0, 25).map((x) => `<div class="it"><span>${esc(titleOf(x))}</span><small>${pctBar(x.pct)} ${x.pct}% · ${x.n} · ${Object.entries(x.q).filter(([, v]) => v.bad).map(([q]) => QNAME[q] ?? q).join(', ')}</small></div>`).join('')}</div>` : ''}
+      ${Object.keys(byQ).length ? `<h4>Wg rodzaju pytania</h4><div class="list">${rows(byQ, (q) => QNAME[q] ?? q)}</div>` : ''}
+      ${Object.keys(byReg).length ? `<h4>Wg okolicy</h4><div class="list">${rows(byReg, (r) => (r === 'nv' ? 'Nerwy' : REGIONS.find((x) => x[0] === r)?.[1] ?? r))}</div>` : ''}`;
+    panelBody.scrollTop = 0;
   }
 
   async function next() {
@@ -104,9 +144,19 @@ export function initQuiz(ctx) {
     panelBody.scrollTop = 0;
   }
 
+  function record(ok) {
+    const it = S.cur.it, q = S.type === 'facts' ? `facts.${S.cur.field}` : S.type;
+    store.inc('quiz', `${it.kind}~${it.key}~${q}`, ok ? { ok: 1 } : { bad: 1 }, { kind: it.kind, key: it.key, q });
+    const sc = S.scope; if (!sc?.lid) return;
+    sc.n++; if (ok) sc.ok++;
+    if (sc.n >= Math.max(5, sc.keys.length)) { // wynik zakresu z Nauki: co najmniej jedno pytanie na mięsień
+      const pct = Math.round((100 * sc.ok) / sc.n), prev = store.get('learn', sc.lid) ?? {};
+      if (pct > (prev.best ?? -1) || (pct >= 80 && !prev.done)) store.put('learn', sc.lid, { ...prev, done: prev.done || pct >= 80, best: Math.max(pct, prev.best ?? 0) });
+    }
+  }
   function finish(ok, extra = '') {
-    S.answered = true;
-    if (ok) { S.ok++; S.streak++; } else { S.bad++; S.streak = 0; if (S.cur.it.kind === 'muscle') ctx.srsFlag?.(S.cur.it.key); }
+    S.answered = true; record(ok);
+    if (ok) { S.ok++; S.streak++; } else { S.bad++; S.streak = 0; if (S.cur.it.kind === 'muscle' && prefs().quizToSrs) ctx.srsFlag?.(S.cur.it.key); }
     const it = S.cur.it;
     ctx.hint(ok ? 'Dobrze!' : `Źle – to: ${it.title}`, ok ? 'ok' : 'bad', 2500);
     const fb = panelBody.querySelector('#fb');
@@ -144,6 +194,8 @@ export function initQuiz(ctx) {
       const a = A.dataset.act;
       if (a === 'start' || a === 'next') next();
       else if (a === 'menu') menu();
+      else if (a === 'stats') stats();
+      else if (a === 'weak') { const ks = weakList().filter((x) => x.kind === 'muscle').slice(0, 20).map((x) => x.key); api.scoped(ks, 'Słabe punkty'); }
       else if (a === 'zero') { S.ok = S.bad = S.streak = 0; menu(); }
       else if (a === 'unscope') { S.scope = null; menu(); }
       else if (a === 'skip' && !S.answered) { reveal(); finish(false); }
@@ -151,9 +203,9 @@ export function initQuiz(ctx) {
     }
   });
 
-  return {
+  const api = {
     enter: menu,
-    scoped(keys, label) { S.scope = { keys, label, ids: new Set(keys.flatMap((k) => model.muscleEntity(k, S.side).ids)) }; S.sys = 'muscles'; if (S.type === 'point' && keys.length < 2) S.type = 'facts'; menu(); },
+    scoped(keys, label, lid = null) { S.scope = { keys, label, lid, ok: 0, n: 0, ids: new Set(keys.flatMap((k) => model.muscleEntity(k, S.side).ids)) }; S.sys = 'muscles'; if (S.type === 'point' && keys.length < 2) S.type = 'facts'; menu(); },
     leave() { view.only = null; view.tints.clear(); view.iso = null; ctx.hint('', '', 1); },
     onPick(hit) {
       if (S.type !== 'point' || !S.cur || S.answered) return true;
@@ -167,4 +219,5 @@ export function initQuiz(ctx) {
       return true;
     },
   };
+  return api;
 }

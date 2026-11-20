@@ -18,7 +18,7 @@ const FASCIA_MAT = new Set(['Bursa', 'Fascia', 'Articular capsule', 'Ligament'])
 const FASCIA_NAME = /fascia|retinacul|septum|sheath|aponeurosis|bursa|Linea alba|ligament|Iliopectineal arch|tarsus|Common tendinous ring/i;
 const isFascia = (m) => m && m.f === 'muscles' && (FASCIA_MAT.has(m.mat) || FASCIA_NAME.test(m.n));
 
-const files = process.argv.slice(2).length ? process.argv.slice(2) : ['skeleton', 'muscles', 'joints', 'cardio', 'cns'].map((f) => `public/models/${f}.glb`);
+const files = process.argv.slice(2).length ? process.argv.slice(2) : ['skeleton', 'muscles', 'muscles_extra', 'joints', 'cardio', 'cns'].map((f) => `public/models/${f}.glb`);
 const RAYS = 64;
 // zasięgi w metrach: „self” – zasłanianie przez ten sam obiekt, „neigh” – przez sąsiadów (tylko szpary)
 // cavity – mnożnik koloru w pełnym zagłębieniu; gain – czułość; strength – siła efektu
