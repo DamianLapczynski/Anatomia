@@ -149,7 +149,7 @@ results.addEventListener('click', (e) => {
   const r = e.target.closest('.r'); if (!r) return;
   const it = results._list[+r.dataset.i];
   results.hidden = true; q.blur();
-  if (it.kind === 'complex') { modes.learn.openComplex(it.key); setMode('learn'); return; }
+  if (it.kind === 'complex') { modes.learn.openComplex(it.key); if (mode === 'learn') modes.learn.enter(); else setMode('learn'); return; }
   setMode('atlas');
   openItem(it);
 });

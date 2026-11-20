@@ -40,6 +40,9 @@ const COMPLEXES = (await import('../src/data/complexes.js')).default;
 for (const [id, c] of Object.entries(COMPLEXES)) {
   for (const k of c.keys) if (!allKb[k]) { console.log(`[kompleks ${id}] brak mięśnia: ${k}`); bad++; }
   for (const n of c.extra ?? []) if (!names.all.has(n)) { console.log(`[kompleks ${id}] brak siatki: ${n}`); bad++; }
+  const NV = (await import('../src/data/nerves.js')).default;
+  for (const k of c.nerves ?? []) if (!NV[k]) { console.log(`[kompleks ${id}] brak nerwu: ${k}`); bad++; }
+  for (const f of ['pl', 'lat', 'reg', 'loc', 'n', 'f', 'k', 's', 'alias']) if (!c[f]) { console.log(`[kompleks ${id}] brak pola ${f}`); bad++; }
 }
 const noMove = Object.keys(allKb).filter((k) => !inMove.has(k));
 console.log(`ruchy: ${MOVES.length} (z animacją: ${MOVES.filter((m) => m.joint || m.rig).length}) | mięśnie bez ruchu: ${noMove.length}${noMove.length ? ' – ' + noMove.join(', ') : ''}`);
