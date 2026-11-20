@@ -17,11 +17,12 @@ Interaktywny atlas anatomii 3D do nauki na studiach fizjoterapii: układ kostny,
 
 ## Style graficzne
 
-Lewy panel → **Wygląd**. Każdy styl to komplet: kolory i materiały interfejsu, typografia oraz oprawa sceny 3D (światło, tło, kolor półprzezroczystej sylwetki, cień pod stopami – `src/looks.js`). Kolory tkanek są wszędzie te same.
+Ustawienia (⚙) → **Wygląd** → Styl. Każdy styl to komplet: kolory i materiały interfejsu, typografia oraz oprawa sceny 3D (światło, tło, kolor półprzezroczystej sylwetki, cień pod stopami – `src/looks.js`). Kolory tkanek są wszędzie te same.
 
 - **Atlas** – ciepły papier z fakturą, szeryf Fraunces, burgund; jak klasyczny atlas anatomiczny.
 - **Noir** – galeria nocą: czerń, punktowe światło ze złotą kontrą, Instrument Serif.
 - Rodzina noir (ta sama galeryjna czerń, inny kamień i światło): **Onyks** – platyna i zimne światło; **Aksamit** – bordo i rubinowa kontra; **Światłocień** – jedno ciepłe światło z boku, Bodoni Moda; **Szmaragd** – zieleń i szmaragdowa kontra.
+- Zima i święta: **Wigilia** (ciemny – jodłowa noc, złoto świec, księżycowa poświata) i **Szron** (jasny – lodowa biel, zieleń jodły); w obu za modelem pada śnieg (zatrzymuje się przy ograniczeniu ruchu w systemie).
 - **Szkło** – świetliste, kolorowe tło i mleczne szkło z jasną krawędzią.
 - **Głębia** – atrament i morski turkus, chłodne światło z poświatą od tyłu.
 - Klasyczne: Grafit (domyślny), Jasny, Północ, Tytan.

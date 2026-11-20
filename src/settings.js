@@ -14,6 +14,8 @@ export const THEMES = [
   ['velvet', 'Aksamit', 'radial-gradient(circle at 50% 28%,#4a1d24,#050102 70%)', '#e0707d'],
   ['chiaro', 'Światłocień', 'radial-gradient(circle at 28% 30%,#4a331d,#030201 68%)', '#e6a55a'],
   ['emerald', 'Szmaragd', 'radial-gradient(circle at 50% 28%,#1b3d31,#010302 70%)', '#5fd3a2'],
+  ['wigilia', 'Wigilia', 'radial-gradient(circle at 50% 30%,#1f4038,#020605 72%)', '#e7c26a'],
+  ['szron', 'Szron', 'radial-gradient(circle at 50% 30%,#ffffff,#cfdde7 80%)', '#1d6b51'],
   ['glass', 'Szkło', 'radial-gradient(circle at 20% 15%,#ffd3e6,transparent 60%),radial-gradient(circle at 85% 30%,#c4e2ff,transparent 60%),linear-gradient(160deg,#f3eeff,#dcd2ff)', '#5856d6'],
   ['depth', 'Głębia', 'radial-gradient(circle at 50% 35%,#16585a,#020b0f 75%)', '#40e0c8'],
   ['graphite', 'Grafit', 'linear-gradient(145deg,#2c2c2e,#000)', '#0a84ff'],

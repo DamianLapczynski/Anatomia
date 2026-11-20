@@ -9,7 +9,7 @@ import { initSrs } from './srs.js';
 import { initLearn } from './learn.js';
 import { landmarkPL } from './data/landmarks.js';
 import { initKeys } from './keys.js';
-import { initSettings, prefs, THEMES, setStyle } from './settings.js';
+import { initSettings, prefs } from './settings.js';
 // kroje stylów Atlas (Fraunces) i Noir (Instrument Serif) – przeglądarka pobiera je dopiero, gdy styl ich użyje
 import '@fontsource/fraunces/latin-600.css';
 import '@fontsource/fraunces/latin-ext-600.css';
@@ -87,17 +87,14 @@ function renderLeft() {
       <button data-preset="neuro">Nerwy</button><button data-preset="vessels">Naczynia</button>
       <button data-preset="attach">Przyczepy</button><button data-preset="joints">Więzadła</button>
     </div>
-    <h4>Wygląd</h4>
-    <div class="themes">${THEMES.map(([k, n, bg, acc]) => `<button data-style="${k}" class="${theme() === k ? 'on' : ''}" style="--sw-acc:${acc}"><b style="background:${bg}"></b>${n}</button>`).join('')}</div>
     <h4>Widok</h4>
     <div class="seg"><button data-act="showall">Pokaż ukryte${view.hidden.size ? ` (${view.hidden.size})` : ''}</button><button data-act="reset">Reset</button></div>
     <p class="note">Modele 3D: Z-Anatomy / BodyParts3D (CC BY-SA 4.0). Treści opisowe do nauki – weryfikuj z podręcznikiem i prowadzącym.</p>`;
 }
 // ---------- motywy ----------
-// styl ustawia settings.js (applyLook); tu tylko scena 3D i podświetlenie miniatury w panelu warstw
+// styl ustawia settings.js (applyLook); tu tylko oprawa sceny 3D
 const theme = () => document.documentElement.dataset.theme || 'graphite';
-const setTheme = (k) => setStyle(k);
-document.addEventListener('anatomia:look', (e) => { engine.setLook(e.detail); if (left.querySelector('.themes')) renderLeft(); });
+document.addEventListener('anatomia:look', (e) => engine.setLook(e.detail)); // styl wybiera się w Ustawieniach (src/settings.js)
 // pływające panele na komputerze: model centrujemy w odsłoniętej części sceny
 function updateInsets() {
   const vis = (el) => { const r = el.getBoundingClientRect(); return r.width && r.height ? r : null; };
@@ -113,9 +110,6 @@ const PRESETS = {
   attach: ['bones', 'attachments'], joints: ['bones', 'joints'],
 };
 left.addEventListener('click', (e) => {
-  // uwaga: nie data-theme – ten atrybut ma też <html>, więc closest() łapałby każde kliknięcie w panelu
-  const T = e.target.closest('[data-style]');
-  if (T) { setTheme(T.dataset.style); renderLeft(); return; }
   const L = e.target.closest('[data-layer]'), S = e.target.closest('[data-seg] button'), P = e.target.closest('[data-preset]'), A = e.target.closest('[data-act]');
   if (L) { const k = L.dataset.layer; view.layers[k] = !view.layers[k]; exitIso(false); if (view.layers[k]) { hintLoad(k); need(k); } }
   else if (S) { const k = S.parentElement.dataset.seg; view[k] = S.dataset.v; exitIso(false); if (k === 'depth' && !view.layers.muscles) { view.layers.muscles = true; need('muscles'); } if (k !== 'depth' && (view.region !== 'all' || view.side !== 'both')) focusVisible(); }

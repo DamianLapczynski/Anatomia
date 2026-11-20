@@ -90,4 +90,23 @@ export const LOOKS = {
     rim: [0x52e0a6, 1.35, [0.5, 0.35, -1]],
     ghost: [0x96cdb2, 0.06], sel: 0x2fae7c, shadow: [0x000000, 0],
   },
+  // ── zima / święta ──
+  // wigilia: ciepłe światło świec z góry, zimna księżycowa kontra od tyłu
+  wigilia: {
+    exposure: 0.95, env: 0.2,
+    hemi: [0xfff2dc, 0x061210, 0.14],
+    key: [0xffe2b8, 2.2, [-0.5, 1.05, 0.6]],
+    fill: [0x9fc4ff, 0.1, [0.9, -0.3, 0.5]],
+    rim: [0xa8d0ff, 1.4, [0.5, 0.35, -1]],
+    ghost: [0xbcd6e6, 0.06], sel: 0xd9b04f, shadow: [0x000000, 0],
+  },
+  // szron: chłodne, rozproszone światło dnia na śniegu
+  szron: {
+    exposure: 1.0, env: 0.5,
+    hemi: [0xffffff, 0xcfe0ee, 0.55],
+    key: [0xf4f9ff, 1.35, [0.55, 0.95, 0.8]],
+    fill: [0xdde9ff, 0.35, [-0.85, -0.2, 0.6]],
+    rim: [0xffffff, 0.6, [-0.4, 0.5, -1]],
+    ghost: [0x6f8fa8, 0.11], sel: 0x1d6b51, shadow: [0x2a4a60, 0.22],
+  },
 };
