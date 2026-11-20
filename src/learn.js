@@ -16,15 +16,15 @@ export function initLearn(ctx) {
   const sectors = new Map();
   for (const [k, m] of Object.entries(MUSCLES)) { if (!sectors.has(m.grp)) sectors.set(m.grp, { name: m.grp, reg: m.reg, keys: [] }); sectors.get(m.grp).keys.push(k); }
   const nerveMuscles = (nk) => {
-    const n = NERVES[nk], keys = Object.keys(MUSCLES).filter((k) => (MUSCLES[k].nr ?? []).some((x) => n.mesh.includes(x)));
+    const keys = model.nerveMuscleKeys(nk);
     const y = (k) => { const ids = model.muscleEntity(k, S.side).ids; return ids.length ? engine.boxOf(ids).max.y : 0; };
     return keys.sort((a, b) => y(b) - y(a)); // od bliższych do dalszych (z góry na dół)
   };
-  const nerveList = Object.keys(NERVES).map((k) => ({ k, n: NERVES[k], count: Object.keys(MUSCLES).filter((m) => (MUSCLES[m].nr ?? []).some((x) => NERVES[k].mesh.includes(x))).length })).filter((x) => x.count && model.nerveEntity(x.k, 'r').ids.length);
+  const nerveList = Object.keys(NERVES).map((k) => ({ k, n: NERVES[k], count: model.nerveMuscleKeys(k).length })).filter((x) => x.count && model.nerveEntity(x.k, 'r').ids.length);
 
   const extraIds = (cx) => (cx.extra ?? []).flatMap((n) => model.ids(n, S.side));
   const cur = () => (S.kind === 'sector' ? { title: S.id, keys: sectors.get(S.id).keys, sub: 'Sektor mięśni' }
-    : S.kind === 'complex' ? { title: COMPLEXES[S.id].pl, keys: COMPLEXES[S.id].keys, sub: COMPLEXES[S.id].lat, extra: extraIds(COMPLEXES[S.id]) } : { title: NERVES[S.id].pl, keys: nerveMuscles(S.id), sub: `${NERVES[S.id].lat} · ${NERVES[S.id].roots}`, nerve: model.nerveEntity(S.id, S.side) });
+    : S.kind === 'complex' ? { title: COMPLEXES[S.id].pl, keys: COMPLEXES[S.id].keys, sub: COMPLEXES[S.id].lat, extra: extraIds(COMPLEXES[S.id]) } : { title: NERVES[S.id].pl, keys: nerveMuscles(S.id), sub: `${NERVES[S.id].lat} · ${NERVES[S.id].roots}`, nerve: ((e) => (e.textOnly ? { ids: [], nervePath: [] } : e))(model.nerveEntity(S.id, S.side)) });
 
   const lidOf = (kind, id) => `${kind}~${id}`;
   const prog = (kind, id) => { const r = store.get('learn', lidOf(kind, id)); return !r ? '' : r.done ? `<span class="prog">✔ ${r.best}%</span> · ` : r.best != null ? `<span class="prog seen">${r.best}%</span> · ` : r.seen ? '<span class="prog seen">przerobione</span> · ' : ''; };

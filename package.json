@@ -11,7 +11,9 @@
     "reel": "node tools/make_reel.mjs",
     "reel:setup": "npm install --no-save playwright ffmpeg-static && npx playwright install chromium",
     "reel:plan": "node tools/plan_pdf.mjs",
-    "post": "node tools/make_post.mjs"
+    "post": "node tools/make_post.mjs",
+    "validate": "node tools/validate_kb.mjs",
+    "test": "node tools/validate_kb.mjs && vite build && node tools/smoke.mjs"
   },
   "dependencies": {
     "@fontsource/bodoni-moda": "^5.3.0",

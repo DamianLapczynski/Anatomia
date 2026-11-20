@@ -69,7 +69,9 @@ export function buildModel(meta, latin) {
     for (const n of e.mesh) meshMuscle.set(n, key);
     for (const n of new Set([...e.mesh, ...(e.att ?? [])])) (attMuscle.get(n) ?? attMuscle.set(n, []).get(n)).push(key);
   }
-  for (const [key, e] of Object.entries(NERVES)) { e.key = key; e.type = 'nerve'; for (const n of e.mesh) if (!meshNerve.has(n)) meshNerve.set(n, key); }
+  // siatka należy do nerwu, dla którego jest główną (mesh[0]) – np. n. łydkowy jest osobnym wpisem, choć leży też na liście n. piszczelowego
+  for (const [key, e] of Object.entries(NERVES)) { e.key = key; e.type = 'nerve'; if (e.mesh[0] && !meshNerve.has(e.mesh[0])) meshNerve.set(e.mesh[0], key); }
+  for (const [key, e] of Object.entries(NERVES)) for (const n of e.mesh) if (!meshNerve.has(n)) meshNerve.set(n, key);
   for (const m of meta) if (m.f === 'insertions' && attMuscle.has(m.n)) m.reg = MUSCLES[attMuscle.get(m.n)[0]].reg;
   for (const m of meta) if (m.f === 'muscles' && meshMuscle.has(m.n)) m.reg = MUSCLES[meshMuscle.get(m.n)].reg;
   // warstwa: mięsień jest powierzchowny, jeśli którakolwiek jego część należy w modelu do „Superficial muscles”
@@ -102,13 +104,29 @@ export function buildModel(meta, latin) {
     return { type: 'muscle', key, side, kb: e, title: e.pl, lat: e.lat, ids: meshIds, att, bones: [...bones], nerves: [...nerveIds], nervePath: [...pathIds], arteries };
   }
 
+  /** Klucze mięśni unerwianych przez nerw: jawna lista `keys` z bazy nerwów + mięśnie, których `nr` wskazuje siatkę nerwu. */
+  function nerveMuscleKeys(key) {
+    const e = NERVES[key], out = new Set(e.keys ?? []);
+    for (const [k, m] of Object.entries(MUSCLES)) if ((m.nr ?? []).some((n) => e.mesh.includes(n))) out.add(k);
+    return [...out];
+  }
+  /** Nerwy (klucze) unerwiające mięsień – przez siatki z `nr` i przez jawne listy `keys`. */
+  function nervesOfMuscle(mk) {
+    const out = new Set((MUSCLES[mk].nr ?? []).map((n) => meshNerve.get(n)).filter(Boolean));
+    for (const [k, e] of Object.entries(NERVES)) if (e.keys?.includes(mk)) out.add(k);
+    return [...out];
+  }
+
   function nerveEntity(key, side) {
     const e = NERVES[key];
     const isN = (id) => meta[id].f === 'nerves';
     const meshIds = e.mesh.flatMap((n) => ids(n, side)).filter(isN);
     const path = e.path.flatMap((n) => ids(n, side)).filter(isN);
-    const muscles = Object.values(MUSCLES).filter((m) => (m.nr ?? []).some((n) => e.mesh.includes(n)));
-    return { type: 'nerve', key, side, kb: e, title: e.pl, lat: e.lat, ids: meshIds, nervePath: path, muscles };
+    const muscles = nerveMuscleKeys(key).map((k) => MUSCLES[k]);
+    // nerw bez siatki w modelu (np. n. pośladkowy dolny): na modelu pokazujemy jego mięśnie
+    const textOnly = !e.mesh.length;
+    const entIds = textOnly ? muscles.flatMap((m) => m.mesh.flatMap((n) => ids(n, side))).filter((i) => meta[i].f === 'muscles') : meshIds;
+    return { type: 'nerve', key, side, kb: e, title: e.pl, lat: e.lat, ids: entIds, nervePath: path, muscles, textOnly };
   }
 
   function structEntity(id) {
@@ -132,7 +150,7 @@ export function buildModel(meta, latin) {
   const search = [];
   for (const [key, e] of Object.entries(MUSCLES)) search.push({ kind: 'muscle', key, label: e.pl, sub: e.lat, text: `${e.pl} ${e.lat} ${e.mesh.join(' ')}`.toLowerCase() });
   for (const [key, e] of Object.entries(COMPLEXES)) search.push({ kind: 'complex', key, label: e.pl, sub: `${e.lat} · ${e.keys.length} mięśnie`, text: `${e.pl} ${e.lat} ${e.alias.join(' ')}`.toLowerCase() });
-  for (const [key, e] of Object.entries(NERVES)) search.push({ kind: 'nerve', key, label: e.pl, sub: e.lat, text: `${e.pl} ${e.lat} ${e.mesh[0]}`.toLowerCase() });
+  for (const [key, e] of Object.entries(NERVES)) search.push({ kind: 'nerve', key, label: e.pl, sub: e.lat, text: `${e.pl} ${e.lat} ${e.mesh[0] ?? ''} ${(e.alias ?? []).join(' ')}`.toLowerCase() });
   for (const [n, list] of names) {
     const m = meta[list[0]];
     if (m.f === 'insertions' || meshMuscle.has(n) || (meshNerve.has(n) && NERVES[meshNerve.get(n)].mesh[0] === n)) continue;
@@ -199,5 +217,5 @@ export function buildModel(meta, latin) {
   }
   const plNameOf = (lm) => (lm.title !== lm.lat && lm.title !== lm.n ? lm.title : null);
 
-  return { meta, latin, ids, entityOf, muscleEntity, nerveEntity, structEntity, find, sidesOf, meshMuscle, meshNerve, names, addLandmarks, landmarkEntity, nearMuscles, landmarks: () => landmarks };
+  return { meta, latin, ids, entityOf, muscleEntity, nerveEntity, nerveMuscleKeys, nervesOfMuscle, structEntity, find, sidesOf, meshMuscle, meshNerve, names, addLandmarks, landmarkEntity, nearMuscles, landmarks: () => landmarks };
 }

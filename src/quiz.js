@@ -25,7 +25,7 @@ export function initQuiz(ctx) {
       if (S.type === 'point') ks = ks.filter((k) => superficial(k) !== S.deep);
       return ks.map((k) => ({ kind: 'muscle', key: k, title: MUSCLES[k].pl, lat: MUSCLES[k].lat }));
     }
-    if (S.sys === 'nerves') return Object.keys(NERVES).filter((k) => model.nerveEntity(k, 'r').ids.length).map((k) => ({ kind: 'nerve', key: k, title: NERVES[k].pl, lat: NERVES[k].lat }));
+    if (S.sys === 'nerves') return Object.keys(NERVES).filter((k) => NERVES[k].mesh.length && model.nerveEntity(k, 'r').ids.length).map((k) => ({ kind: 'nerve', key: k, title: NERVES[k].pl, lat: NERVES[k].lat }));
     const layer = S.sys, out = [], seen = new Set();
     for (const m of model.meta) {
       if (m.layer !== layer || seen.has(m.n) || m.s === 'l' || (S.reg !== 'all' && m.reg !== S.reg)) continue;

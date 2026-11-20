@@ -15,7 +15,14 @@ for (const f of ['muscles_upper', 'muscles_lower', 'muscles_trunk']) {
 }
 try {
   const nv = (await import('../src/data/nerves.js')).default;
-  for (const [id, e] of Object.entries(nv)) for (const n of [...(e.mesh ?? []), ...(e.path ?? [])]) if (!names.all.has(n)) { console.log(`[nerw ${id}] brak: ${n}`); bad++; }
+  const kbKeys = new Set();
+  for (const f of ['muscles_upper', 'muscles_lower', 'muscles_trunk']) for (const k of Object.keys((await import(`../src/data/${f}.js`)).default)) kbKeys.add(k);
+  for (const [id, e] of Object.entries(nv)) {
+    for (const n of [...(e.mesh ?? []), ...(e.path ?? [])]) if (!names.all.has(n)) { console.log(`[nerw ${id}] brak: ${n}`); bad++; }
+    for (const k of e.keys ?? []) if (!kbKeys.has(k)) { console.log(`[nerw ${id}] brak mięśnia: ${k}`); bad++; }
+    for (const f of ['pl', 'lat', 'roots', 'course', 'motor', 'sensory', 'palsy']) if (!e[f]) { console.log(`[nerw ${id}] brak pola ${f}`); bad++; }
+    if (!e.mesh?.length && !e.keys?.length) { console.log(`[nerw ${id}] bez siatki i bez listy mięśni`); bad++; }
+  }
 } catch (e) { if (e.code !== 'ERR_MODULE_NOT_FOUND') throw e; }
 // ruchy: klucze mięśni i mięśnie bez żadnego ruchu
 const allKb = {};

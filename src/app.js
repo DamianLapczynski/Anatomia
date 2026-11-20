@@ -291,7 +291,7 @@ marks.addEventListener('click', (e) => { const el = e.target.closest('.mark'); i
 const card = (title, body, color, cls = '') => (body ? `<div class="card ${cls}"><h5>${color ? `<i style="background:${color}"></i>` : ''}${title}</h5>${body}</div>` : '');
 const p = (t) => (t ? `<p>${esc(t)}</p>` : '');
 function nerveLinks(kb) {
-  const keys = new Set((kb.nr ?? []).map((n) => model.meshNerve.get(n)).filter(Boolean));
+  const keys = new Set(model.nervesOfMuscle(kb.key));
   return [...keys].map((k) => `<span class="link" data-nerve="${k}">${esc(NERVES[k].pl)}</span>`).join(' · ');
 }
 function isoControls() {
