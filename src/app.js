@@ -9,7 +9,7 @@ import { initSrs } from './srs.js';
 import { initLearn } from './learn.js';
 import { landmarkPL } from './data/landmarks.js';
 import { initKeys } from './keys.js';
-import { initAccount } from './account.js';
+import { initSettings, prefs } from './settings.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -123,7 +123,7 @@ document.addEventListener('pointerdown', (e) => { if (!e.target.closest('#search
 q.addEventListener('keydown', (e) => { if (e.key === 'Enter' && results._list?.length && !results.hidden) { e.preventDefault(); results.querySelector('.r').click(); } });
 q.addEventListener('focus', () => { if (q.value && results._list?.length) results.hidden = false; });
 function defSide(kind, key) {
-  const side = view.side !== 'both' ? view.side : 'r';
+  const side = view.side !== 'both' ? view.side : prefs().side;
   return side;
 }
 function openItem(it) {
@@ -385,7 +385,7 @@ modes.motion = (() => {
     if (!motion.active) { if (anim(move)) return false; pulseMat().emissiveIntensity = 0.18 + 0.5 * (0.5 + 0.5 * Math.sin(t / 280)); return true; } // ruch bez kości: pulsują mięśnie główne
     if (!playing) return false;
     const dt = Math.min(0.05, (t - last) / 1000 || 0); last = t;
-    k += dir * dt / 1.6; if (k >= 1) { k = 1; dir = -1; } else if (k <= 0) { k = 0; dir = 1; }
+    k += dir * dt * prefs().speed / 1.6; if (k >= 1) { k = 1; dir = -1; } else if (k <= 0) { k = 0; dir = 1; }
     const e = k * k * (3 - 2 * k); motion.set(e);
     const s = $('#mvk'); if (s) s.value = Math.round(e * 100);
     return true;
@@ -507,7 +507,7 @@ $('#hud').addEventListener('click', (e) => { const b = e.target.closest('button'
     }
     if (rp.has('debug')) Object.assign(window, { __motion: motion, __model: model, __engine: engine }); // testy automatyczne
     const ctx = { engine, model, view, applyView, need, hint, panelBody, esc, card, setMode, select, entDir, MUSCLES, NERVES, modeIs: (m) => mode === m, home };
-    initAccount(ctx);
+    modes.settings = initSettings(ctx);
     modes.quiz = initQuiz(ctx); modes.srs = initSrs(ctx);
     ctx.quizScoped = (keys, label, lid) => { setMode('quiz'); modes.quiz.scoped(keys, label, lid); };
     modes.learn = initLearn(ctx);

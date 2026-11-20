@@ -2,6 +2,7 @@
 import { polishName } from './data/names.js';
 import { REGIONS } from './model.js';
 import { store } from './store.js';
+import { prefs } from './settings.js';
 
 const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const SYS = [['muscles', 'Mięśnie'], ['bones', 'Kości'], ['nerves', 'Nerwy'], ['arteries', 'Tętnice']];
@@ -14,7 +15,7 @@ const FACTS = [
 
 export function initQuiz(ctx) {
   const { engine, model, view, applyView, panelBody, esc, MUSCLES, NERVES } = ctx;
-  const S = { sys: 'muscles', reg: 'all', type: 'point', deep: false, side: 'r', ok: 0, bad: 0, streak: 0, cur: null, answered: false, last: null, scope: null };
+  const S = { sys: 'muscles', reg: 'all', type: 'point', deep: false, side: prefs().side, ok: 0, bad: 0, streak: 0, cur: null, answered: false, last: null, scope: null };
 
   const superficial = (key) => model.muscleEntity(key, 'r').ids.some((i) => model.meta[i].colls.includes('Superficial muscles'));
   function pool() {
@@ -51,7 +52,7 @@ export function initQuiz(ctx) {
       <p class="en" style="margin-top:12px">Pula pytań: <b>${pool().length}</b></p>
       <div class="acts"><button class="primary" data-act="start" ${pool().length < minPool ? 'disabled' : ''}>Start</button><button data-act="zero">Wyzeruj wynik</button></div>
       <div class="acts"><button data-act="stats">Statystyki i słabe punkty</button></div>
-      <p class="note">Błędne odpowiedzi dotyczące mięśni trafiają od razu do Powtórek. Każda odpowiedź zapisuje się w statystykach${ctx.cloudUser?.() ? ' (synchronizowanych z kontem)' : ''}.</p>`;
+      <p class="note">${prefs().quizToSrs ? 'Błędne odpowiedzi dotyczące mięśni trafiają od razu do Powtórek.' : 'Błędne odpowiedzi nie trafiają do Powtórek (zmienisz to w Ustawieniach).'} Każda odpowiedź zapisuje się w statystykach${ctx.cloudUser?.() ? ' (synchronizowanych z kontem)' : ''}.</p>`;
   }
   // ---- statystyki z całej historii odpowiedzi ----
   const titleOf = (r) => (r.kind === 'muscle' ? MUSCLES[r.key]?.pl : r.kind === 'nerve' ? NERVES[r.key]?.pl : polishName(r.key) ?? r.key);
@@ -155,7 +156,7 @@ export function initQuiz(ctx) {
   }
   function finish(ok, extra = '') {
     S.answered = true; record(ok);
-    if (ok) { S.ok++; S.streak++; } else { S.bad++; S.streak = 0; if (S.cur.it.kind === 'muscle') ctx.srsFlag?.(S.cur.it.key); }
+    if (ok) { S.ok++; S.streak++; } else { S.bad++; S.streak = 0; if (S.cur.it.kind === 'muscle' && prefs().quizToSrs) ctx.srsFlag?.(S.cur.it.key); }
     const it = S.cur.it;
     ctx.hint(ok ? 'Dobrze!' : `Źle – to: ${it.title}`, ok ? 'ok' : 'bad', 2500);
     const fb = panelBody.querySelector('#fb');

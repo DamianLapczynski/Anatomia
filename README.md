@@ -12,7 +12,8 @@ Interaktywny atlas anatomii 3D do nauki na studiach fizjoterapii: układ kostny,
 - **Ruch** – 82 ruchy z podziałem na agonistów, synergistów i antagonistów (stawy kończyn, kciuk i palce, tułów i miednica, dno miednicy, szyja, żuchwa, mimika, gałka oczna); 70 z animacją szkieletu – także wielostawowe: pięść i opozycja kciuka, palce stopy, rotacja goleni w zgiętym kolanie, łopatka, kręgosłup kręg po kręgu, głowa, żuchwa, oddychanie, połykanie. Ruchy bez udziału kości (mimika, gałka oczna, dno miednicy) pokazują pulsujące mięśnie główne.
 - **Quiz** – wskaż strukturę na modelu, rozpoznaj podświetloną, pytania o unerwienie / przyczepy / czynność.
 - **Powtórki** – fiszki z modelem 3D i algorytmem SM-2; eksport i import jako kopia zapasowa.
-- **Postęp i synchronizacja** – powtórki, statystyki quizów (najsłabsze mięśnie, wynik wg rodzaju pytania i okolicy, „Ćwicz słabe”) i przerobione sektory Nauki. Bez konta zapisują się w przeglądarce; po zalogowaniu kontem Google (☁ u góry) – we własnej bazie Firestore, wspólnej dla telefonu, iPada i komputera, także offline.
+- **Ustawienia (⚙)** – konto i baza danych (logowanie Google), motyw jasny / ciemny / systemowy, kolor akcentu, wielkość tekstu, jakość grafiki, domyślna strona ciała, tempo animacji, nazwy punktów kostnych, liczba nowych fiszek, eksport / import całego postępu, pobranie najnowszej wersji. Ustawienia synchronizują się z kontem.
+- **Postęp i synchronizacja** – powtórki, statystyki quizów (najsłabsze mięśnie, wynik wg rodzaju pytania i okolicy, „Ćwicz słabe”) i przerobione sektory Nauki. Bez konta zapisują się w przeglądarce; po zalogowaniu kontem Google (⚙ Ustawienia) – we własnej bazie Firestore, wspólnej dla telefonu, iPada i komputera, także offline.
 
 ## Skróty klawiszowe
 

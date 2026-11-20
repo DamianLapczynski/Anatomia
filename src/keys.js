@@ -217,6 +217,7 @@ export function initKeys(ctx) {
 
   // ---------- główna obsługa ----------
   window.addEventListener('keydown', (e) => {
+    if (document.getElementById('settings')?.hidden === false) return; // otwarte Ustawienia – skróty atlasu nieaktywne
     if (!document.body.classList.contains('kb') && !e.metaKey && !e.ctrlKey) { document.body.classList.add('kb'); annotate(); }
     const t = e.target;
     if (t.matches('input,textarea,select')) { if (e.key === 'Escape') { t.blur(); results.hidden = true; } else if (e.key === 'k' && (e.ctrlKey || e.metaKey)) e.preventDefault(); return; }

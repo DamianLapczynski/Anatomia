@@ -1,0 +1,121 @@
+// Ustawienia (⚙): konto i synchronizacja, wygląd, model 3D, nauka, dane, informacje.
+// Preferencje zapisują się w store ('settings' / 'app'), więc po zalogowaniu wracają na każdym urządzeniu.
+import { store } from './store.js';
+import { initAccount } from './account.js';
+
+export const DEFAULTS = { theme: 'dark', accent: 'blue', font: 'md', quality: 'std', side: 'r', speed: 1, labels: 'hover', quizToSrs: true };
+export const prefs = () => ({ ...DEFAULTS, ...(store.get('settings', 'app') ?? {}) });
+
+const dark = matchMedia('(prefers-color-scheme: dark)');
+/** Motyw, akcent i wielkość tekstu – od razu przy starcie, zanim pojawi się interfejs. */
+export function applyLook(p = prefs()) {
+  const r = document.documentElement, theme = p.theme === 'auto' ? (dark.matches ? 'dark' : 'light') : p.theme;
+  r.dataset.theme = theme; r.dataset.accent = p.accent; r.dataset.font = p.font;
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'light' ? '#ffffff' : '#0f1319');
+}
+applyLook();
+dark.addEventListener('change', () => applyLook());
+
+const QUALITY = { low: 1, std: 1.5, high: 2 };
+
+export function initSettings(ctx) {
+  const { engine, esc } = ctx;
+  const btn = document.getElementById('setBtn'), root = document.getElementById('settings');
+  const acct = initAccount(ctx, () => { renderBtn(); if (!root.hidden) render(); });
+  const set = (patch) => { store.put('settings', 'app', { ...prefs(), ...patch }); apply(); render(); };
+
+  function apply() {
+    const p = prefs();
+    applyLook(p);
+    engine.renderer.setPixelRatio(Math.min(window.devicePixelRatio, QUALITY[p.quality] ?? 1.5)); engine.resize(); engine.invalidate();
+    document.getElementById('marks')?.classList.toggle('always', p.labels === 'always');
+  }
+  function renderBtn() {
+    const d = acct.dot();
+    btn.innerHTML = `⚙${d ? `<i class="dot" style="background:${d}"></i>` : ''}`;
+    btn.title = acct.user ? `Ustawienia · ${acct.user.name ?? acct.user.email}` : 'Ustawienia';
+  }
+
+  const seg = (key, opts, val) => `<div class="seg">${opts.map(([v, n]) => `<button data-set="${key}" data-v="${v}" class="${String(val) === String(v) ? 'on' : ''}">${n}</button>`).join('')}</div>`;
+  const opt = (title, sub, ctrl) => `<div class="opt"><span>${title}${sub ? `<small>${sub}</small>` : ''}</span>${ctrl}</div>`;
+  const sw = (key, on) => `<button class="sw ${on ? 'on' : ''}" data-set="${key}" data-v="${!on}" aria-pressed="${on}"></button>`;
+  const ACC = [['blue', '#4c9dff'], ['green', '#2fbf7a'], ['violet', '#9b7bff'], ['orange', '#ff9640'], ['pink', '#ff6fae']];
+
+  function render() {
+    const p = prefs(), srs = store.get('settings', 'srs') ?? {}, perDay = srs.perDay ?? 15;
+    const counts = { srs: Object.keys(store.all('srs')).length, quiz: Object.values(store.all('quiz')).reduce((a, r) => a + (r.ok ?? 0) + (r.bad ?? 0), 0), learn: Object.keys(store.all('learn')).length };
+    root.innerHTML = `<div class="box" role="dialog" aria-label="Ustawienia">
+      <div class="head"><h3>Ustawienia</h3><button data-close aria-label="Zamknij">✕</button></div>
+      <section><h4>Konto i baza danych</h4>${acct.html()}</section>
+      <section><h4>Wygląd</h4>
+        ${opt('Motyw', '', seg('theme', [['dark', 'Ciemny'], ['light', 'Jasny'], ['auto', 'Systemowy']], p.theme))}
+        ${opt('Kolor akcentu', '', `<div class="seg">${ACC.map(([k, c]) => `<button class="sw-col ${p.accent === k ? 'on' : ''}" style="background:${c}" data-set="accent" data-v="${k}" aria-label="${k}"></button>`).join('')}</div>`)}
+        ${opt('Wielkość tekstu', '', seg('font', [['sm', 'A−'], ['md', 'A'], ['lg', 'A+'], ['xl', 'A++']], p.font))}
+      </section>
+      <section><h4>Model 3D</h4>
+        ${opt('Jakość grafiki', 'Oszczędna – płynniej i dłużej na baterii', seg('quality', [['low', 'Oszczędna'], ['std', 'Standard'], ['high', 'Wysoka']], p.quality))}
+        ${opt('Domyślna strona ciała', 'Wyszukiwarka, Nauka, Quiz (Powtórki mają własny wybór)', seg('side', [['r', 'Prawa'], ['l', 'Lewa']], p.side))}
+        ${opt('Tempo animacji ruchów', '', seg('speed', [[0.6, 'Wolno'], [1, 'Normalnie'], [1.6, 'Szybko']], p.speed))}
+        ${opt('Nazwy punktów kostnych', 'Na kości: zawsze widoczne czy po dotknięciu', seg('labels', [['hover', 'Po dotknięciu'], ['always', 'Zawsze']], p.labels))}
+      </section>
+      <section><h4>Nauka</h4>
+        ${opt('Nowe fiszki dziennie', 'Powtórki (SM-2)', seg('perDay', [5, 10, 15, 20, 30].map((n) => [n, n]), perDay))}
+        ${opt('Błędy z quizu do powtórek', 'Źle odpowiedziany mięsień od razu wraca w Powtórkach', sw('quizToSrs', p.quizToSrs))}
+      </section>
+      <section><h4>Dane</h4>
+        <p class="en">W tej przeglądarce: ${counts.srs} fiszek w nauce, ${counts.quiz} odpowiedzi w quizach, ${counts.learn} sektorów w Nauce.</p>
+        <div class="acts"><button data-do="export">Eksport całego postępu</button><button data-do="import">Import</button></div>
+        <div class="acts"><button data-do="update">Pobierz najnowszą wersję aplikacji</button><button data-do="wipe">Wyczyść dane w tej przeglądarce</button></div>
+      </section>
+      <section class="about"><h4>O aplikacji</h4>
+        <p><b>Anatomia 3D</b> – atlas do nauki fizjoterapii. Wersja z ${esc(new Date(__BUILD__).toLocaleDateString('pl-PL'))}.</p>
+        <p>Modele 3D: Z-Anatomy i BodyParts3D (CC BY-SA). Opisy pisane do nauki – nie przeszły recenzji anatoma, weryfikuj z podręcznikiem.</p>
+        <div class="acts"><button data-do="keys">Skróty klawiszowe</button></div>
+      </section></div>`;
+  }
+
+  const open = () => { render(); root.hidden = false; root.querySelector('[data-close]')?.focus(); };
+  const close = () => { root.hidden = true; btn.focus(); };
+  btn.addEventListener('click', () => (root.hidden ? open() : close()));
+  root.addEventListener('click', async (e) => {
+    if (e.target === root || e.target.closest('[data-close]')) return close();
+    const S = e.target.closest('[data-set]'), D = e.target.closest('[data-do]'), A = e.target.closest('[data-acct]');
+    if (A) return acct.act(A.dataset.acct);
+    if (S) {
+      const k = S.dataset.set, raw = S.dataset.v, v = raw === 'true' ? true : raw === 'false' ? false : /^[\d.]+$/.test(raw) ? Number(raw) : raw;
+      if (k === 'perDay') { store.put('settings', 'srs', { ...(store.get('settings', 'srs') ?? {}), perDay: v }); render(); }
+      else set({ [k]: v });
+      return;
+    }
+    const d = D?.dataset.do;
+    if (d === 'export') {
+      const { srs, quiz, learn, settings } = store._dump();
+      const blob = new Blob([JSON.stringify({ app: 'anatomia', v: 2, date: new Date().toISOString(), srs, quiz, learn, settings })], { type: 'application/json' });
+      const u = URL.createObjectURL(blob); Object.assign(document.createElement('a'), { href: u, download: `anatomia-postep-${new Date().toISOString().slice(0, 10)}.json` }).click(); URL.revokeObjectURL(u);
+    } else if (d === 'import') {
+      const inp = Object.assign(document.createElement('input'), { type: 'file', accept: 'application/json' });
+      inp.onchange = async () => {
+        try {
+          const j = JSON.parse(await inp.files[0].text());
+          if (j.app === 'anatomia') { for (const ns of ['srs', 'learn', 'settings']) for (const [id, v] of Object.entries(j[ns] ?? {})) { const { t, ...rest } = v; store.put(ns, id, rest); } for (const [id, v] of Object.entries(j.quiz ?? {})) store.inc('quiz', id, { ok: v.ok ?? 0, bad: v.bad ?? 0 }, { kind: v.kind, key: v.key, q: v.q }); }
+          else if (j.cards) { for (const [id, c] of Object.entries(j.cards)) { const { t, ...rest } = c; store.put('srs', id, rest); } } // stary eksport z Powtórek
+          else throw new Error('format');
+          apply(); render(); ctx.hint('Zaimportowano postęp', 'ok');
+        } catch { ctx.hint('Nieprawidłowy plik', 'bad'); }
+      };
+      inp.click();
+    } else if (d === 'wipe') {
+      if (!confirm(`Usunąć postęp i ustawienia z tej przeglądarki?${acct.user ? ' Dane na koncie zostaną – wrócą po ponownym zalogowaniu.' : ' Bez konta nie da się ich odzyskać – zrób najpierw eksport.'}`)) return;
+      if (acct.user) await acct.act('out');
+      try { localStorage.removeItem('anatomia.store.v1'); } catch { /* */ }
+      location.reload();
+    } else if (d === 'update') {
+      try { for (const r of (await navigator.serviceWorker?.getRegistrations?.()) ?? []) await r.unregister(); for (const k of await caches.keys()) await caches.delete(k); } catch { /* */ }
+      location.reload();
+    } else if (d === 'keys') { close(); document.getElementById('keysBtn').click(); }
+  });
+  document.addEventListener('keydown', (e) => { if (!root.hidden && e.key === 'Escape') { e.stopImmediatePropagation(); close(); } }, true);
+  store.on((ns, id, remote) => { if (ns === 'settings' && remote) { apply(); if (!root.hidden) render(); } });
+  apply(); renderBtn();
+  return { open, close, prefs };
+}

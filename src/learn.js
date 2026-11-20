@@ -2,12 +2,13 @@
 import * as THREE from 'three';
 import { REGIONS, COMPLEXES } from './model.js';
 import { store } from './store.js';
+import { prefs } from './settings.js';
 
 const PALETTE = ['#ff6b4a', '#4c9dff', '#3ecf8e', '#ffb454', '#c084fc', '#f472b6', '#22d3ee', '#a3e635', '#fb7185', '#facc15', '#60a5fa', '#34d399', '#f97316'];
 
 export function initLearn(ctx) {
   const { engine, model, view, applyView, panelBody, esc, card, MUSCLES, NERVES } = ctx;
-  const S = { screen: 'home', kind: null, id: null, step: -1, side: 'r' };
+  const S = { screen: 'home', kind: null, id: null, step: -1, side: prefs().side };
   const p = (t) => (t ? `<p>${esc(t)}</p>` : '');
   const depth = (k) => (MUSCLES[k].sup ? 'powierzchowny' : 'głęboki');
 
