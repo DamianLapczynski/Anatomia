@@ -102,22 +102,6 @@ function updateInsets() {
   const L = vis(left), P = vis($('#panel')), T = vis($('#top'));
   engine.setInsets({ l: L ? L.right : 0, r: P ? innerWidth - P.left : 0, t: T ? T.bottom : 0 });
 }
-// iOS, aplikacja z ekranu początkowego (pasek statusu „black-translucent”): okno bywa krótsze od ekranu
-// dokładnie o wysokość paska statusu i na dole zostaje pusty pas. Mierzymy lukę i rozciągamy układ do krawędzi.
-function fixStandaloneGap() {
-  const r = document.documentElement;
-  const standalone = navigator.standalone || matchMedia('(display-mode: standalone)').matches;
-  let gap = 0;
-  if (standalone && screen.width && screen.height) {
-    const portrait = innerHeight >= innerWidth, a = Math.min(screen.width, screen.height), b = Math.max(screen.width, screen.height);
-    const W = portrait ? a : b, H = portrait ? b : a;
-    if (Math.abs(innerWidth - W) <= 1) gap = Math.round(H - innerHeight); // okno na cały ekran (nie podział ekranu na iPadzie)
-  }
-  r.style.setProperty('--ios-gap', `${gap > 0 && gap < 100 ? gap : 0}px`);
-}
-fixStandaloneGap();
-addEventListener('resize', fixStandaloneGap);
-addEventListener('orientationchange', () => setTimeout(fixStandaloneGap, 300));
 addEventListener('resize', updateInsets);
 requestAnimationFrame(updateInsets);
 engine.setLook(theme());

@@ -14,7 +14,6 @@
   --lat-font:var(--font);--lat-wt:500;--cap-ls:.02em;--cap-size:12px;
   --card:var(--surface2);--grain:none;
   /* pasek statusu iPada/iPhone'a w trybie aplikacji: treść musi zacząć się pod nim, inaczej system ją rozmywa */
-  /* --ios-gap: luka pod aplikacją z ekranu początkowego iOS (okno krótsze od ekranu o pasek statusu) – ustawia app.js */
   --sat:env(safe-area-inset-top,0px);--top-full:calc(var(--top) + var(--sat));
   /* nazwy z panelu ustawień (src/settings.js) – wskazują na tokeny stylu, więc panel pasuje do każdego stylu */
   --bg2:var(--surface);--bg3:var(--surface2);--onacc:var(--acc-tx);--stagebg:var(--stage);
@@ -87,7 +86,7 @@ select{appearance:none;-webkit-appearance:none;padding-right:30px;background-ima
 select option{background:var(--surface2);color:var(--tx)}
 
 /* ---------- układ ---------- */
-#app{position:fixed;inset:0 0 calc(-1 * var(--ios-gap,0px));display:grid;grid-template:var(--top-full) 1fr/var(--left) 1fr var(--panel);grid-template-areas:"top top top" "left stage panel";gap:0 var(--gap);padding:0 var(--gap) var(--gap);background:var(--bg)}
+#app{position:fixed;inset:0;display:grid;grid-template:var(--top-full) 1fr/var(--left) 1fr var(--panel);grid-template-areas:"top top top" "left stage panel";gap:0 var(--gap);padding:0 var(--gap) var(--gap);background:var(--bg)}
 #top{grid-area:top;display:flex;align-items:center;gap:12px;padding:0 4px;z-index:30;padding-top:var(--sat)}
 .brand{font-family:var(--font-display);font-weight:var(--display-wt);font-size:17px;letter-spacing:var(--display-ls);white-space:nowrap;display:flex;align-items:center;gap:9px}
 .brand:before{content:"";width:28px;height:28px;border-radius:8px;background:linear-gradient(145deg,color-mix(in srgb,var(--acc) 100%,#fff 25%),color-mix(in srgb,var(--acc) 70%,#000 30%));box-shadow:0 4px 14px color-mix(in srgb,var(--acc) 35%,transparent),inset 0 1px 0 rgba(255,255,255,.35)}
@@ -216,15 +215,15 @@ input[type=range]{width:100%;padding:0;accent-color:var(--acc);background:transp
   #top{gap:4px;padding:0 6px;padding-top:var(--sat);position:relative}
   /* szkło w pseudo-elemencie: backdrop-filter na #top uwięziłby fixed #modes */
   #top:before{content:"";position:absolute;inset:0;z-index:-1;background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);box-shadow:inset 0 -.5px 0 var(--sep)}
-  #modes{position:fixed;left:0;right:0;bottom:calc(-1 * var(--ios-gap,0px));margin:0;border-radius:0;background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px);box-shadow:inset 0 .5px 0 var(--sep);padding:5px 4px calc(4px + env(safe-area-inset-bottom));z-index:40;gap:0}
+  #modes{position:fixed;left:0;right:0;bottom:0;margin:0;border-radius:0;background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px);box-shadow:inset 0 .5px 0 var(--sep);padding:5px 4px calc(4px + env(safe-area-inset-bottom));z-index:40;gap:0}
   #modes button{flex:1;flex-direction:column;gap:2px;padding:3px 2px;font-size:10.5px;font-weight:500;color:var(--mut);background:transparent!important;box-shadow:none!important;letter-spacing:0}
   #modes button svg{display:block}
   #modes button.on{color:var(--acc);font-weight:600}
   #dueBadge{top:-1px;right:calc(50% - 22px)}
-  #left{position:fixed;top:var(--top-full);bottom:calc(-1 * var(--ios-gap,0px));left:0;width:280px;border-radius:0 var(--r-lg) var(--r-lg) 0;transform:translateX(-105%);transition:transform .38s var(--ease);z-index:60;box-shadow:var(--shadow);padding-bottom:90px}#app.menu #left{transform:none}
+  #left{position:fixed;top:var(--top-full);bottom:0;left:0;width:280px;border-radius:0 var(--r-lg) var(--r-lg) 0;transform:translateX(-105%);transition:transform .38s var(--ease);z-index:60;box-shadow:var(--shadow);padding-bottom:90px}#app.menu #left{transform:none}
   #stage{grid-area:stage;border-radius:0;box-shadow:none;padding-bottom:calc(var(--sheet) + 40px + env(safe-area-inset-bottom));transition:padding .38s var(--ease)}
   #app.sheet-min #stage{padding-bottom:calc(98px + env(safe-area-inset-bottom))}
-  #panel{position:fixed;left:0;right:0;bottom:calc(54px + env(safe-area-inset-bottom) - var(--ios-gap,0px));height:var(--sheet);border-radius:var(--r-lg) var(--r-lg) 0 0;background:color-mix(in srgb,var(--surface) 88%,transparent);-webkit-backdrop-filter:saturate(180%) blur(28px);backdrop-filter:saturate(180%) blur(28px);transition:height .38s var(--ease);box-shadow:0 -8px 30px rgba(0,0,0,.25),inset 0 .5px 0 var(--glass-line)}
+  #panel{position:fixed;left:0;right:0;bottom:calc(54px + env(safe-area-inset-bottom));height:var(--sheet);border-radius:var(--r-lg) var(--r-lg) 0 0;background:color-mix(in srgb,var(--surface) 88%,transparent);-webkit-backdrop-filter:saturate(180%) blur(28px);backdrop-filter:saturate(180%) blur(28px);transition:height .38s var(--ease);box-shadow:0 -8px 30px rgba(0,0,0,.25),inset 0 .5px 0 var(--glass-line)}
   #app.sheet-min #panel{height:58px}#app.sheet-max #panel{height:calc(100% - var(--top-full) - 60px)}
   #app.sheet-min #panelBody{overflow:hidden}#app.sheet-min .swipe{display:inline}
   #grip{display:block;width:100%;height:26px;border:0;background:transparent!important;border-radius:0;padding:0;flex:none;position:relative;touch-action:none;cursor:grab;transform:none!important}#grip:after{content:"";position:absolute;left:50%;top:8px;width:36px;height:5px;margin-left:-18px;border-radius:3px;background:var(--mut2)}
@@ -410,7 +409,7 @@ body.kb .chip[data-kh]::after,body.kb .seg button[data-kh]::after{margin-left:6p
 body.kb #modes button[data-kh]::after{margin-left:2px}
 .kbsel{outline:2px solid var(--acc);outline-offset:-2px;background:var(--fill2)!important}
 #results .r.act{background:var(--fill);outline:none}
-#keys{position:fixed;inset:0 0 calc(-1 * var(--ios-gap,0px));z-index:100;background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:20px}
+#keys{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:20px}
 #keys[hidden]{display:none}
 #keys .box{background:var(--surface);border-radius:var(--r-lg);max-width:880px;width:100%;max-height:88vh;overflow:auto;padding:24px 28px;box-shadow:0 30px 80px rgba(0,0,0,.5),inset 0 0 0 .5px var(--glass-line)}
 #keys h3{margin:0 0 4px;font-family:var(--font-display);font-weight:var(--display-wt);font-size:24px;letter-spacing:var(--display-ls)}#keys .sub{color:var(--mut);font-size:13px;margin-bottom:14px}
@@ -432,7 +431,7 @@ body.kb #modes button[data-kh]::after{margin-left:2px}
 
 /* ---- ustawienia ---- */
 #setBtn{position:relative;font-size:19px}#setBtn .dot{position:absolute;right:4px;bottom:4px;width:8px;height:8px;border-radius:50%;border:2px solid var(--bg2)}
-#settings{position:fixed;inset:0 0 calc(-1 * var(--ios-gap,0px));z-index:95;background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:flex;justify-content:flex-end}
+#settings{position:fixed;inset:0;z-index:95;background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:flex;justify-content:flex-end}
 #settings[hidden]{display:none}
 #settings .box{background:var(--bg);border-left:1px solid var(--line);width:min(460px,100%);height:100%;overflow:auto;padding:0 0 calc(24px + env(safe-area-inset-bottom));box-shadow:-20px 0 60px #0008}
 #settings .head{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top)) 18px 12px;background:var(--bg2);border-bottom:1px solid var(--line)}
