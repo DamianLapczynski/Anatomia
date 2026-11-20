@@ -1,0 +1,38 @@
+name: Publikacja na Firebase Hosting
+# Druga kopia aplikacji pod https://anatomia-3d-6b134.web.app – tam logowanie Google działa także na iPadzie/iPhonie
+# (aplikacja i logowanie w tej samej domenie). Wymaga sekretu repozytorium FIREBASE_SERVICE_ACCOUNT (klucz konta usługi, JSON).
+on:
+  push:
+    branches: [main, claude/great-cannon-keznti]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: firebase-hosting
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      HAS_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
+    steps:
+      - if: env.HAS_KEY != 'true'
+        run: echo "::notice::Brak sekretu FIREBASE_SERVICE_ACCOUNT – publikacja na Firebase Hosting pominięta (instrukcja w README)."
+      - if: env.HAS_KEY == 'true'
+        uses: actions/checkout@v4
+      - if: env.HAS_KEY == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - if: env.HAS_KEY == 'true'
+        run: npm ci
+      - if: env.HAS_KEY == 'true'
+        run: npm run build
+      - if: env.HAS_KEY == 'true'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          channelId: live
+          projectId: anatomia-3d-6b134

@@ -4,10 +4,11 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, connectAuthEmulator } from 'firebase/auth';
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, connectFirestoreEmulator, collection, doc, setDoc, deleteDoc, onSnapshot, increment } from 'firebase/firestore';
-import { firebaseConfig } from './firebase-config.js';
+import { firebaseConfig, onFirebaseHosting } from './firebase-config.js';
 import { store, NS } from './store.js';
 
-const EMU = new URLSearchParams(location.search).has('emu'); // testy na lokalnym emulatorze: ?emu
+const EMU = new URLSearchParams(location.search).has('emu');
+const STANDALONE = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches; // testy na lokalnym emulatorze: ?emu
 const cfg = EMU ? { apiKey: 'demo', authDomain: 'localhost', projectId: 'demo-anatomia', appId: 'demo' } : firebaseConfig;
 const app = initializeApp(cfg);
 const auth = getAuth(app);
@@ -63,6 +64,8 @@ export const cloud = {
   async signIn() {
     if (EMU) { return signInWithCredential(auth, GoogleAuthProvider.credential('{"sub": "test-user", "email": "test@example.com", "email_verified": true}')); }
     const p = new GoogleAuthProvider(); p.setCustomParameters({ prompt: 'select_account' });
+    // aplikacja z ekranu głównego: okno logowania nie wraca do aplikacji – przekierowanie (działa, gdy logowanie jest w tej samej domenie: Firebase Hosting)
+    if (STANDALONE && onFirebaseHosting) return signInWithRedirect(auth, p);
     try { await signInWithPopup(auth, p); }
     catch (e) {
       // aplikacja z ekranu głównego (iOS) i przeglądarki blokujące okna – przekierowanie zamiast popupu

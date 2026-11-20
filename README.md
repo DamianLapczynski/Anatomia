@@ -79,6 +79,10 @@ Aplikacja działa bez tego – wtedy postęp zostaje w przeglądarce. Żeby wł�
 
 Dane: `users/{uid}/srs|quiz|learn|settings/{id}` – jeden dokument na fiszkę, pytanie i sektor; przy dwóch urządzeniach wygrywa nowsza zmiana, a liczniki quizu się sumują. Test lokalny bez prawdziwego projektu: `npx firebase-tools emulators:start --only auth,firestore --project demo-anatomia` i adres aplikacji z `?emu`.
 
+### Firebase Hosting (logowanie na iPadzie / iPhonie)
+
+Safari blokuje logowanie Google przez inną domenę niż ta, na której działa aplikacja, dlatego na urządzeniach Apple używaj kopii z **https://anatomia-3d-6b134.web.app** (tam aplikacja i logowanie są w tej samej domenie). Publikuje ją workflow `.github/workflows/firebase-hosting.yml`, gdy w repozytorium jest sekret **`FIREBASE_SERVICE_ACCOUNT`**: Konsola Firebase → Ustawienia projektu → Service accounts → Generate new private key, a zawartość pobranego pliku JSON wklej w GitHub → Settings → Secrets and variables → Actions → New repository secret. Pliku z kluczem nikomu nie wysyłaj i usuń go po dodaniu sekretu.
+
 ## Uruchomienie
 
 ```bash
