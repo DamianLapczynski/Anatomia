@@ -18,6 +18,7 @@ Lewy panel → **Wygląd**. Każdy styl to komplet: kolory i materiały interfej
 
 - **Atlas** – ciepły papier z fakturą, szeryf Fraunces, burgund; jak klasyczny atlas anatomiczny.
 - **Noir** – galeria nocą: czerń, punktowe światło ze złotą kontrą, Instrument Serif.
+- Rodzina noir (ta sama galeryjna czerń, inny kamień i światło): **Onyks** – platyna i zimne światło; **Aksamit** – bordo i rubinowa kontra; **Światłocień** – jedno ciepłe światło z boku, Bodoni Moda; **Szmaragd** – zieleń i szmaragdowa kontra.
 - **Szkło** – świetliste, kolorowe tło i mleczne szkło z jasną krawędzią.
 - **Głębia** – atrament i morski turkus, chłodne światło z poświatą od tyłu.
 - Klasyczne: Grafit (domyślny), Jasny, Północ, Tytan.
