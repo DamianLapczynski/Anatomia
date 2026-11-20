@@ -88,7 +88,7 @@ function renderLeft() {
       <button data-preset="attach">Przyczepy</button><button data-preset="joints">Więzadła</button>
     </div>
     <h4>Wygląd</h4>
-    <div class="themes">${THEMES.map(([k, n, bg, acc]) => `<button data-theme="${k}" class="${theme() === k ? 'on' : ''}" style="--sw-acc:${acc}"><b style="background:${bg}"></b>${n}</button>`).join('')}</div>
+    <div class="themes">${THEMES.map(([k, n, bg, acc]) => `<button data-style="${k}" class="${theme() === k ? 'on' : ''}" style="--sw-acc:${acc}"><b style="background:${bg}"></b>${n}</button>`).join('')}</div>
     <h4>Widok</h4>
     <div class="seg"><button data-act="showall">Pokaż ukryte${view.hidden.size ? ` (${view.hidden.size})` : ''}</button><button data-act="reset">Reset</button></div>
     <p class="note">Modele 3D: Z-Anatomy / BodyParts3D (CC BY-SA 4.0). Treści opisowe do nauki – weryfikuj z podręcznikiem i prowadzącym.</p>`;
@@ -113,8 +113,9 @@ const PRESETS = {
   attach: ['bones', 'attachments'], joints: ['bones', 'joints'],
 };
 left.addEventListener('click', (e) => {
-  const T = e.target.closest('[data-theme]');
-  if (T) { setTheme(T.dataset.theme); renderLeft(); return; }
+  // uwaga: nie data-theme – ten atrybut ma też <html>, więc closest() łapałby każde kliknięcie w panelu
+  const T = e.target.closest('[data-style]');
+  if (T) { setTheme(T.dataset.style); renderLeft(); return; }
   const L = e.target.closest('[data-layer]'), S = e.target.closest('[data-seg] button'), P = e.target.closest('[data-preset]'), A = e.target.closest('[data-act]');
   if (L) { const k = L.dataset.layer; view.layers[k] = !view.layers[k]; exitIso(false); if (view.layers[k]) { hintLoad(k); need(k); } }
   else if (S) { const k = S.parentElement.dataset.seg; view[k] = S.dataset.v; exitIso(false); if (k === 'depth' && !view.layers.muscles) { view.layers.muscles = true; need('muscles'); } if (k !== 'depth' && (view.region !== 'all' || view.side !== 'both')) focusVisible(); }
