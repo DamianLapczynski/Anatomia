@@ -5,8 +5,12 @@ import trunk from './data/muscles_trunk.js';
 import NERVES from './data/nerves.js';
 import COMPLEXES from './data/complexes.js';
 import { polishName } from './data/names.js';
+import { EXAM, FILL } from './data/muscle_exam.js';
 
 export const MUSCLES = { ...upper, ...lower, ...trunk };
+// badanie (palpacja, test siły, test długości) i brakujące pola opisów z muscle_exam.js
+for (const [k, e] of Object.entries(EXAM)) if (MUSCLES[k]) Object.assign(MUSCLES[k], e);
+for (const [k, e] of Object.entries(FILL)) if (MUSCLES[k]) for (const [f, v] of Object.entries(e)) MUSCLES[k][f] ||= v;
 export { NERVES, COMPLEXES };
 
 export const LAYERS = [

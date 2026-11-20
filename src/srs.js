@@ -25,6 +25,7 @@ export function initSrs(ctx) {
   for (const [k, m] of Object.entries(MUSCLES)) {
     CARDS.push({ id: `${k}:att`, deck: m.reg, kind: 'muscle', key: k, q: 'Przyczepy – początkowy i końcowy?', a: () => `<p><b style="color:var(--orig)">Początek:</b> ${esc(m.o)}</p><p style="margin-top:6px"><b style="color:var(--ins)">Koniec:</b> ${esc(m.i)}</p>`, hideAtt: true });
     CARDS.push({ id: `${k}:n`, deck: m.reg, kind: 'muscle', key: k, q: 'Unerwienie?', a: () => `<p>${esc(m.n)}</p>`, hideNerve: true });
+    if (m.mmt && m.mmt.length > 40) CARDS.push({ id: `${k}:mmt`, deck: m.reg, kind: 'muscle', key: k, q: 'Jak zbadać siłę tego mięśnia? Gdzie go wyczuć?', a: () => `<p><b>Test siły:</b> ${esc(m.mmt)}</p>${m.palp && m.palp !== 'Niedostępny.' ? `<p style="margin-top:6px"><b>Palpacja:</b> ${esc(m.palp)}</p>` : ''}` });
     CARDS.push({ id: `${k}:f`, deck: m.reg, kind: 'muscle', key: k, q: 'Czynność?', a: () => `<ul>${m.f.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>${m.s ? `<p style="margin-top:6px">💡 ${esc(m.s)}</p>` : ''}` });
   }
   for (const [k, n] of Object.entries(NERVES)) {

@@ -290,6 +290,12 @@ marks.addEventListener('click', (e) => { const el = e.target.closest('.mark'); i
 // ---------- panel atlasu ----------
 const card = (title, body, color, cls = '') => (body ? `<div class="card ${cls}"><h5>${color ? `<i style="background:${color}"></i>` : ''}${title}</h5>${body}</div>` : '');
 const p = (t) => (t ? `<p>${esc(t)}</p>` : '');
+/** Badanie mięśnia: palpacja, test siły (Lovett), test długości. */
+function examCards(k) {
+  const rows = [['Palpacja', k.palp], ['Test siły', k.mmt], ['Test długości / rozciąganie', k.len]].filter(([, t]) => t && t !== '—');
+  if (!rows.length) return '';
+  return card('Badanie', rows.map(([t, x]) => `<p><b>${t}:</b> ${esc(x)}</p>`).join('<div style="height:6px"></div>') + '<p class="note">Skala Lovetta: 0 – brak skurczu, 1 – ślad skurczu, 2 – ruch bez grawitacji, 3 – pełny ruch przeciw grawitacji, 4 – przeciw umiarkowanemu oporowi, 5 – siła prawidłowa.</p>', '#c084fc');
+}
 function nerveLinks(kb) {
   const keys = new Set(model.nervesOfMuscle(kb.key));
   return [...keys].map((k) => `<span class="link" data-nerve="${k}">${esc(NERVES[k].pl)}</span>`).join(' · ');
@@ -333,6 +339,7 @@ function renderAtlas() {
     h += card('Unerwienie', p(k.n) + (nerveLinks(k) ? `<p style="margin-top:6px">→ ${nerveLinks(k)}</p>` : ''), '#f5cc33');
     h += card('Unaczynienie', p(k.a), '#d12120');
     h += card('Czynność', `<ul>${k.f.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>${moves.length ? `<p style="margin-top:6px">Zobacz w ruchu: ${moves.map((m) => `<span class="link" data-move="${m.id}">${esc(m.pl)}</span>`).join(' · ')}</p>` : ''}`, '#3ecf8e');
+    h += examCards(k);
     h += card('Klinika i fizjoterapia', p(k.k), null, 'clin') + card('Skojarzenie', p(k.s), null, 'tip');
     if (!ent.att.length) h += '<p class="note">Dla tego mięśnia model nie zawiera osobnych pól przyczepów – opis przyczepów powyżej.</p>';
   } else if (ent.type === 'landmark') {
@@ -540,7 +547,7 @@ $('#hud').addEventListener('click', (e) => { const b = e.target.closest('button'
       return;
     }
     if (rp.has('debug')) Object.assign(window, { __motion: motion, __model: model, __engine: engine }); // testy automatyczne
-    const ctx = { engine, model, view, applyView, need, hint, panelBody, esc, card, setMode, select, entDir, MUSCLES, NERVES, modeIs: (m) => mode === m, home };
+    const ctx = { engine, model, view, applyView, need, hint, panelBody, esc, card, examCards, setMode, select, entDir, MUSCLES, NERVES, modeIs: (m) => mode === m, home };
     modes.settings = initSettings(ctx);
     modes.quiz = initQuiz(ctx); modes.srs = initSrs(ctx);
     ctx.quizScoped = (keys, label, lid) => { setMode('quiz'); modes.quiz.scoped(keys, label, lid); };

@@ -99,7 +99,7 @@ export function initLearn(ctx) {
       ${card('Przyczep początkowy', p(m.o), '#e62929')}${card('Przyczep końcowy', p(m.i), '#266bf2')}
       ${card('Unerwienie', p(m.n), '#f5cc33')}
       ${card('Czynność', `<ul>${m.f.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>`, '#3ecf8e')}
-      ${card('Klinika i fizjoterapia', p(m.k), null, 'clin')}${card('Skojarzenie', p(m.s), null, 'tip')}`;
+      ${ctx.examCards(m)}${card('Klinika i fizjoterapia', p(m.k), null, 'clin')}${card('Skojarzenie', p(m.s), null, 'tip')}`;
     panelBody.scrollTop = 0;
     stage();
   }

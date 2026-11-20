@@ -44,6 +44,10 @@ for (const [id, c] of Object.entries(COMPLEXES)) {
   for (const k of c.nerves ?? []) if (!NV[k]) { console.log(`[kompleks ${id}] brak nerwu: ${k}`); bad++; }
   for (const f of ['pl', 'lat', 'reg', 'loc', 'n', 'f', 'k', 's', 'alias']) if (!c[f]) { console.log(`[kompleks ${id}] brak pola ${f}`); bad++; }
 }
+const { EXAM, FILL } = await import('../src/data/muscle_exam.js');
+for (const k of [...Object.keys(EXAM), ...Object.keys(FILL)]) if (!allKb[k]) { console.log(`[badanie] brak mięśnia: ${k}`); bad++; }
+const miss = Object.entries(allKb).filter(([k, m]) => ['k', 's', 'a'].some((f) => !m[f] && !FILL[k]?.[f])).map(([k]) => k);
+console.log(`badanie mięśni: ${Object.keys(EXAM).length} | bez kliniki/skojarzenia/unaczynienia: ${miss.length}${miss.length ? ' – ' + miss.join(', ') : ''}`);
 const noMove = Object.keys(allKb).filter((k) => !inMove.has(k));
 console.log(`ruchy: ${MOVES.length} (z animacją: ${MOVES.filter((m) => m.joint || m.rig).length}) | mięśnie bez ruchu: ${noMove.length}${noMove.length ? ' – ' + noMove.join(', ') : ''}`);
 const skip = /fascia|bursa|retinacul|septum|sheath|aponeurosis|ligament|capsule|arch|tendon|tarsus|Linea|ring|Trochlea/i;
