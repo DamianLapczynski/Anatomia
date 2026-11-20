@@ -119,13 +119,10 @@ select option{background:var(--surface2);color:var(--tx)}
 .layer:has(+h4),.layer:last-child{border-radius:0 0 12px 12px}
 .layer:hover{background:color-mix(in srgb,var(--surface2) 100%,var(--tx) 4%)}
 .layer span{flex:1;display:flex;align-items:center;gap:10px;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.layer span:before{content:"";width:9px;height:9px;border-radius:50%;background:var(--c);flex:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 22%,transparent)}
-.layer:not(.on) span{color:var(--mut)}.layer:not(.on) span:before{opacity:.6;box-shadow:none}
-/* przełącznik iOS */
-.layer i{order:3;position:relative;width:38px;height:23px;border-radius:12px;background:var(--fill);flex:none;transition:background .25s var(--ease)}
-.layer i:after{content:"";position:absolute;left:2px;top:2px;width:19px;height:19px;border-radius:50%;background:var(--knob);box-shadow:0 2px 5px rgba(0,0,0,.25),0 0 0 .5px rgba(0,0,0,.04);transition:transform .28s var(--ease)}
-.layer.on i{background:var(--ok)}
-.layer.on i:after{transform:translateX(15px)}
+.layer:not(.on) span{color:var(--mut)}
+/* pole wyboru w kolorze warstwy – puste = ukryta, wypełnione = widoczna */
+.layer i{width:15px;height:15px;border-radius:4px;border:2px solid var(--c);flex:none;transition:background .15s}
+.layer.on i{background:var(--c)}
 .seg{display:flex;gap:2px;flex-wrap:wrap;background:var(--fill);padding:2px;border-radius:10px}
 .seg button{flex:1;padding:6px 5px;font-size:12.5px;white-space:nowrap;background:transparent;border-radius:8px}
 .seg button:hover{background:var(--fill2)}
@@ -275,7 +272,6 @@ input[type=range]{width:100%;padding:0;accent-color:var(--acc);background:transp
 :root[data-theme=noir] .lat{font-size:1.22em;color:var(--acc)}
 :root[data-theme=noir] button.on,:root[data-theme=noir] button.primary{background:linear-gradient(180deg,#e6c78b,#c49a52);box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
 :root[data-theme=noir] .seg button.on,:root[data-theme=noir] #modes button.on{background:var(--seg-on);color:var(--acc);box-shadow:inset 0 0 0 .5px rgba(216,178,110,.45)}
-:root[data-theme=noir] .layer.on i{background:linear-gradient(180deg,#e6c78b,#c49a52)}
 :root[data-theme=noir] .brand:before{background:linear-gradient(145deg,#f0d59f,#a87d3a)}
 
 /* SZKŁO – świetliste tło, mleczne szkło z jasną krawędzią, fiolet systemowy */
@@ -334,7 +330,7 @@ input[type=range]{width:100%;padding:0;accent-color:var(--acc);background:transp
 @media (hover:hover) and (pointer:fine){#keysBtn{display:inline-block}}
 body.kb #keysBtn{display:inline-block}
 body.kb [data-kh]::after{content:attr(data-kh);margin-left:9px;font:600 11px var(--mono);padding:1px 6px;border-radius:5px;background:var(--fill);opacity:.7;white-space:nowrap;vertical-align:1px}
-body.kb .layer[data-kh]::after{order:2;margin-left:0}
+body.kb .layer[data-kh]::after{margin-left:auto}
 body.kb .opts button{position:relative;padding-right:46px}body.kb .opts button[data-kh]::after{position:absolute;right:12px;top:13px;margin:0}
 body.kb .grade button small{display:block}body.kb .grade button[data-kh]::after{display:inline-block;margin:4px 0 0}
 body.kb .chip[data-kh]::after,body.kb .seg button[data-kh]::after{margin-left:6px}
