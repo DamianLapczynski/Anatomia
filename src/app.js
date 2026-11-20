@@ -9,6 +9,7 @@ import { initSrs } from './srs.js';
 import { initLearn } from './learn.js';
 import { landmarkPL } from './data/landmarks.js';
 import { polishName } from './data/names.js';
+import { structDesc } from './data/struct_kb.js';
 import { initKeys } from './keys.js';
 import { initSettings, prefs, THEMES, setStyle } from './settings.js';
 // kroje stylów Atlas (Fraunces) i Noir (Instrument Serif) – przeglądarka pobiera je dopiero, gdy styl ich użyje
@@ -31,6 +32,7 @@ const BASE = import.meta.env.BASE_URL;
 const app = $('#app'), panelBody = $('#panelBody'), left = $('#left'), hintEl = $('#hint'), marks = $('#marks');
 const SIDE_PL = { r: 'strona prawa', l: 'strona lewa', '': '' };
 const LAYER_PL = Object.fromEntries(LAYERS.map(([k, n]) => [k, n]));
+const LAYER_COLOR = Object.fromEntries(LAYERS.map(([k, , c]) => [k, c]));
 const REG_PL = Object.fromEntries(REGIONS);
 
 const engine = new Engine($('#c'));
@@ -373,17 +375,21 @@ function renderAtlas() {
       if (mus.size) h += card('Mięśnie przyczepiające się do tej kości', `<div class="list">${[...mus].map(([key, r]) => `<div class="it" data-muscle="${key}"><span>${esc(MUSCLES[key].lat)}</span><small>${r.o ? '<b style="color:var(--orig)">początek</b>' : ''}${r.o && r.i ? ' · ' : ''}${r.i ? '<b style="color:var(--ins)">koniec</b>' : ''}</small></div>`).join('')}</div><p style="margin-top:6px"><span class="link" data-act="boneatt">Pokaż pola przyczepów na kości</span></p>`);
       if (list.length) h += card(`Punkty kostne (${list.length})`, `<div class="list">${list.map((l, i) => `<div class="it" data-mark="${i}"><span>${esc(landmarkPL(l.n) ?? model.latin[l.n] ?? l.n)}</span><small>${esc(landmarkPL(l.n) ? (model.latin[l.n] ?? l.n) : l.n)}</small></div>`).join('')}</div>`, '#ffb454');
     }
+    const pd = structDesc(ent.name);
+    if (pd) h += card('Opis', p(pd), LAYER_COLOR[ent.layer]);
     h += `<div id="desc"></div>`;
-    loadDesc(ent.name);
+    loadDesc(ent.name, !!pd);
   }
   panelBody.innerHTML = h; panelBody.scrollTop = 0;
 }
 function boneTitle(par) { if (!par) return ''; const mm = par.match(/^(.*)\.([lr])$/); const n = mm ? mm[1] : par; const id = model.names.get(n)?.[0]; return id != null ? model.structEntity(id).title : n; }
-async function loadDesc(name) {
+async function loadDesc(name, hasPl) {
   let h = 0; for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0; h %= 16;
   try { descCache[h] ??= await (await fetch(`${BASE}data/desc/${h}.json`)).json(); } catch { return; }
   const t = descCache[h][name], el = $('#desc');
-  if (t && el && current?.name === name) el.innerHTML = card('Opis (EN, Wikipedia / Z-Anatomy)', t.split('\n').map(p).join(''));
+  if (!t || !el || current?.name !== name) return;
+  // polski opis jest nadrzędny; angielski z Wikipedii zostaje jako rozwijane uzupełnienie
+  el.innerHTML = `<details class="card en-desc"${hasPl ? '' : ' open'}><summary><h5>${hasPl ? 'Więcej (EN, Wikipedia)' : 'Opis (EN, Wikipedia / Z-Anatomy)'}</h5></summary>${t.split('\n').map(p).join('')}</details>`;
 }
 
 panelBody.addEventListener('click', (e) => {
