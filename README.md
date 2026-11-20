@@ -15,6 +15,26 @@ Interaktywny atlas anatomii 3D do nauki na studiach fizjoterapii: układ kostny,
 - **Ustawienia (⚙)** – konto i baza danych (logowanie Google), motyw jasny / ciemny / systemowy, kolor akcentu, wielkość tekstu, jakość grafiki, domyślna strona ciała, tempo animacji, nazwy punktów kostnych, liczba nowych fiszek, eksport / import całego postępu, pobranie najnowszej wersji. Ustawienia synchronizują się z kontem.
 - **Postęp i synchronizacja** – powtórki, statystyki quizów (najsłabsze mięśnie, wynik wg rodzaju pytania i okolicy, „Ćwicz słabe”) i przerobione sektory Nauki. Bez konta zapisują się w przeglądarce; po zalogowaniu kontem Google (⚙ Ustawienia) – we własnej bazie Firestore, wspólnej dla telefonu, iPada i komputera, także offline.
 
+## Style graficzne
+
+Lewy panel → **Wygląd**. Każdy styl to komplet: kolory i materiały interfejsu, typografia oraz oprawa sceny 3D (światło, tło, kolor półprzezroczystej sylwetki, cień pod stopami – `src/looks.js`). Kolory tkanek są wszędzie te same.
+
+- **Atlas** – ciepły papier z fakturą, szeryf Fraunces, burgund; jak klasyczny atlas anatomiczny.
+- **Noir** – galeria nocą: czerń, punktowe światło ze złotą kontrą, Instrument Serif.
+- Rodzina noir (ta sama galeryjna czerń, inny kamień i światło): **Onyks** – platyna i zimne światło; **Aksamit** – bordo i rubinowa kontra; **Światłocień** – jedno ciepłe światło z boku, Bodoni Moda; **Szmaragd** – zieleń i szmaragdowa kontra.
+- **Szkło** – świetliste, kolorowe tło i mleczne szkło z jasną krawędzią.
+- **Głębia** – atrament i morski turkus, chłodne światło z poświatą od tyłu.
+- Klasyczne: Grafit (domyślny), Jasny, Północ, Tytan.
+
+Na komputerze scena zajmuje cały ekran, a panele unoszą się nad nią; model jest kadrowany w odsłoniętej części (`engine.setInsets`). Styl można też wymusić w adresie: `?theme=atlas`.
+
+## Jakość modelu 3D
+
+- **Okluzja otoczenia** (cienie w dołach, otworach, szparach stawowych, między mięśniami i w bruzdach mózgu) jest wypalona w kolorach wierzchołków przez `tools/bake_ao.mjs` – kości, mięśnie, więzadła, naczynia i OUN. `npm run models` uruchamia go automatycznie; ręcznie: `node tools/bake_ao.mjs [plik.glb …]` (ok. 10 min dla wszystkich; plik oznaczony jako wypalony nie jest przyciemniany drugi raz). Ustawienia dla każdej warstwy są w `CFG` na górze skryptu.
+- **Faktury w shaderze** (`src/surface.js`): włókna mięśniowe wzdłuż osi mięśnia z delikatnym reliefem, porowata powierzchnia kości, połysk ścięgien i chrząstki. Wygaszają się przy oddaleniu, nie wymagają pobierania tekstur.
+- **Poprawki geometrii przy wczytywaniu**: odwrócona orientacja trójkątów w siatkach lustrzanych (prawie cała lewa strona ciała), normalne liczone od nowa we float zamiast 8-bitowych z pliku, a cienkie płaty dwustronne (mózg, więzadła, powięzi) mają normalną zawsze w stronę kamery.
+- **Światło**: oświetlenie otoczenia (IBL) + światło kluczowe, wypełniające i kontra; neutralne mapowanie tonów.
+
 ## Skróty klawiszowe
 
 Działają na komputerze i na iPadzie z klawiaturą we wszystkich trybach; klawisz `?` (albo przycisk ⌨ u góry) pokazuje ściągę dla bieżącego trybu, a po pierwszym wciśnięciu klawisza przyciski dostają małe oznaczenia skrótów.

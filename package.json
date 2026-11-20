@@ -7,14 +7,17 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "models": "node tools/build_models.mjs",
+    "models": "node tools/build_models.mjs && node tools/bake_ao.mjs",
     "reel": "node tools/make_reel.mjs",
     "reel:setup": "npm install --no-save playwright ffmpeg-static && npx playwright install chromium",
     "reel:plan": "node tools/plan_pdf.mjs",
     "post": "node tools/make_post.mjs"
   },
   "dependencies": {
+    "@fontsource/bodoni-moda": "^5.3.0",
     "@fontsource/bricolage-grotesque": "^5.3.0",
+    "@fontsource/fraunces": "^5.3.0",
+    "@fontsource/instrument-serif": "^5.3.0",
     "@fontsource/inter": "^5.3.0",
     "@fontsource/jetbrains-mono": "^5.3.0",
     "firebase": "13.4.0",
@@ -25,6 +28,7 @@
     "@gltf-transform/extensions": "^4.5.1",
     "@gltf-transform/functions": "^4.5.1",
     "meshoptimizer": "^1.3.0",
+    "three-mesh-bvh": "^0.9.1",
     "vite": "^8.3.7"
   }
 }

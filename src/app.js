@@ -9,7 +9,20 @@ import { initSrs } from './srs.js';
 import { initLearn } from './learn.js';
 import { landmarkPL } from './data/landmarks.js';
 import { initKeys } from './keys.js';
-import { initSettings, prefs } from './settings.js';
+import { initSettings, prefs, THEMES, setStyle } from './settings.js';
+// kroje stylów Atlas (Fraunces) i Noir (Instrument Serif) – przeglądarka pobiera je dopiero, gdy styl ich użyje
+import '@fontsource/fraunces/latin-600.css';
+import '@fontsource/fraunces/latin-ext-600.css';
+import '@fontsource/fraunces/latin-500-italic.css';
+import '@fontsource/fraunces/latin-ext-500-italic.css';
+import '@fontsource/instrument-serif/latin-400.css';
+import '@fontsource/instrument-serif/latin-ext-400.css';
+import '@fontsource/instrument-serif/latin-400-italic.css';
+import '@fontsource/instrument-serif/latin-ext-400-italic.css';
+import '@fontsource/bodoni-moda/latin-500.css';
+import '@fontsource/bodoni-moda/latin-ext-500.css';
+import '@fontsource/bodoni-moda/latin-500-italic.css';
+import '@fontsource/bodoni-moda/latin-ext-500-italic.css';
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -74,15 +87,34 @@ function renderLeft() {
       <button data-preset="neuro">Nerwy</button><button data-preset="vessels">Naczynia</button>
       <button data-preset="attach">Przyczepy</button><button data-preset="joints">Więzadła</button>
     </div>
+    <h4>Wygląd</h4>
+    <div class="themes">${THEMES.map(([k, n, bg, acc]) => `<button data-theme="${k}" class="${theme() === k ? 'on' : ''}" style="--sw-acc:${acc}"><b style="background:${bg}"></b>${n}</button>`).join('')}</div>
     <h4>Widok</h4>
     <div class="seg"><button data-act="showall">Pokaż ukryte${view.hidden.size ? ` (${view.hidden.size})` : ''}</button><button data-act="reset">Reset</button></div>
     <p class="note">Modele 3D: Z-Anatomy / BodyParts3D (CC BY-SA 4.0). Treści opisowe do nauki – weryfikuj z podręcznikiem i prowadzącym.</p>`;
 }
+// ---------- motywy ----------
+// styl ustawia settings.js (applyLook); tu tylko scena 3D i podświetlenie miniatury w panelu warstw
+const theme = () => document.documentElement.dataset.theme || 'graphite';
+const setTheme = (k) => setStyle(k);
+document.addEventListener('anatomia:look', (e) => { engine.setLook(e.detail); if (left.querySelector('.themes')) renderLeft(); });
+// pływające panele na komputerze: model centrujemy w odsłoniętej części sceny
+function updateInsets() {
+  const vis = (el) => { const r = el.getBoundingClientRect(); return r.width && r.height ? r : null; };
+  if (!matchMedia('(min-width: 821px)').matches || document.body.matches('.post, .reel')) return engine.setInsets({});
+  const L = vis(left), P = vis($('#panel')), T = vis($('#top'));
+  engine.setInsets({ l: L ? L.right : 0, r: P ? innerWidth - P.left : 0, t: T ? T.bottom : 0 });
+}
+addEventListener('resize', updateInsets);
+requestAnimationFrame(updateInsets);
+engine.setLook(theme());
 const PRESETS = {
   skeleton: ['bones'], muscles: ['bones', 'muscles'], neuro: ['bones', 'nerves', 'cns'], vessels: ['bones', 'arteries', 'veins', 'heart'],
   attach: ['bones', 'attachments'], joints: ['bones', 'joints'],
 };
 left.addEventListener('click', (e) => {
+  const T = e.target.closest('[data-theme]');
+  if (T) { setTheme(T.dataset.theme); renderLeft(); return; }
   const L = e.target.closest('[data-layer]'), S = e.target.closest('[data-seg] button'), P = e.target.closest('[data-preset]'), A = e.target.closest('[data-act]');
   if (L) { const k = L.dataset.layer; view.layers[k] = !view.layers[k]; exitIso(false); if (view.layers[k]) { hintLoad(k); need(k); } }
   else if (S) { const k = S.parentElement.dataset.seg; view[k] = S.dataset.v; exitIso(false); if (k === 'depth' && !view.layers.muscles) { view.layers.muscles = true; need('muscles'); } if (k !== 'depth' && (view.region !== 'all' || view.side !== 'both')) focusVisible(); }
@@ -292,7 +324,7 @@ function renderAtlas() {
   if (ent.type === 'muscle') {
     const k = ent.kb, moves = MOVES.filter((m) => m.ago.includes(ent.key) || m.syn.includes(ent.key));
     h += `<div class="tags"><span class="tag">${esc(k.grp)}</span><span class="tag">warstwa ${k.sup ? 'powierzchowna' : 'głęboka'}</span>${ent.side ? `<span class="tag">${SIDE_PL[ent.side]}</span>` : ''}</div>`;
-    if (ent.clicked) h += `<p class="en">Kliknięto pole przyczepu ${ent.clicked.role === 'origin' ? '<b style="color:#ff6b6b">początkowego</b>' : '<b style="color:#6ea0ff">końcowego</b>'} na: ${esc(boneTitle(ent.clicked.bone))}${ent.clicked.shared.length ? ` (wspólne z: ${ent.clicked.shared.map((s) => esc(MUSCLES[s].lat)).join(', ')})` : ''}</p>`;
+    if (ent.clicked) h += `<p class="en">Kliknięto pole przyczepu ${ent.clicked.role === 'origin' ? '<b style="color:var(--orig)">początkowego</b>' : '<b style="color:var(--ins)">końcowego</b>'} na: ${esc(boneTitle(ent.clicked.bone))}${ent.clicked.shared.length ? ` (wspólne z: ${ent.clicked.shared.map((s) => esc(MUSCLES[s].lat)).join(', ')})` : ''}</p>`;
     else if (ent.part) h += `<p class="en">Kliknięta część: ${esc(model.latin[ent.part] ?? ent.part)}</p>`;
     h += actions(ent) + isoControls();
     h += card('Przyczep początkowy', p(k.o), '#e62929') + card('Przyczep końcowy', p(k.i), '#266bf2');
@@ -329,7 +361,7 @@ function renderAtlas() {
       const att = model.meta.filter((x) => x.f === 'insertions' && x.par[0] === (m.s ? `${m.n}.${m.s}` : m.n));
       const mus = new Map();
       for (const a of att) for (const key of [model.entityOf(a.id)].filter((e) => e.type === 'muscle').map((e) => e.key)) { const r = mus.get(key) ?? { o: false, i: false }; r[a.role === 'origin' ? 'o' : 'i'] = true; mus.set(key, r); }
-      if (mus.size) h += card('Mięśnie przyczepiające się do tej kości', `<div class="list">${[...mus].map(([key, r]) => `<div class="it" data-muscle="${key}"><span>${esc(MUSCLES[key].lat)}</span><small>${r.o ? '<b style="color:#ff6b6b">początek</b>' : ''}${r.o && r.i ? ' · ' : ''}${r.i ? '<b style="color:#6ea0ff">koniec</b>' : ''}</small></div>`).join('')}</div><p style="margin-top:6px"><span class="link" data-act="boneatt">Pokaż pola przyczepów na kości</span></p>`);
+      if (mus.size) h += card('Mięśnie przyczepiające się do tej kości', `<div class="list">${[...mus].map(([key, r]) => `<div class="it" data-muscle="${key}"><span>${esc(MUSCLES[key].lat)}</span><small>${r.o ? '<b style="color:var(--orig)">początek</b>' : ''}${r.o && r.i ? ' · ' : ''}${r.i ? '<b style="color:var(--ins)">koniec</b>' : ''}</small></div>`).join('')}</div><p style="margin-top:6px"><span class="link" data-act="boneatt">Pokaż pola przyczepów na kości</span></p>`);
       if (list.length) h += card(`Punkty kostne (${list.length})`, `<div class="list">${list.map((l, i) => `<div class="it" data-mark="${i}"><span>${esc(landmarkPL(l.n) ?? model.latin[l.n] ?? l.n)}</span><small>${esc(landmarkPL(l.n) ? (model.latin[l.n] ?? l.n) : l.n)}</small></div>`).join('')}</div>`, '#ffb454');
     }
     h += `<div id="desc"></div>`;

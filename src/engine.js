@@ -3,10 +3,23 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { fixWinding } from './geom.js';
+import { patchSurface, patchFaceForward, addSurfaceAttributes } from './surface.js';
+import { LOOKS } from './looks.js';
 
 export const FILES = ['skeleton', 'muscles', 'insertions', 'nerves', 'cardio', 'joints', 'cns'];
 const BASE = import.meta.env.BASE_URL;
 const EXTRA = { muscles: 'muscles_extra' };
+// pliki z fakturą powierzchni (src/surface.js); muscles_extra to mięśnie dodane z BodyParts3D
+const SURFACE = { skeleton: 'bone', muscles: 'muscle', muscles_extra: 'muscle' };
+const SURF_LAYER = { bones: 'bone', muscles: 'muscle' };
+const THIN = ['fascia', 'joints', 'attachments', 'cns', 'heart'];
+function patchLayer(m, layer) {
+  if (SURF_LAYER[layer]) patchSurface(m, SURF_LAYER[layer]);
+  else if (THIN.includes(layer)) patchFaceForward(m);
+  return m;
+}
 
 export class Engine extends EventTarget {
   constructor(canvas) {
@@ -14,7 +27,15 @@ export class Engine extends EventTarget {
     this.canvas = canvas;
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    // neutralne mapowanie tonów: miękkie światła bez przepaleń, kolory warstw bez przesunięcia barw
+    this.renderer.toneMapping = THREE.NeutralToneMapping;
+    this.renderer.toneMappingExposure = 0.95;
     this.scene = new THREE.Scene();
+    // oświetlenie otoczenia (IBL): miękkie odbicia i cieniowanie zamiast płaskiego „plastiku”
+    const pmrem = new THREE.PMREMGenerator(this.renderer);
+    this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    this.scene.environmentIntensity = 0.3;
+    pmrem.dispose();
     this.camera = new THREE.PerspectiveCamera(32, 1, 0.01, 30);
     this.camera.position.set(0, 1.0, 4.2);
     this.controls = new OrbitControls(this.camera, canvas);
@@ -26,11 +47,22 @@ export class Engine extends EventTarget {
     this.controls.zoomToCursor = true;
     this.controls.addEventListener('change', () => this.invalidate());
 
-    this.scene.add(new THREE.HemisphereLight(0xffffff, 0x4a4f5c, 1.5));
-    const head = new THREE.DirectionalLight(0xffffff, 1.9);
-    head.position.set(0.4, 0.6, 1);
-    this.camera.add(head);
+    // światło kluczowe z góry-z boku, wypełnienie z dołu, kontra od tyłu dla czytelnego obrysu (wartości: src/looks.js)
+    const hemi = new THREE.HemisphereLight(), key = new THREE.DirectionalLight(), fill = new THREE.DirectionalLight(), rim = new THREE.DirectionalLight();
+    this.scene.add(hemi);
+    for (const l of [key, fill, rim]) { l.target.position.set(0, 0, -1); this.camera.add(l, l.target); }
+    this.lights = { hemi, key, fill, rim };
     this.scene.add(this.camera);
+    // miękki cień pod stopami – „uziemia” sylwetkę w jasnych stylach
+    const sc = document.createElement('canvas'); sc.width = sc.height = 128;
+    const g2 = sc.getContext('2d'), grd = g2.createRadialGradient(64, 64, 0, 64, 64, 64);
+    grd.addColorStop(0, 'rgba(255,255,255,1)'); grd.addColorStop(0.45, 'rgba(255,255,255,.45)'); grd.addColorStop(1, 'rgba(255,255,255,0)');
+    g2.fillStyle = grd; g2.fillRect(0, 0, 128, 128);
+    this.shadow = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.7), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(sc), transparent: true, depthWrite: false, toneMapped: false }));
+    this.shadow.rotation.x = -Math.PI / 2; this.shadow.position.y = -0.004; this.shadow.renderOrder = -1;
+    this.scene.add(this.shadow);
+    this.insets = { l: 0, r: 0, t: 0, b: 0 };
+    this.setLook('graphite');
     this.root = new THREE.Group();
     this.scene.add(this.root);
     this.overlay = new THREE.Group(); // linie działania, znaczniki
@@ -90,6 +122,12 @@ export class Engine extends EventTarget {
           for (let i = 0; i < nrm.count; i++) { fn[i * 3] = nrm.getX(i); fn[i * 3 + 1] = nrm.getY(i); fn[i * 3 + 2] = nrm.getZ(i); }
           mesh.geometry.setAttribute('normal', new THREE.BufferAttribute(fn, 3));
         }
+        // siatki lustrzane (prawie cała lewa strona) mają odwróconą kolejność wierzchołków – bez tego
+        // przeglądarka rysuje wewnętrzną ścianę zamiast powierzchni
+        fixWinding(mesh.geometry);
+        // normalne w pliku są 8-bitowe (schodki na gładkich kościach) – liczymy je od nowa we float
+        mesh.geometry.computeVertexNormals();
+        if (SURFACE[file]) addSurfaceAttributes(mesh.geometry, SURFACE[file]);
         mesh.geometry.computeBoundingBox();
         mesh.geometry.computeBoundingSphere();
         mesh.position.set(0, 0, 0); mesh.quaternion.identity(); mesh.scale.set(1, 1, 1);
@@ -115,18 +153,26 @@ export class Engine extends EventTarget {
     if (m) return m;
     const [kind, arg] = key.split(':');
     if (kind === 'base' || kind === 'sel') {
-      const thin = ['fascia', 'joints', 'attachments', 'cns', 'heart'].includes(arg);
-      m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.62, metalness: 0.02, side: thin ? THREE.DoubleSide : THREE.FrontSide });
+      const thin = THIN.includes(arg);
+      m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.62, metalness: 0, side: thin ? THREE.DoubleSide : THREE.FrontSide });
+      if (arg === 'bones') { m.roughness = 0.52; } // kość: matowa, z delikatnym połyskiem
+      if (arg === 'muscles') { m.roughness = 0.46; } // wilgotna powięź – lekki refleks
+      if (arg === 'arteries' || arg === 'veins') { m.roughness = 0.32; } // naczynia: gładka, wilgotna ściana
+      if (arg === 'heart') { m.roughness = 0.38; }
+      if (arg === 'nerves') { m.roughness = 0.42; }
+      if (arg === 'cns') { m.roughness = 0.55; }
+      patchLayer(m, arg);
       if (arg === 'attachments') { m.polygonOffset = true; m.polygonOffsetFactor = -2; m.polygonOffsetUnits = -2; m.roughness = 0.4; }
       if (arg === 'fascia') { m.transparent = true; m.opacity = 0.3; m.depthWrite = false; }
-      if (kind === 'sel') { m.emissive = new THREE.Color(0x1c7dff); m.emissiveIntensity = 0.55; m.transparent = false; m.opacity = 1; m.depthWrite = true; }
+      if (kind === 'sel') { m.emissive = new THREE.Color(this.look.sel); m.emissiveIntensity = 0.55; m.transparent = false; m.opacity = 1; m.depthWrite = true; }
     } else if (kind === 'ghost') {
-      m = new THREE.MeshStandardMaterial({ color: 0x9fb0c8, transparent: true, opacity: 0.1, depthWrite: false, roughness: 1, side: THREE.FrontSide }); // jedna strona = połowa kosztu wypełniania ekranu
+      m = new THREE.MeshStandardMaterial({ color: this.look.ghost[0], transparent: true, opacity: this.look.ghost[1], depthWrite: false, roughness: 1, side: THREE.FrontSide }); // jedna strona = połowa kosztu wypełniania ekranu
     } else if (kind === 'tint') {
       m = new THREE.MeshStandardMaterial({ color: new THREE.Color(arg), roughness: 0.5, side: THREE.DoubleSide, emissive: new THREE.Color(arg), emissiveIntensity: 0.18 });
     } else if (kind === 'fade') { // base z przezroczystością warstwy
       const [layer, op] = arg.split('@');
       m = this.material(`base:${layer}`).clone();
+      patchLayer(m, layer); // clone() nie kopiuje onBeforeCompile
       m.transparent = true; m.opacity = Number(op); m.depthWrite = Number(op) > 0.6;
     }
     this.materials.set(key, m);
@@ -206,8 +252,11 @@ export class Engine extends EventTarget {
     const box = ids instanceof THREE.Box3 ? ids : this.boxOf(ids);
     if (box.isEmpty()) return;
     const sph = box.getBoundingSphere(new THREE.Sphere());
-    const aspect = this.camera.aspect;
-    const fov = THREE.MathUtils.degToRad(this.camera.fov);
+    // dopasowanie do widocznego okna, nie do całego płótna pod panelami
+    const w = this.canvas.clientWidth || 1, h = this.canvas.clientHeight || 1, I = this.insets;
+    const vw = Math.max(80, w - I.l - I.r), vh = Math.max(80, h - I.t - I.b);
+    const aspect = vw / vh;
+    const fov = 2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2) * (vh / h));
     let fit = Math.max(sph.radius, 0.03) / Math.sin(Math.min(fov, 2 * Math.atan(Math.tan(fov / 2) * aspect)) / 2);
     if (frontal) { // widok z przodu: dopasuj do wysokości i szerokości, nie do kuli
       const s = box.getSize(new THREE.Vector3()), t = Math.tan(fov / 2);
@@ -264,11 +313,39 @@ export class Engine extends EventTarget {
     if (!w || !h) return;
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
+    // przesunięcie środka rzutowania na środek widocznej części (między panelami)
+    const { l, r, t, b } = this.insets;
+    if (l || r || t || b) this.camera.setViewOffset(w, h, (r - l) / 2, (b - t) / 2, w, h); else this.camera.clearViewOffset();
     this.camera.updateProjectionMatrix();
     this.invalidate();
   }
 
   invalidate() { this._dirty = true; }
+
+  /** Oprawa sceny dla stylu (src/looks.js): światło, ekspozycja, duch, zaznaczenie, cień. */
+  setLook(name) {
+    const L = LOOKS[name] ?? LOOKS.graphite;
+    this.look = L;
+    this.renderer.toneMappingExposure = L.exposure;
+    this.scene.environmentIntensity = L.env;
+    const { hemi, key, fill, rim } = this.lights;
+    hemi.color.set(L.hemi[0]); hemi.groundColor.set(L.hemi[1]); hemi.intensity = L.hemi[2];
+    for (const [l, [c, i, p]] of [[key, L.key], [fill, L.fill], [rim, L.rim]]) { l.color.set(c); l.intensity = i; l.position.set(...p); }
+    for (const [k, m] of this.materials ?? []) {
+      if (k === 'ghost') { m.color.set(L.ghost[0]); m.opacity = L.ghost[1]; }
+      else if (k.startsWith('sel:')) m.emissive.set(L.sel);
+    }
+    this.shadow.material.color.set(L.shadow[0]); this.shadow.material.opacity = L.shadow[1];
+    this.shadow.visible = L.shadow[1] > 0;
+    this.invalidate();
+  }
+
+  /** Obszar zasłonięty przez pływające panele (px) – środek kadru i dopasowanie liczymy dla reszty. */
+  setInsets(ins) {
+    const n = { l: 0, r: 0, t: 0, b: 0, ...ins };
+    if (['l', 'r', 't', 'b'].every((k) => Math.abs(n[k] - this.insets[k]) < 0.5)) return;
+    this.insets = n; this.resize();
+  }
 
   _tick(t) {
     if (this._anim) { this._anim(performance.now()); this._dirty = true; }

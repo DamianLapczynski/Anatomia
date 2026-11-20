@@ -3,16 +3,44 @@
 import { store } from './store.js';
 import { initAccount } from './account.js';
 
-export const DEFAULTS = { theme: 'dark', accent: 'blue', font: 'md', quality: 'std', side: 'r', speed: 1, labels: 'hover', quizToSrs: true };
+export const DEFAULTS = { theme: 'graphite', accent: 'blue', font: 'md', quality: 'std', side: 'r', speed: 1, labels: 'hover', quizToSrs: true };
 export const prefs = () => ({ ...DEFAULTS, ...(store.get('settings', 'app') ?? {}) });
 
+// Style graficzne: [klucz, nazwa, tło miniatury, akcent]. Interfejs w src/style.css, scena 3D w src/looks.js.
+export const THEMES = [
+  ['atlas', 'Atlas', 'radial-gradient(circle at 40% 30%,#fdf9f2,#dccdb6)', '#9e2b25'],
+  ['noir', 'Noir', 'radial-gradient(circle at 50% 28%,#3a342c,#000 70%)', '#d8b26e'],
+  ['onyx', 'Onyks', 'radial-gradient(circle at 50% 28%,#30363d,#000 70%)', '#c9d4e3'],
+  ['velvet', 'Aksamit', 'radial-gradient(circle at 50% 28%,#4a1d24,#050102 70%)', '#e0707d'],
+  ['chiaro', 'Światłocień', 'radial-gradient(circle at 28% 30%,#4a331d,#030201 68%)', '#e6a55a'],
+  ['emerald', 'Szmaragd', 'radial-gradient(circle at 50% 28%,#1b3d31,#010302 70%)', '#5fd3a2'],
+  ['glass', 'Szkło', 'radial-gradient(circle at 20% 15%,#ffd3e6,transparent 60%),radial-gradient(circle at 85% 30%,#c4e2ff,transparent 60%),linear-gradient(160deg,#f3eeff,#dcd2ff)', '#5856d6'],
+  ['depth', 'Głębia', 'radial-gradient(circle at 50% 35%,#16585a,#020b0f 75%)', '#40e0c8'],
+  ['graphite', 'Grafit', 'linear-gradient(145deg,#2c2c2e,#000)', '#0a84ff'],
+  ['light', 'Jasny', 'linear-gradient(145deg,#fff,#e5e5ea)', '#007aff'],
+  ['midnight', 'Północ', 'linear-gradient(145deg,#2a2870,#03050c)', '#7d7aff'],
+  ['titanium', 'Tytan', 'linear-gradient(145deg,#4a443c,#0c0b0a)', '#d9ad6a'],
+];
+const KNOWN = new Set(THEMES.map(([k]) => k));
+
 const dark = matchMedia('(prefers-color-scheme: dark)');
-/** Motyw, akcent i wielkość tekstu – od razu przy starcie, zanim pojawi się interfejs. */
-export function applyLook(p = prefs()) {
-  const r = document.documentElement, theme = p.theme === 'auto' ? (dark.matches ? 'dark' : 'light') : p.theme;
-  r.dataset.theme = theme; r.dataset.accent = p.accent; r.dataset.font = p.font;
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'light' ? '#ffffff' : '#0f1319');
+/** Styl zapisany w ustawieniach → klucz stylu (dawne 'dark' to Grafit, 'auto' idzie za systemem). ?theme=… w adresie ma pierwszeństwo. */
+export function resolveTheme(p = prefs()) {
+  const url = new URLSearchParams(location.search).get('theme');
+  if (url && KNOWN.has(url)) return url;
+  if (p.theme === 'auto') return dark.matches ? 'graphite' : 'light';
+  return KNOWN.has(p.theme) ? p.theme : 'graphite';
 }
+/** Styl, akcent i wielkość tekstu – od razu przy starcie, zanim pojawi się interfejs. */
+export function applyLook(p = prefs()) {
+  const r = document.documentElement, theme = resolveTheme(p);
+  r.dataset.theme = theme; r.dataset.accent = p.accent; r.dataset.font = p.font;
+  const bg = getComputedStyle(r).getPropertyValue('--bg').trim();
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', bg || '#000000');
+  document.dispatchEvent(new CustomEvent('anatomia:look', { detail: theme }));
+}
+/** Wybór stylu z dowolnego miejsca (panel warstw, ustawienia) – zapis w ustawieniach, więc wraca po zalogowaniu na innym urządzeniu. */
+export function setStyle(k) { store.put('settings', 'app', { ...prefs(), theme: k }); applyLook(); }
 applyLook();
 dark.addEventListener('change', () => applyLook());
 
@@ -48,8 +76,9 @@ export function initSettings(ctx) {
       <div class="head"><h3>Ustawienia</h3><button data-close aria-label="Zamknij">✕</button></div>
       <section><h4>Konto i baza danych</h4>${acct.html()}</section>
       <section><h4>Wygląd</h4>
-        ${opt('Motyw', '', seg('theme', [['dark', 'Ciemny'], ['light', 'Jasny'], ['auto', 'Systemowy']], p.theme))}
-        ${opt('Kolor akcentu', '', `<div class="seg">${ACC.map(([k, c]) => `<button class="sw-col ${p.accent === k ? 'on' : ''}" style="background:${c}" data-set="accent" data-v="${k}" aria-label="${k}"></button>`).join('')}</div>`)}
+        <div class="opt col"><span>Styl<small>Kolory, czcionki i oświetlenie modelu 3D. „Auto” przełącza Grafit i Jasny według systemu.</small></span>
+          <div class="themes">${THEMES.map(([k, n, bg, acc]) => `<button class="${p.theme === k || (p.theme === 'dark' && k === 'graphite') ? 'on' : ''}" data-set="theme" data-v="${k}" style="--sw-acc:${acc}"><b style="background:${bg}"></b>${n}</button>`).join('')}<button class="${p.theme === 'auto' ? 'on' : ''}" data-set="theme" data-v="auto" style="--sw-acc:#0a84ff"><b style="background:linear-gradient(135deg,#f2f2f7 50%,#1c1c1e 50%)"></b>Auto</button></div></div>
+        ${opt('Kolor akcentu', 'W stylach Grafit i Jasny', `<div class="seg">${ACC.map(([k, c]) => `<button class="sw-col ${p.accent === k ? 'on' : ''}" style="background:${c}" data-set="accent" data-v="${k}" aria-label="${k}"></button>`).join('')}</div>`)}
         ${opt('Wielkość tekstu', '', seg('font', [['sm', 'A−'], ['md', 'A'], ['lg', 'A+'], ['xl', 'A++']], p.font))}
       </section>
       <section><h4>Model 3D</h4>
