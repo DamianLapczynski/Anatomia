@@ -448,3 +448,4 @@ body.kb #modes button[data-kh]::after{margin-left:2px}
 /* style w panelu ustawień – te same miniatury co w panelu warstw */
 #settings .themes{grid-template-columns:repeat(4,1fr);margin-top:6px}
 #settings .opt.col{flex-direction:column;align-items:stretch}
+.btnlink{display:inline-block;padding:7px 12px;border-radius:9px;background:var(--acc);color:var(--onacc,#06121f);font-weight:600;text-decoration:none}

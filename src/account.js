@@ -1,5 +1,5 @@
 // Konto i synchronizacja (logowanie Google, stan synchronizacji) – sekcja w Ustawieniach (src/settings.js).
-import { firebaseConfig } from './firebase-config.js';
+import { firebaseConfig, onFirebaseHosting, HOSTING_URL } from './firebase-config.js';
 
 const STATUS = { off: ['var(--mut)', 'Niezalogowano – postęp tylko w tej przeglądarce'], sync: ['var(--warn)', 'Synchronizuję…'], ok: ['var(--ok)', 'Zsynchronizowano'], offline: ['var(--mut)', 'Offline – zmiany wyślą się po powrocie sieci'], error: ['var(--bad)', 'Błąd synchronizacji'] };
 
@@ -27,7 +27,9 @@ export function initAccount(ctx, onChange) {
         <p class="note">Powtórki, statystyki quizów, postęp w Nauce i te ustawienia zapisują się na koncie i wracają na każdym urządzeniu, na którym się zalogujesz.</p>
         <div class="acts"><button data-acct="out">Wyloguj</button></div>`;
       if (!enabled) return `<p class="en">${dot}Synchronizacja nieskonfigurowana</p><p class="note">Postęp zapisuje się w tej przeglądarce. Żeby włączyć logowanie i własną bazę danych, trzeba podpiąć projekt Firebase (plik src/firebase-config.js – instrukcja w README).</p>`;
-      return `<p class="en">${dot}${txt}</p><p class="note">Zaloguj się kontem Google, żeby powtórki, statystyki, postęp w Nauce i ustawienia były takie same na telefonie, iPadzie i komputerze.</p>
+      const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      const hint = ios && !onFirebaseHosting && !EMU ? `<div class="card tip"><h5>iPad / iPhone</h5><p>Na urządzeniach Apple logowanie działa tylko w wersji aplikacji z adresu <b>${HOSTING_URL.replace('https://', '').replace(/\/$/, '')}</b> (Safari blokuje logowanie przez inną domenę). Otwórz ją w Safari, dodaj do ekranu początkowego i zaloguj się tam. Postęp z tej wersji przeniesiesz eksportem / importem (sekcja Dane).</p><div class="acts"><a class="btnlink" href="${HOSTING_URL}" target="_blank" rel="noopener">Otwórz wersję do logowania ↗</a></div></div>` : '';
+      return `${hint}<p class="en">${dot}${txt}</p><p class="note">Zaloguj się kontem Google, żeby powtórki, statystyki, postęp w Nauce i ustawienia były takie same na telefonie, iPadzie i komputerze.</p>
         <div class="acts"><button class="primary" data-acct="in" ${busy ? 'disabled' : ''}>${busy ? 'Łączenie…' : 'Zaloguj przez Google'}</button></div>${st.error ? `<p style="color:var(--bad)">${esc(st.error)}</p>` : ''}`;
     },
     async act(a) {
