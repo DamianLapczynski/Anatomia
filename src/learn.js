@@ -1,6 +1,6 @@
 // Tryb „Nauka”: małe sektory mięśni (grupy z bazy wiedzy) oraz śledzenie drogi nerwu z mięśniami, które unerwia.
 import * as THREE from 'three';
-import { REGIONS, COMPLEXES } from './model.js';
+import { REGIONS, COMPLEXES, JOINTS } from './model.js';
 import { store } from './store.js';
 import { prefs } from './settings.js';
 
@@ -35,6 +35,7 @@ export function initLearn(ctx) {
     let h = '<h2>Nauka</h2><p class="en">Małe porcje zamiast całego ciała naraz: wybierz sektor mięśni albo nerw i przejdź go krok po kroku, a potem sprawdź się w quizie z tego samego zakresu.</p>';
     h += '<h4>Drogi nerwów</h4><div class="list">' + nerveList.map((x) => `<div class="it" data-nerve="${x.k}"><span>${esc(x.n.pl)}</span><small>${prog('nerve', x.k)}${esc(x.n.roots)} · ${x.count} mięśni</small></div>`).join('') + '</div>';
     const regName = Object.fromEntries(REGIONS);
+    h += '<h4>Stawy – budowa, więzadła, testy</h4><div class="list">' + Object.entries(JOINTS).map(([k, j]) => `<div class="it" data-joint="${k}"><span>${esc(j.pl)}</span><small>${esc(regName[j.reg] ?? '')} · ${j.tests.length} test${j.tests.length === 1 ? '' : 'y'}</small></div>`).join('') + '</div>';
     h += '<h4>Kompleksy, kanały i przestrzenie</h4><div class="list">' + Object.entries(COMPLEXES).sort(([, a], [, b]) => REGIONS.findIndex(([r]) => r === a.reg) - REGIONS.findIndex(([r]) => r === b.reg))
       .map(([k, x]) => `<div class="it" data-complex="${k}"><span>◆ ${esc(x.pl)}</span><small>${prog('complex', k)}${esc(regName[x.reg] ?? '')} · ${x.keys.length}</small></div>`).join('') + '</div>';
     for (const [rk, rn] of REGIONS.slice(1)) {
@@ -107,6 +108,8 @@ export function initLearn(ctx) {
   panelBody.addEventListener('click', (e) => {
     if (!ctx.modeIs('learn')) return;
     const t = e.target, X = t.closest('[data-complex]'), N = t.closest('[data-nerve]'), C = t.closest('[data-sector]'), P = t.closest('[data-step]'), A = t.closest('[data-act]');
+    const J = t.closest('[data-joint]');
+    if (J) { ctx.setMode('atlas'); ctx.select(model.jointEntity(J.dataset.joint, S.side), { isolate: true }); return; }
     if (X) { S.kind = 'complex'; S.id = X.dataset.complex; overview(); }
     else if (N) { S.kind = 'nerve'; S.id = N.dataset.nerve; overview(); }
     else if (C) { S.kind = 'sector'; S.id = C.dataset.sector; overview(); }

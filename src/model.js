@@ -4,6 +4,7 @@ import lower from './data/muscles_lower.js';
 import trunk from './data/muscles_trunk.js';
 import NERVES from './data/nerves.js';
 import COMPLEXES from './data/complexes.js';
+import JOINTS from './data/joints.js';
 import { polishName } from './data/names.js';
 import { EXAM, FILL } from './data/muscle_exam.js';
 
@@ -11,7 +12,7 @@ export const MUSCLES = { ...upper, ...lower, ...trunk };
 // badanie (palpacja, test siły, test długości) i brakujące pola opisów z muscle_exam.js
 for (const [k, e] of Object.entries(EXAM)) if (MUSCLES[k]) Object.assign(MUSCLES[k], e);
 for (const [k, e] of Object.entries(FILL)) if (MUSCLES[k]) for (const [f, v] of Object.entries(e)) MUSCLES[k][f] ||= v;
-export { NERVES, COMPLEXES };
+export { NERVES, COMPLEXES, JOINTS };
 
 export const LAYERS = [
   ['bones', 'Kości', '#e6dcc2'], ['joints', 'Stawy i więzadła', '#cfcbb5'], ['muscles', 'Mięśnie', '#a83d36'],
@@ -133,6 +134,17 @@ export function buildModel(meta, latin) {
     return { type: 'nerve', key, side, kb: e, title: e.pl, lat: e.lat, ids: entIds, nervePath: path, muscles, textOnly };
   }
 
+  // stawy: siatka więzadła / torebki → klucze stawów, do których należy (np. torebka kolana: kolanowy i rzepkowo-udowy)
+  const meshJoint = new Map();
+  for (const [key, j] of Object.entries(JOINTS)) for (const n of [...j.cap, ...j.lig.map(([m]) => m)]) (meshJoint.get(n) ?? meshJoint.set(n, []).get(n)).push(key);
+  function jointEntity(key, side) {
+    const j = JOINTS[key];
+    const soft = [...j.cap, ...j.lig.map(([m]) => m)].flatMap((n) => ids(n, side)).filter((i) => meta[i].f === 'joints');
+    const bones = j.bones.flatMap((n) => ids(n, side)).filter((i) => meta[i].f === 'skeleton');
+    return { type: 'joint', key, side, kb: j, title: j.pl, lat: j.lat, ids: soft, bones };
+  }
+  const jointsOfMesh = (name) => meshJoint.get(name) ?? [];
+
   function structEntity(id) {
     const m = meta[id];
     const pl = polishName(m.n), la = latin[m.n];
@@ -153,6 +165,7 @@ export function buildModel(meta, latin) {
   // indeks wyszukiwania
   const search = [];
   for (const [key, e] of Object.entries(MUSCLES)) search.push({ kind: 'muscle', key, label: e.pl, sub: e.lat, text: `${e.pl} ${e.lat} ${e.mesh.join(' ')}`.toLowerCase() });
+  for (const [key, j] of Object.entries(JOINTS)) search.push({ kind: 'joint', key, label: j.pl, sub: `${j.lat} · staw`, text: `${j.pl} ${j.lat} ${j.alias.join(' ')}`.toLowerCase() });
   for (const [key, e] of Object.entries(COMPLEXES)) search.push({ kind: 'complex', key, label: e.pl, sub: `${e.lat} · ${e.keys.length} mięśnie`, text: `${e.pl} ${e.lat} ${e.alias.join(' ')}`.toLowerCase() });
   for (const [key, e] of Object.entries(NERVES)) search.push({ kind: 'nerve', key, label: e.pl, sub: e.lat, text: `${e.pl} ${e.lat} ${e.mesh[0] ?? ''} ${(e.alias ?? []).join(' ')}`.toLowerCase() });
   for (const [n, list] of names) {
@@ -168,7 +181,7 @@ export function buildModel(meta, latin) {
     if (!words.length) return [];
     const out = [];
     for (const s of search) if (words.every((w) => s.text.includes(w))) { out.push(s); }
-    const rank = (s) => (s.kind === 'complex' ? -1 : s.kind === 'muscle' ? 0 : s.kind === 'nerve' ? 1 : s.kind === 'landmark' ? 1.5 : 2) + (fold(s.label).startsWith(words[0]) ? -0.5 : 0);
+    const rank = (s) => (s.kind === 'complex' || s.kind === 'joint' ? -1 : s.kind === 'muscle' ? 0 : s.kind === 'nerve' ? 1 : s.kind === 'landmark' ? 1.5 : 2) + (fold(s.label).startsWith(words[0]) ? -0.5 : 0);
     return out.sort((a, b) => rank(a) - rank(b) || a.label.length - b.label.length).slice(0, limit);
   }
 
@@ -221,5 +234,5 @@ export function buildModel(meta, latin) {
   }
   const plNameOf = (lm) => (lm.title !== lm.lat && lm.title !== lm.n ? lm.title : null);
 
-  return { meta, latin, ids, entityOf, muscleEntity, nerveEntity, nerveMuscleKeys, nervesOfMuscle, structEntity, find, sidesOf, meshMuscle, meshNerve, names, addLandmarks, landmarkEntity, nearMuscles, landmarks: () => landmarks };
+  return { meta, latin, ids, entityOf, muscleEntity, nerveEntity, nerveMuscleKeys, nervesOfMuscle, jointEntity, jointsOfMesh, structEntity, find, sidesOf, meshMuscle, meshNerve, names, addLandmarks, landmarkEntity, nearMuscles, landmarks: () => landmarks };
 }

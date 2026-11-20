@@ -52,6 +52,13 @@ const noMove = Object.keys(allKb).filter((k) => !inMove.has(k));
 console.log(`ruchy: ${MOVES.length} (z animacją: ${MOVES.filter((m) => m.joint || m.rig).length}) | mięśnie bez ruchu: ${noMove.length}${noMove.length ? ' – ' + noMove.join(', ') : ''}`);
 const skip = /fascia|bursa|retinacul|septum|sheath|aponeurosis|ligament|capsule|arch|tendon|tarsus|Linea|ring|Trochlea/i;
 const un = [...new Set(meta.filter((m) => m.f === 'muscles' && !used.has(m.n) && !skip.test(m.n) && !['Bursa', 'Fascia', 'Articular capsule', 'Ligament'].includes(m.mat)).map((m) => m.n))];
+const JOINTS = (await import('../src/data/joints.js')).default;
+for (const [id, j] of Object.entries(JOINTS)) {
+  for (const n of [...j.bones, ...j.cap, ...j.lig.map(([m]) => m), ...j.tests.flatMap((t) => t.mesh)]) if (!names.all.has(n)) { console.log(`[staw ${id}] brak siatki: ${n}`); bad++; }
+  for (const m of j.moves) if (!moveIds.has(m)) { console.log(`[staw ${id}] brak ruchu: ${m}`); bad++; }
+  for (const f of ['pl', 'lat', 'reg', 'type', 'closed', 'rest', 'capsular', 'k', 's']) if (!j[f]) { console.log(`[staw ${id}] brak pola ${f}`); bad++; }
+}
+console.log(`stawy: ${Object.keys(JOINTS).length} | testy: ${Object.values(JOINTS).reduce((a, j) => a + j.tests.length, 0)}`);
 const { STRUCT_KEYS } = await import('../src/data/struct_kb.js');
 for (const k of STRUCT_KEYS) if (!names.all.has(k)) { console.log(`[opis struktury] brak siatki: ${k}`); bad++; }
 // pokrycie polskich nazw (siatki bez wpisu w bazie mięśni/nerwów wyświetlają się nazwą ze słownika)
