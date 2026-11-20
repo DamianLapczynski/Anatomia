@@ -34,10 +34,10 @@ export const SEASONS = [
     ['Mięśnie oddechowe', ['diaphragm', 'external_intercostals', 'internal_intercostals', 'transversus_thoracis', 'serratus_posterior_superior', 'serratus_posterior_inferior', 'levatores_costarum']],
     ['Ściana brzucha', ['rectus_abdominis', 'external_oblique', 'internal_oblique', 'transversus_abdominis', 'pyramidalis', 'quadratus_lumborum']],
     ['Głębokie mięśnie grzbietu', ['iliocostalis', 'longissimus', 'spinalis', 'semispinalis', 'multifidus', 'rotatores', 'interspinales', 'intertransversarii']],
-    ['Dno miednicy', ['pubococcygeus', 'iliococcygeus', 'puboanalis', 'coccygeus', 'anal_sphincter']],
+    ['Dno miednicy', ['pubococcygeus', 'iliococcygeus', 'puborectalis', 'puboanalis', 'coccygeus', 'anal_sphincter']],
   ] },
   { name: 'Głowa i szyja', chapters: [
-    ['Szyja i kark', ['sternocleidomastoid', 'scalenus_anterior', 'scalenus_medius', 'scalenus_posterior', 'platysma', 'longus_colli', 'longus_capitis', 'rectus_capitis_anterior', 'rectus_capitis_lateralis', 'splenius_capitis', 'splenius_cervicis', 'rectus_capitis_posterior_major', 'rectus_capitis_posterior_minor', 'obliquus_capitis_superior', 'obliquus_capitis_inferior']],
+    ['Szyja i kark', ['sternocleidomastoid', 'scalenus_anterior', 'scalenus_medius', 'scalenus_posterior', 'platysma', 'longus_colli', 'longus_capitis', 'rectus_capitis_anterior', 'rectus_capitis_lateralis', 'splenius_capitis', 'splenius_cervicis', 'semispinalis_capitis', 'rectus_capitis_posterior_major', 'rectus_capitis_posterior_minor', 'obliquus_capitis_superior', 'obliquus_capitis_inferior']],
     ['Mięśnie nad- i podgnykowe', ['digastric', 'mylohyoid', 'geniohyoid', 'stylohyoid', 'sternohyoid', 'omohyoid', 'sternothyroid', 'thyrohyoid']],
     ['N. trigeminus (V3) – mięśnie żucia', ['masseter', 'temporalis', 'medial_pterygoid', 'lateral_pterygoid']],
     ['N. facialis (VII) – sklepienie, oko i nos', ['epicranius', 'orbicularis_oculi', 'corrugator_supercilii', 'procerus', 'nasalis', 'depressor_septi_nasi', 'levator_nasolabialis']],

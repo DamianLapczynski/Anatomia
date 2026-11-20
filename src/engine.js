@@ -6,6 +6,7 @@ import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 
 export const FILES = ['skeleton', 'muscles', 'insertions', 'nerves', 'cardio', 'joints', 'cns'];
 const BASE = import.meta.env.BASE_URL;
+const EXTRA = { muscles: 'muscles_extra' };
 
 export class Engine extends EventTarget {
   constructor(canvas) {
@@ -62,6 +63,11 @@ export class Engine extends EventTarget {
   }
 
   ensure(file) {
+    if (EXTRA[file]) return Promise.all([this._ensure(file), this._ensure(EXTRA[file])]).then(() => {}); // mięśnie dodane z BodyParts3D (tools/add_bp3d.mjs)
+    return this._ensure(file);
+  }
+
+  _ensure(file) {
     if (this.loaded.has(file)) return Promise.resolve();
     if (this.loading.has(file)) return this.loading.get(file);
     const p = this.loader.loadAsync(`${BASE}models/${file}.glb`).then((gltf) => {
