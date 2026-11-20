@@ -38,4 +38,11 @@ const noMove = Object.keys(allKb).filter((k) => !inMove.has(k));
 console.log(`ruchy: ${MOVES.length} (z animacją: ${MOVES.filter((m) => m.joint || m.rig).length}) | mięśnie bez ruchu: ${noMove.length}${noMove.length ? ' – ' + noMove.join(', ') : ''}`);
 const skip = /fascia|bursa|retinacul|septum|sheath|aponeurosis|ligament|capsule|arch|tendon|tarsus|Linea|ring|Trochlea/i;
 const un = [...new Set(meta.filter((m) => m.f === 'muscles' && !used.has(m.n) && !skip.test(m.n) && !['Bursa', 'Fascia', 'Articular capsule', 'Ligament'].includes(m.mat)).map((m) => m.n))];
+// pokrycie polskich nazw (siatki bez wpisu w bazie mięśni/nerwów wyświetlają się nazwą ze słownika)
+const { polishName } = await import('../src/data/names.js');
+const cov = {};
+for (const m of meta) { if (m.f === 'insertions' || used.has(m.n)) continue; const c = (cov[m.f] ??= { ok: 0, all: 0 }); c.all++; if (polishName(m.n)) c.ok++; }
+console.log('polskie nazwy:', Object.entries(cov).map(([f, c]) => `${f} ${Math.round((100 * c.ok) / c.all)}%`).join(' · '));
+for (const [f, c] of Object.entries(cov)) if (c.ok / c.all < 0.95) { console.log(`[nazwy] warstwa ${f}: pokrycie poniżej 95%`); bad++; }
 console.log('błędy:', bad, '| mięśnie bez opisu:', un.length, un.join('; '));
+if (bad) process.exit(1);

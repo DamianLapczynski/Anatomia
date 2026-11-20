@@ -1,4 +1,6 @@
 // Polskie nazwy struktur: słownik + reguły dla nazw seryjnych (kręgi, żebra, paliczki...).
+import EXTRA from './names_extra.js';
+import VESSELS from './names_vessels.js';
 const D = {
   // --- kości ---
   'Femur': 'Kość udowa', 'Tibia': 'Kość piszczelowa', 'Fibula': 'Strzałka (kość strzałkowa)', 'Patella': 'Rzepka', 'Hip bone': 'Kość miedniczna',
@@ -98,8 +100,21 @@ const RULES = [
   [/^(Upper|Lower) (.*)$/, (m) => { const t = { 'canine': 'Kieł', 'medial incisor': 'Siekacz przyśrodkowy', 'lateral incisor': 'Siekacz boczny', 'first premolar': 'Przedtrzonowiec pierwszy', 'second premolar': 'Przedtrzonowiec drugi', 'first molar tooth': 'Trzonowiec pierwszy', 'second molar tooth': 'Trzonowiec drugi' }[m[2]]; return t && `${t} ${m[1] === 'Upper' ? 'górny' : 'dolny'}`; }],
 ];
 
+// segmenty płuc: „Anterior basal segmental artery of left lung”, „Superior vein of right lung”, „Middle lobar artery of right lung”
+const SEG = { 'anterior basal': 'podstawna przednia', 'lateral basal': 'podstawna boczna', 'medial basal': 'podstawna przyśrodkowa', 'posterior basal': 'podstawna tylna',
+  'superior basal': 'podstawna górna', 'inferior basal': 'podstawna dolna', anterior: 'przednia', apical: 'szczytowa', posterior: 'tylna', superior: 'górna', inferior: 'dolna', lateral: 'boczna', medial: 'przyśrodkowa',
+  apicoposterior: 'szczytowo-tylna', 'superior lingular': 'języczkowa górna', 'inferior lingular': 'języczkowa dolna', lingular: 'języczkowa', middle: 'środkowa' };
+const LUNG = (m) => { const seg = SEG[m[1].toLowerCase()]; if (!seg) return null; const side = m[4] === 'left' ? 'lewego' : 'prawego';
+  return m[2] === 'vein' ? `Żyła ${seg} płuca ${side}` : m[3] === 'lobar' ? `Tętnica płatowa ${seg} płuca ${side}` : `Tętnica segmentowa ${seg} płuca ${side}`; };
+
 export function polishName(en) {
   if (D[en]) return D[en];
+  if (EXTRA[en]) return EXTRA[en];
+  if (VESSELS[en]) return VESSELS[en];
+  const lung = en.match(/^(.+?) (?:(segmental|lobar) )?(artery|vein) of (left|right) lung$/);
+  if (lung) { const r = LUNG([lung[0], lung[1], lung[3], lung[2], lung[4]]); if (r) return r; }
+  const norm = en.replace(/[*']/g, '').trim();
+  if (norm !== en) return polishName(norm);
   for (const [re, fn] of RULES) { const m = en.match(re); if (m) { const r = fn(m); if (r) return r; } }
   return null;
 }

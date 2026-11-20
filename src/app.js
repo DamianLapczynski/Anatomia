@@ -8,6 +8,7 @@ import { initQuiz } from './quiz.js';
 import { initSrs } from './srs.js';
 import { initLearn } from './learn.js';
 import { landmarkPL } from './data/landmarks.js';
+import { polishName } from './data/names.js';
 import { initKeys } from './keys.js';
 import { initSettings, prefs, THEMES, setStyle } from './settings.js';
 // kroje stylów Atlas (Fraunces) i Noir (Instrument Serif) – przeglądarka pobiera je dopiero, gdy styl ich użyje
@@ -326,7 +327,7 @@ function renderAtlas() {
     const k = ent.kb, moves = MOVES.filter((m) => m.ago.includes(ent.key) || m.syn.includes(ent.key));
     h += `<div class="tags"><span class="tag">${esc(k.grp)}</span><span class="tag">warstwa ${k.sup ? 'powierzchowna' : 'głęboka'}</span>${ent.side ? `<span class="tag">${SIDE_PL[ent.side]}</span>` : ''}</div>`;
     if (ent.clicked) h += `<p class="en">Kliknięto pole przyczepu ${ent.clicked.role === 'origin' ? '<b style="color:var(--orig)">początkowego</b>' : '<b style="color:var(--ins)">końcowego</b>'} na: ${esc(boneTitle(ent.clicked.bone))}${ent.clicked.shared.length ? ` (wspólne z: ${ent.clicked.shared.map((s) => esc(MUSCLES[s].lat)).join(', ')})` : ''}</p>`;
-    else if (ent.part) h += `<p class="en">Kliknięta część: ${esc(model.latin[ent.part] ?? ent.part)}</p>`;
+    else if (ent.part) h += `<p class="en">Kliknięta część: ${esc(polishName(ent.part) ?? model.latin[ent.part] ?? ent.part)}</p>`;
     h += actions(ent) + isoControls();
     h += card('Przyczep początkowy', p(k.o), '#e62929') + card('Przyczep końcowy', p(k.i), '#266bf2');
     h += card('Unerwienie', p(k.n) + (nerveLinks(k) ? `<p style="margin-top:6px">→ ${nerveLinks(k)}</p>` : ''), '#f5cc33');
@@ -348,7 +349,7 @@ function renderAtlas() {
   } else if (ent.type === 'nerve') {
     const k = ent.kb;
     h += `<div class="tags"><span class="tag">Nerw</span><span class="tag">${esc(k.roots)}</span>${ent.side ? `<span class="tag">${SIDE_PL[ent.side]}</span>` : ''}</div>`;
-    if (ent.part && ent.part !== k.mesh[0]) h += `<p class="en">Kliknięta gałąź: ${esc(model.latin[ent.part] ?? ent.part)}</p>`;
+    if (ent.part && ent.part !== k.mesh[0]) h += `<p class="en">Kliknięta gałąź: ${esc(polishName(ent.part) ?? model.latin[ent.part] ?? ent.part)}</p>`;
     h += actions(ent) + isoControls();
     h += `<div class="acts"><button data-act="trace">Śledź drogę nerwu i jego mięśnie →</button></div>`;
     h += card('Przebieg', p(k.course), '#f5cc33') + card('Zakres ruchowy', p(k.motor) + (ent.muscles.length ? `<p style="margin-top:6px">${ent.muscles.map((m) => `<span class="link" data-muscle="${m.key}">${esc(m.lat)}</span>`).join(' · ')}</p>` : ''), '#a83d36');
