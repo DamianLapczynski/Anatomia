@@ -53,6 +53,28 @@ const CASES = [
   ['hop3', [0.17, 0.5], 'side', []],
   ['romberg', [0.7], 'side', []],
   ['foursquare', [0.45], 'front', []],
+  // testy kliniczne z zajęć
+  ['fairbank', [0, 0.6], 'side', [['tył ciała na blacie', ['occiput', 'sacrum'], COUCH, 'each'], ['nic nie przenika blatu', ['occiput', 'sacrum', 'scap.l', 'scap.r', 'heelBack.l', 'heelBack.r', 'calf.l', 'calf.r', 'thighBack.l', 'thighBack.r'], COUCH, 'above']]],
+  ['slr', [0.6], 'side', [['potylica i kość krzyżowa na blacie', ['occiput', 'sacrum'], COUCH, 'each'], ['nic nie przenika blatu', ['occiput', 'sacrum', 'scap.l', 'scap.r', 'heelBack.l', 'heelBack.r', 'calf.l', 'calf.r', 'thighBack.l', 'thighBack.r'], COUCH, 'above']]],
+  ['bragard', [0.7], 'side', [['kość krzyżowa na blacie', ['sacrum'], COUCH, 'each'], ['nic nie przenika blatu', ['occiput', 'sacrum', 'scap.l', 'scap.r', 'heelBack.l', 'heelBack.r', 'calf.l', 'calf.r', 'thighBack.l', 'thighBack.r'], COUCH, 'above']]],
+  ['faber', [0.6], 'side', [['kość krzyżowa na blacie', ['sacrum', 'occiput'], COUCH, 'touch'], ['nic nie przenika blatu', [...['occiput', 'sacrum', 'scap.l', 'scap.r', 'heelBack.l', 'heelBack.r', 'calf.l', 'calf.r', 'thighBack.l', 'thighBack.r'], 'knee.r', 'heel.r', 'mt5.r'], COUCH, 'above']]],
+  ['faddir', [0.6], 'side', [['tył ciała na blacie', ['sacrum', 'occiput'], COUCH, 'touch'], ['nic nie przenika blatu', ['occiput', 'sacrum', 'scap.l', 'scap.r', 'heelBack.l', 'heelBack.r', 'calf.l', 'calf.r', 'thighBack.l', 'thighBack.r'], COUCH, 'above']]],
+  ['lachman', [0.45], 'side', [['tył ciała na blacie', ['sacrum', 'occiput'], COUCH, 'touch'], ['nic nie przenika blatu', ['occiput', 'sacrum', 'scap.l', 'scap.r', 'heelBack.l', 'heelBack.r', 'calf.l', 'calf.r', 'thighBack.l', 'thighBack.r'], COUCH, 'above']]],
+  ['drawer_ant', [0.45], 'side', [['stopa na blacie', ['heel.r', 'mt1.r', 'heelBack.r'], COUCH, 'touch'], ['nic nie przenika blatu', [...['occiput', 'sacrum', 'scap.l', 'scap.r', 'heelBack.l', 'heelBack.r', 'calf.l', 'calf.r', 'thighBack.l', 'thighBack.r'], 'heel.r', 'mt1.r', 'mt5.r'], COUCH, 'above']]],
+  ['drawer_post', [0.45], 'side', [['stopa na blacie', ['heel.r', 'mt1.r', 'heelBack.r'], COUCH, 'touch']]],
+  ['valgus', [0.32], 'side', [['nic nie przenika blatu', ['occiput', 'sacrum', 'scap.l', 'scap.r', 'heelBack.l', 'heelBack.r', 'calf.l', 'calf.r', 'thighBack.l', 'thighBack.r'], COUCH, 'above']]],
+  ['mcmurray', [0.15, 0.45], 'side', [['tył ciała na blacie', ['sacrum', 'occiput'], COUCH, 'touch'], ['nic nie przenika blatu', ['occiput', 'sacrum', 'scap.l', 'scap.r', 'heelBack.l', 'heelBack.r', 'calf.l', 'calf.r', 'thighBack.l', 'thighBack.r'], COUCH, 'above']]],
+  ['thomas', [0.6], 'side', [['lewa kończyna na blacie', ['heelBack.l', 'thighBack.l'], COUCH, 'each'], ['nic nie przenika blatu', ['occiput', 'sacrum', 'scap.l', 'scap.r', 'heelBack.l', 'heelBack.r', 'calf.l', 'calf.r', 'thighBack.l', 'thighBack.r'], COUCH, 'above']]],
+  ['thomas_error', [0.6], 'side', [['nic nie przenika blatu', ['occiput', 'sacrum', 'scap.l', 'scap.r', 'heelBack.l', 'heelBack.r', 'calf.l', 'calf.r', 'thighBack.l', 'thighBack.r'], COUCH, 'above']]],
+  ['kendall', [0, 0.6], 'side', [['udo lewe na blacie', ['thighBack.l'], COUCH, 'each'], ['nic nie przenika blatu', ['occiput', 'sacrum', 'scap.l', 'scap.r', 'thighBack.l', 'thighBack.r'], COUCH, 'above']]],
+  ['mennell', [0, 0.15, 0.48], 'side', [['przód ciała na blacie', ['asis.l', 'asis.r', 'sternum', 'knee.l', 'thighFront.l'], COUCH, 'touch'], ['nic nie przenika blatu', ['forehead', 'sternum', 'asis.l', 'asis.r', 'knee.l', 'knee.r', 'thighFront.l', 'thighFront.r', 'toeTip.l', 'toeTip.r'], COUCH, 'above']]],
+  ['apley_knee', [0.25], 'side', [['przód ciała na blacie', ['asis.l', 'asis.r', 'knee.l', 'sternum', 'forehead'], COUCH, 'touch'], ['nic nie przenika blatu', ['forehead', 'sternum', 'asis.l', 'asis.r', 'knee.l', 'knee.r', 'thighFront.l', 'thighFront.r'], COUCH, 'above']]],
+  ['hip_ir', [0.6], 'back', [['kolana na blacie', ['knee.l', 'knee.r'], COUCH, 'touch'], ['nic nie przenika blatu', ['forehead', 'sternum', 'asis.l', 'asis.r', 'knee.l', 'knee.r', 'thighFront.l', 'thighFront.r'], COUCH, 'above']]],
+  ['ober', [0.35, 0.75], 'front', [['bok na blacie', ['trochanter.l', 'humerusLat.l', 'kneeLat.l'], COUCH, 'touch'], ['nic nie przenika blatu', ['trochanter.l', 'humerusLat.l', 'kneeLat.l', 'knee.l', 'ankleMed.l'], COUCH, 'above']]],
+  ['slump', [0, 0.5], 'side', [['siad na kozetce', ['ischium.l', 'ischium.r'], COUCH, 'touch'], ['nic nie przenika blatu', ['ischium.l', 'ischium.r', 'thighBack.l', 'thighBack.r'], COUCH, 'above']]],
+  ['wallangel', [0, 0.45], 'front', [['siad na podłodze', ['ischium.l', 'ischium.r'], 'floor', 'touch'], ['stopy na podłodze', ['heel.l', 'heel.r'], 'floor', 'touch']]],
+  ['fingerfloor', [0.6], 'side', [['stopy na podłodze', ['heel.l', 'heel.r', 'mt1.l', 'mt1.r'], 'floor', 'each']]],
+  ['neer', [0.5], 'side', []], ['hawkins', [0.6], 'front', []], ['phalen', [0.6], 'front', []], ['jobe', [0.6], 'front', []], ['gerber', [0.7], 'back', []],
 ];
 
 const server = await preview({ preview: { port: 4183, strictPort: false }, logLevel: 'silent' });
@@ -66,6 +88,9 @@ await page.addStyleTag({ content: '#left,#panel,#top,#hud{display:none!important
 await page.evaluate(() => { window.__engine.setInsets({}); window.__engine.resize(); });
 
 let fails = 0;
+// punkty strzałek, znaczników bólu i przypięć istnieją w modelu
+const missing = await page.evaluate(() => window.__ptCheck?.() ?? ['brak __ptCheck']);
+for (const m of missing) { console.log('✗ brak punktu:', m); fails++; }
 for (const [key, ks, view, checks] of CASES) {
   if (only.length && !only.includes(key)) continue;
   for (const k of ks) {

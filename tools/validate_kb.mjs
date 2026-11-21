@@ -71,7 +71,20 @@ for (const [id, t] of Object.entries(FT)) {
   const ts = t.anim.phases.map((p) => p.t); if (ts.some((v, i) => i && v <= ts[i - 1])) { console.log(`[test ${id}] fazy nie rosną w czasie`); bad++; }
 }
 for (const [k, a] of Object.entries(ANIM)) { const ts = a.frames.map((f) => f.t); if (ts.some((v, i) => i && v < ts[i - 1]) || ts[0] !== 0 || ts[ts.length - 1] !== 1) { console.log(`[animacja ${k}] klatki muszą rosnąć od 0 do 1`); bad++; } }
-console.log(`testy funkcjonalne: ${Object.keys(FT).length} | animacje: ${Object.keys(ANIM).length}`);
+const { default: CT, CT_GROUPS } = await import('../src/data/clinical_tests.js');
+for (const [id, t] of Object.entries(CT)) {
+  if (FT[id]) { console.log(`[test ${id}] klucz powtórzony w func_tests.js`); bad++; }
+  for (const f of ['pl', 'en', 'skrot', 'grp', 'cel', 'pozycja', 'wykonanie', 'dodatni', 'sugeruje', 'dlaczego', 'muscles', 'anim']) if (!t[f]) { console.log(`[test ${id}] brak pola ${f}`); bad++; }
+  if (!CT_GROUPS.some(([g]) => g === t.grp)) { console.log(`[test ${id}] nieznana grupa ${t.grp}`); bad++; }
+  for (const k of [...t.muscles, ...t.anim.phases.flatMap((p) => p.muscles)]) if (!allKb[k]) { console.log(`[test ${id}] brak mięśnia: ${k}`); bad++; }
+  for (const j of t.joints ?? []) if (!JOINTS[j]) { console.log(`[test ${id}] brak stawu: ${j}`); bad++; }
+  for (const a of [t.anim.key, t.anim.error].filter(Boolean)) if (!ANIM[a]) { console.log(`[test ${id}] brak animacji: ${a}`); bad++; }
+  if (t.anim.error && !t.anim.errorLabel) { console.log(`[test ${id}] brak opisu wyniku dodatniego (errorLabel)`); bad++; }
+  if (t.video && !/^[A-Za-z0-9_-]{11}$/.test(t.video)) { console.log(`[test ${id}] zły identyfikator filmu`); bad++; }
+  const ts = t.anim.phases.map((p) => p.t); if (ts.some((v, i) => i && v <= ts[i - 1])) { console.log(`[test ${id}] fazy nie rosną w czasie`); bad++; }
+}
+for (const [, , also] of CT_GROUPS) for (const k of also) if (!FT[k]) { console.log(`[grupa] brak testu ${k}`); bad++; }
+console.log(`testy funkcjonalne: ${Object.keys(FT).length} | kliniczne: ${Object.keys(CT).length} | animacje: ${Object.keys(ANIM).length}`);
 const { ROOTS } = await import('../src/data/roots.js');
 const labelNames = new Set(JSON.parse(fs.readFileSync('public/data/labels.json', 'utf8')).map((l) => l.n));
 for (const [id, r] of Object.entries(ROOTS)) {

@@ -3,6 +3,7 @@
 import { PRESETS, grade } from './data/exam_presets.js';
 import { JOINTS } from './model.js';
 import FT from './data/func_tests.js';
+import CT from './data/clinical_tests.js';
 import { store } from './store.js';
 import { prefs } from './settings.js';
 
@@ -70,6 +71,15 @@ export function initExam(ctx) {
     },
   };
   G.func = (P) => {
+    // połowa pytań z testów klinicznych z zajęć (co ocenia, który test, co sugeruje wynik dodatni)
+    if (!P.func && Math.random() < 0.5) {
+      const ck = Object.keys(CT), k = pickOne(ck), t = CT[k], others = ck.filter((x) => x !== k).map((x) => CT[x]);
+      const base = { type: 'func', reg: 'ft', kind: 'functest', key: k };
+      const kind = pickOne(['cel', 'which', 'plus']);
+      if (kind === 'which') return mk({ ...base, q: `Który test: ${t.cel.replace(/\.$/, '')}?`, explain: `${t.pl}: ${t.wykonanie[0]}` }, t.pl, distract(t.pl, others.filter((o) => o.grp === t.grp || Math.random() < 0.3).map((o) => o.pl)));
+      if (kind === 'plus') return mk({ ...base, q: `${t.pl} – co najczęściej sugeruje wynik dodatni?`, explain: t.dlaczego }, t.sugeruje, distract(t.sugeruje, others.map((o) => o.sugeruje)));
+      return mk({ ...base, q: `Co ocenia ${t.pl}?`, explain: t.dlaczego }, t.cel, distract(t.cel, others.map((o) => o.cel)));
+    }
     const keys = (P.func ?? Object.keys(FT)).filter((k) => FT[k]); if (keys.length < 4) return null;
     const k = pickOne(keys), t = FT[k], others = Object.keys(FT).filter((x) => x !== k).map((x) => FT[x]);
     const kind = pickOne(['cel', 'which', 'norm']);

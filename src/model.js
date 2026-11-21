@@ -6,6 +6,7 @@ import NERVES from './data/nerves.js';
 import COMPLEXES from './data/complexes.js';
 import JOINTS from './data/joints.js';
 import FUNC_TESTS from './data/func_tests.js';
+import CLIN_TESTS from './data/clinical_tests.js';
 import { polishName } from './data/names.js';
 import { EXAM, FILL } from './data/muscle_exam.js';
 
@@ -167,6 +168,7 @@ export function buildModel(meta, latin) {
   const search = [];
   for (const [key, e] of Object.entries(MUSCLES)) search.push({ kind: 'muscle', key, label: e.pl, sub: e.lat, text: `${e.pl} ${e.lat} ${e.mesh.join(' ')}`.toLowerCase() });
   for (const [key, t] of Object.entries(FUNC_TESTS)) search.push({ kind: 'functest', key, label: t.pl, sub: `${t.skrot} · test funkcjonalny`, text: `${t.pl} ${t.en} ${t.skrot}`.toLowerCase() });
+  for (const [key, t] of Object.entries(CLIN_TESTS)) search.push({ kind: 'functest', key, label: t.pl, sub: `${t.skrot} · test kliniczny`, text: `${t.pl} ${t.en} ${t.skrot}`.toLowerCase() });
   for (const [key, j] of Object.entries(JOINTS)) search.push({ kind: 'joint', key, label: j.pl, sub: `${j.lat} · staw`, text: `${j.pl} ${j.lat} ${j.alias.join(' ')}`.toLowerCase() });
   for (const [key, e] of Object.entries(COMPLEXES)) search.push({ kind: 'complex', key, label: e.pl, sub: `${e.lat} · ${e.keys.length} mięśnie`, text: `${e.pl} ${e.lat} ${e.alias.join(' ')}`.toLowerCase() });
   for (const [key, e] of Object.entries(NERVES)) search.push({ kind: 'nerve', key, label: e.pl, sub: e.lat, text: `${e.pl} ${e.lat} ${e.mesh[0] ?? ''} ${(e.alias ?? []).join(' ')}`.toLowerCase() });

@@ -5,7 +5,9 @@
 //   forearm), tułów i miednica – dodatni = pochylenie do przodu, stopa (foot) – dodatni = palce w górę; domyślnie
 //   tułów idzie za miednicą, kończyny wiszą pionowo, goleń i przedramię przedłużają udo i ramię, stopa leży poziomo;
 //   kąty względne: hipZ / shZ – odwiedzenie, hipY / shY – rotacja wewnętrzna, shH – przywiedzenie poziome ramienia, trunkZ – skłon boczny (+ w prawo),
-//   trunkY – skręt (+ w lewo), pelvisZ – przechylenie miednicy (+ = prawa strona w dół);
+//   trunkY – skręt (+ w lewo), pelvisZ – przechylenie miednicy (+ = prawa strona w dół), neck – zgięcie szyi (+ = zgięcie);
+//   pro – pronacja przedramienia (− supinacja), ulnar – odchylenie łokciowe ręki (− promieniowe), kneeY – rotacja
+//   wewnętrzna goleni (− zewnętrzna), tib – przesunięcie piszczeli do przodu względem uda (m, − do tyłu; szuflada, Lachman);
 //   rx / ry / rz – obrót całego ciała (leżenie, nawrót), x / y / z – przesunięcie (metry).
 // „pin” przypina ciało do podłoża: lock – wskazane punkty (np. pięty) zostają w miejscu, floor – najniższy z punktów
 // dotyka powierzchni o wysokości target (podłoga, blat kozetki, mata). Dzięki temu kontakt z podłożem wynika z geometrii.
@@ -39,6 +41,12 @@ export function bodyOf(kit) {
   const mo = kit.mo, J = (j, s) => mo._joint(j, s).p.clone();
   const L5 = kit.id('Vertebra L5', ''), bb5 = meta[L5].bb;
   const piv = { 'L5S1': V((bb5[0] + bb5[3]) / 2, bb5[1], (bb5[2] + bb5[5]) / 2) };
+  // głowa i szyja (C3 w górę, czaszka, krtań): osobny segment zginany na granicy szyjno-piersiowej (szczyt C7)
+  const C7 = kit.id('Vertebra C7', '');
+  if (C7 !== undefined) {
+    const b7 = meta[C7].bb; piv.neck = V((b7[0] + b7[3]) / 2, b7[4], (b7[2] + b7[5]) / 2);
+    for (const id of [...(part.trunk ?? [])]) { const q = meta[id].bb; if ((q[1] + q[4]) / 2 > b7[4]) { part.trunk.delete(id); add('head', id); } }
+  }
   for (const s of ['l', 'r']) for (const j of ['hip', 'knee', 'ankle', 'shoulder', 'elbow', 'wrist']) piv[`${j}.${s}`] = J(j, s);
   piv.pelvis = piv['hip.l'].clone().add(piv['hip.r']).multiplyScalar(0.5);
   // nazwane punkty: [kość, kierunek „najdalej w stronę”]
@@ -70,6 +78,20 @@ export function bodyOf(kit) {
     P(`forearm.${s}`, 'Ulna', s, V(-sx, 0, -1), 0.01);
     P(`forearmLat.${s}`, 'Ulna', s, V(sx, 0, 0), 0.01);
     P(`humerusLat.${s}`, 'Humerus', s, V(sx, 0, 0));
+    P(`distForearm.${s}`, 'Radius', s, V(0, -1, 0.2));
+    P(`bicGroove.${s}`, 'Humerus', s, V(sx * 0.15, 1.2, 1), 0.012);
+    P(`latEpi.${s}`, 'Humerus', s, V(sx, -0.6, 0));
+    P(`radStyloid.${s}`, 'Radius', s, V(sx * 0.7, -1, 0));
+    P(`kneeLat.${s}`, 'Femur', s, V(sx, -0.8, 0));
+    P(`kneeMed.${s}`, 'Femur', s, V(-sx, -0.8, 0));
+    P(`jointMed.${s}`, 'Tibia', s, V(-sx, 0.8, 0.3), 0.01);
+    P(`greaterTub.${s}`, 'Humerus', s, V(sx * 0.6, 1, 0.5), 0.01);
+    P(`thumb.${s}`, 'Distal phalanx of first finger of hand', s, V(0, -1, 0));
+    P(`shin.${s}`, 'Tibia', s, V(0, -0.5, 1));
+    P(`ankleMed.${s}`, 'Tibia', s, V(sx * 0.4, -1, 0.2));
+    // środki stawów przypięte do kości dalszej – punkty zaczepienia strzałek siły
+    const jp = (name, bone, j) => { const id = kit.id(bone, s); if (id !== undefined) pt[`${name}.${s}`] = { id, p: piv[`${j}.${s}`].clone() }; };
+    jp('kneeJ', 'Tibia', 'knee'); jp('elbowJ', 'Ulna', 'elbow'); jp('shoulderJ', 'Humerus', 'shoulder'); jp('hipJ', 'Femur', 'hip'); jp('wristJ', 'Third metacarpal bone', 'wrist'); jp('ankleJ', 'Talus', 'ankle');
   }
   // grubość tkanek miękkich pod punktem (m) – kość nie leży bezpośrednio na blacie / macie
   const OFF = { occiput: 0.006, sacrum: 0.015, scap: 0.012, heelBack: 0.012, calf: 0.035, thighBack: 0.045, asis: 0.02, knee: 0.008, kneeLow: 0.008, thighFront: 0.045, forearm: 0.008, forearmLat: 0.01, elbow: 0.006, palm: 0.012, toeTip: 0.006, toe: 0.006, trochanter: 0.03, humerusLat: 0.025, forehead: 0.006, sternum: 0.01, chin: 0.006, ischium: 0.03 };
@@ -80,11 +102,13 @@ export function bodyOf(kit) {
   P('sternum', 'Body of sternum', '', V(0, 0, 1));
   P('vertex', 'Parietal bone', 'l', V(0, 1, 0));
   P('t8', 'Vertebra T8', '', V(0, 0, -1));
+  P('t12', 'Vertebra T12', '', V(0, 0, -1));
+  P('s2', 'Sacrum', '', V(0, -0.3, -1));
   for (const [n, v] of Object.entries(pt)) { const base = n.split('.')[0]; if (OFF[base] !== undefined) v.off = OFF[base]; }
   // stopy stoją na podłodze (y = 0): grubość pod piętą / głowami kości śródstopia = wysokość punktu w spoczynku
   for (const s of ['l', 'r']) for (const n of ['heel', 'mt1', 'mt5']) if (pt[`${n}.${s}`]) pt[`${n}.${s}`].off = pt[`${n}.${s}`].p.y;
   // drzewo: segment → rodzic i staw
-  const tree = { pelvis: null, trunk: 'pelvis' };
+  const tree = { pelvis: null, trunk: 'pelvis', ...(part.head ? { head: 'trunk' } : {}) };
   for (const s of ['l', 'r']) Object.assign(tree, { [`arm.${s}`]: 'trunk', [`forearm.${s}`]: `arm.${s}`, [`hand.${s}`]: `forearm.${s}`, [`thigh.${s}`]: 'pelvis', [`shank.${s}`]: `thigh.${s}`, [`foot.${s}`]: `shank.${s}` });
   const desc = (seg) => { const out = new Set(part[seg] ?? []); for (const [c, p] of Object.entries(tree)) if (p === seg) for (const id of desc(c)) out.add(id); return out; };
   const all = new Set(Object.values(part).flatMap((x) => [...x]));
@@ -136,9 +160,16 @@ export function buildPose(kit, spec) {
     if (seg === 'trunk') { rot(bones, piv, Z, chan((p) => p.trunkZ ?? 0)); rot(bones, piv, Y, chan((p) => p.trunkY ?? 0)); }
     if (seg.startsWith('arm')) { rot(bones, piv, Y, chan((p) => -sx * (p[`shH.${s}`] ?? 0))); rot(bones, piv, Z, chan((p) => sx * (p[`shZ.${s}`] ?? 0))); rot(bones, piv, Y, chan((p) => -sx * (p[`shY.${s}`] ?? 0))); }
     if (seg.startsWith('thigh')) { rot(bones, piv, Z, chan((p) => sx * (p[`hipZ.${s}`] ?? 0))); rot(bones, piv, Y, chan((p) => -sx * (p[`hipY.${s}`] ?? 0))); }
-    if (seg.startsWith('shank')) rot(bones, piv, Z, chan((p) => sx * (p[`kneeZ.${s}`] ?? 0))); // koślawienie (−) / szpotawienie (+) – tylko do pokazania błędu
+    if (seg.startsWith('shank')) {
+      rot(bones, piv, Z, chan((p) => sx * (p[`kneeZ.${s}`] ?? 0))); // koślawienie (−) / szpotawienie (+)
+      rot(bones, piv, B.piv[`ankle.${s}`].clone().sub(piv).normalize().negate(), chan((p) => -sx * (p[`kneeY.${s}`] ?? 0))); // rotacja goleni wokół jej osi długiej
+      const tk = chan((p) => p[`tib.${s}`] ?? 0); if (nonzero(tk)) steps.push({ bones, pivot: piv, move: Z, keys: tk }); // szuflada / Lachman
+    }
+    if (seg.startsWith('forearm')) rot(bones, piv, B.piv[`wrist.${s}`].clone().sub(piv).normalize().negate(), chan((p) => -sx * (p[`pro.${s}`] ?? 0))); // wokół osi przedramienia
+    if (seg.startsWith('hand')) rot(bones, piv, Z, chan((p) => -sx * (p[`ulnar.${s}`] ?? 0)));
   };
   for (const seg of SAG) if (seg !== 'pelvis') segJoint(seg);
+  if (B.part.head && B.piv.neck) rot(B.desc('head'), B.piv.neck, X, chan((p) => p.neck ?? 0));
   return steps;
 }
 
@@ -301,6 +332,133 @@ export function library(B) {
   L.rotary_error = { frames: [{ t: 0, p: QUAD }, { t: 0.4, p: { ...BIRD, trunkY: 16, pelvisZ: 8, trunk: -10 } }, { t: 0.6, p: { ...BIRD, trunkY: 16, pelvisZ: 8, trunk: -10 } }, { t: 1, p: QUAD }], pin: rq, props: ['mat'] };
   // test 4 kwadratów: kroki przód, bok, tył, bok
   L.foursquare = { frames: [{ t: 0, p: {} }, { t: 0.12, p: { 'thigh.l': 30, 'shank.l': -30 } }, { t: 0.22, p: { z: 0.35 } }, { t: 0.34, p: { z: 0.35, 'thigh.r': 30, 'shank.r': -30, 'hipZ.r': 15 } }, { t: 0.45, p: { z: 0.35, x: -0.35 } }, { t: 0.57, p: { z: 0.35, x: -0.35, 'thigh.r': -20, 'shank.r': -50 } }, { t: 0.68, p: { z: 0, x: -0.35 } }, { t: 0.8, p: { z: 0, x: -0.35, 'thigh.l': 25, 'shank.l': -30, 'hipZ.l': 15 } }, { t: 1, p: { x: 0, z: 0 } }], pin: floorFeet(floorY), props: ['foursquare'] };
+
+  // ===================== TESTY KLINICZNE (z zajęć) =====================
+  // Badana strona: prawa. Badający nie jest modelowany – jego ręce zastępują strzałki: pomarańczowa – ruch bierny / opór,
+  // niebieska – stabilizacja. Czerwony pulsujący punkt – typowe miejsce bólu przy wyniku dodatnim.
+  const STAB = '#4c9dff';
+  const hold = (a, b, t1 = 0.4, t2 = 0.7) => [{ t: 0, p: a }, { t: t1, p: b }, { t: t2, p: b }, { t: 1, p: a }];
+  const SUPINE = { mode: 'floor', pts: BACK_PTS, target: COUCH_TOP };
+  const PRONE_PTS = ['forehead', 'sternum', 'asis.l', 'asis.r', 'knee.l', 'knee.r', 'thighFront.l', 'thighFront.r'];
+  const PRONE_PIN = { mode: 'support', axis: 'x', pts: ['sternum', 'forehead'], ptsB: ['asis.l', 'asis.r', 'knee.l', 'knee.r', 'thighFront.l', 'thighFront.r'], target: COUCH_TOP };
+  const PR = { rx: 90, 'foot.l': -45, 'foot.r': -45 }; // leżenie przodem, stopy w zgięciu podeszwowym
+  const SU = { ...SUP }; // leżenie tyłem
+  // --- kończyna górna (stanie) ---
+  L.neer = { frames: hold({}, { 'arm.r': 165, 'shY.r': 55, 'pro.r': 70, 'shH.r': 10 }, 0.45, 0.7), pin: lockFeet, props: [],
+    arrows: [{ pt: 'elbowJ.r', dirB: [0, 0, 1], from: 0.05, to: 0.45 }, { pt: 'acromion.r', dir: [0, -1, 0], color: STAB }], marks: [{ pt: 'greaterTub.r', from: 0.4, to: 0.72 }] };
+  const HK = { 'arm.r': 90, 'forearm.r': 180, 'shH.r': 15 };
+  L.hawkins = { frames: [{ t: 0, p: { ...HK, 'shY.r': 20 } }, { t: 0.2, p: { ...HK, 'shY.r': 20 } }, { t: 0.5, p: { ...HK, 'shY.r': 125 } }, { t: 0.72, p: { ...HK, 'shY.r': 125 } }, { t: 1, p: { ...HK, 'shY.r': 20 } }], pin: lockFeet, props: [],
+    arrows: [{ pt: 'distForearm.r', dirB: [0, 0, 1], from: 0.2, to: 0.5 }, { pt: 'elbowJ.r', dir: [0, 1, 0], color: STAB }], marks: [{ pt: 'greaterTub.r', from: 0.45, to: 0.75 }] };
+  const PH = (d) => { const o = {}; for (const sd of ['l', 'r']) Object.assign(o, { [`arm.${sd}`]: 40, [`shZ.${sd}`]: 15, [`shY.${sd}`]: 84, [`forearm.${sd}`]: 130, [`pro.${sd}`]: 165, [`hand.${sd}`]: 130 + 88 * d }); return o; };
+  L.phalen = { frames: hold(PH(0), PH(1), 0.3, 0.85), pin: lockFeet, props: [], marks: [{ pt: 'palm.r', from: 0.45, to: 0.85 }, { pt: 'palm.l', from: 0.45, to: 0.85 }] };
+  const FK = { 'forearm.r': 90, 'pro.r': 90, 'arm.r': 5 };
+  L.finkelstein = { frames: hold({ ...FK }, { ...FK, 'ulnar.r': 32 }, 0.45, 0.72), pin: lockFeet, props: [],
+    arrows: [{ pt: 'hand.r', dir: [0, -1, 0], from: 0.15, to: 0.45 }, { pt: 'distForearm.r', dir: [0, 1, 0], color: STAB, from: 0.1, to: 0.8 }], marks: [{ pt: 'radStyloid.r', from: 0.42, to: 0.75 }] };
+  const CZ = { 'arm.r': 10, 'forearm.r': 95, 'pro.r': 170 };
+  L.cozen = { frames: hold({ ...CZ, 'hand.r': 95 }, { ...CZ, 'hand.r': 60 }, 0.35, 0.75), pin: lockFeet, props: [],
+    arrows: [{ pt: 'hand.r', dir: [0, -1, 0], from: 0.3, to: 0.78 }, { pt: 'latEpi.r', dirB: [-1, 0, 0], color: STAB }], marks: [{ pt: 'latEpi.r', from: 0.38, to: 0.78 }] };
+  const JB = (sd) => ({ [`shZ.${sd}`]: 88, [`shH.${sd}`]: 30, [`shY.${sd}`]: 45, [`pro.${sd}`]: 90 });
+  L.jobe = { frames: hold({}, { ...JB('l'), ...JB('r') }, 0.3, 0.85), pin: lockFeet, props: [],
+    arrows: [{ pt: 'distForearm.r', dir: [0, -1, 0], from: 0.35, to: 0.85 }, { pt: 'distForearm.l', dir: [0, -1, 0], from: 0.35, to: 0.85 }], marks: [{ pt: 'greaterTub.r', from: 0.4, to: 0.85 }] };
+  const GB = { 'arm.r': -25, 'shY.r': 80, 'forearm.r': 55, 'shZ.r': 10 };
+  L.gerber = { frames: [{ t: 0, p: {} }, { t: 0.25, p: GB }, { t: 0.4, p: GB }, { t: 0.6, p: { ...GB, 'arm.r': -45, 'forearm.r': 40 } }, { t: 0.8, p: { ...GB, 'arm.r': -45, 'forearm.r': 40 } }, { t: 1, p: {} }], pin: lockFeet, props: [],
+    arrows: [{ pt: 'palm.r', dir: [0, 0, 1], from: 0.55, to: 0.82 }] };
+  L.gerber_error = { frames: [{ t: 0, p: {} }, { t: 0.25, p: GB }, { t: 0.4, p: GB }, { t: 0.6, p: { ...GB, 'arm.r': -28 } }, { t: 0.8, p: { ...GB, 'arm.r': -27 } }, { t: 1, p: {} }], pin: lockFeet, props: [] };
+  L.speed = { frames: hold({}, { 'arm.r': 60, 'forearm.r': 65 }, 0.3, 0.8), pin: lockFeet, props: [],
+    arrows: [{ pt: 'distForearm.r', dir: [0, -1, 0], from: 0.32, to: 0.8 }], marks: [{ pt: 'bicGroove.r', from: 0.35, to: 0.8 }] };
+  const YG = { 'forearm.r': 90, 'arm.r': 0 };
+  L.yergason = { frames: hold({ ...YG, 'pro.r': 80 }, { ...YG, 'pro.r': -15, 'shY.r': -20 }, 0.45, 0.75), pin: lockFeet, props: [],
+    arrows: [{ pt: 'distForearm.r', dirB: [1, 0, 0], from: 0.1, to: 0.75 }, { pt: 'elbowJ.r', dir: [0, -1, 0], color: STAB, from: 0.1, to: 0.75 }], marks: [{ pt: 'bicGroove.r', from: 0.4, to: 0.78 }] };
+  const SCR1 = { 'arm.r': 170, 'forearm.r': 30, 'shY.r': -60, 'shZ.r': 10, 'arm.l': -50, 'forearm.l': 70, 'shY.l': 70, 'shZ.l': -10 };
+  const SCR2 = { 'arm.l': 170, 'forearm.l': 30, 'shY.l': -60, 'shZ.l': 10, 'arm.r': -50, 'forearm.r': 70, 'shY.r': 70, 'shZ.r': -10 };
+  L.apley_scratch = { frames: [{ t: 0, p: {} }, { t: 0.22, p: SCR1 }, { t: 0.4, p: SCR1 }, { t: 0.5, p: {} }, { t: 0.72, p: SCR2 }, { t: 0.9, p: SCR2 }, { t: 1, p: {} }], pin: lockFeet, props: [] };
+  const SCR1E = { ...SCR1, 'arm.r': 140, 'forearm.r': 70, 'shY.r': -30, 'arm.l': -30, 'forearm.l': 40, 'shY.l': 45 };
+  L.apley_scratch_error = { frames: [{ t: 0, p: {} }, { t: 0.22, p: SCR1E }, { t: 0.4, p: SCR1E }, { t: 0.5, p: {} }, { t: 0.72, p: SCR2 }, { t: 0.9, p: SCR2 }, { t: 1, p: {} }], pin: lockFeet, props: [] };
+  // test obawy (Fairbank): leżenie tyłem, odwiedzenie 90°, łokieć 90°, rotacja zewnętrzna
+  const FB = (er) => ({ ...SU, 'shZ.r': 88, 'forearm.r': 90, 'shY.r': -er });
+  L.fairbank = { frames: hold(FB(0), FB(85), 0.45, 0.75), pin: SUPINE, props: ['couch'],
+    arrows: [{ pt: 'distForearm.r', dirB: [-1, 0, 0], from: 0.05, to: 0.45 }], marks: [{ pt: 'greaterTub.r', from: 0.45, to: 0.78 }] };
+  // --- kręgosłup i tułów ---
+  const SLR = (h) => ({ ...SU, 'thigh.r': h, 'foot.r': h });
+  L.slr = { frames: hold(SLR(0), SLR(70), 0.5, 0.75), pin: SUPINE, props: ['couch'],
+    arrows: [{ pt: 'heelBack.r', dirB: [0, 0, 1], from: 0.05, to: 0.5 }, { pt: 'knee.r', dirB: [0, 0, -1], color: STAB, from: 0.05, to: 0.75 }], marks: [{ pt: 'thighBack.r', from: 0.3, to: 0.75 }, { pt: 'calf.r', from: 0.4, to: 0.75 }] };
+  L.bragard = { frames: [{ t: 0, p: SLR(0) }, { t: 0.3, p: SLR(65) }, { t: 0.45, p: SLR(55) }, { t: 0.6, p: { ...SLR(55), 'foot.r': 55 + 22 } }, { t: 0.8, p: { ...SLR(55), 'foot.r': 55 + 22 } }, { t: 1, p: SLR(0) }], pin: SUPINE, props: ['couch'],
+    arrows: [{ pt: 'toe.r', dirB: [0, 1, 0], from: 0.45, to: 0.8 }], marks: [{ pt: 'calf.r', from: 0.6, to: 0.82 }, { pt: 'thighBack.r', from: 0.25, to: 0.32 }] };
+  // Slump: siad na brzegu kozetki, ręce za plecami
+  const SL = { pelvis: 0, trunk: 0, 'thigh.l': 90, 'thigh.r': 90, 'shank.l': 0, 'shank.r': 0, 'foot.l': -10, 'foot.r': -10, 'arm.l': -25, 'arm.r': -25, 'shY.l': 60, 'shY.r': 60, 'forearm.l': 45, 'forearm.r': 45 };
+  const SL1 = { ...SL, pelvis: -12, trunk: 32 }, SL2 = { ...SL1, neck: 40 }, SL3 = { ...SL2, 'shank.r': 80, 'foot.r': 80 }, SL4 = { ...SL3, 'foot.r': 100 }, SL5 = { ...SL4, neck: 0 };
+  L.slump = { frames: [{ t: 0, p: SL }, { t: 0.14, p: SL1 }, { t: 0.28, p: SL2 }, { t: 0.45, p: SL3 }, { t: 0.58, p: SL4 }, { t: 0.74, p: SL5 }, { t: 0.86, p: SL5 }, { t: 1, p: SL }], pin: { mode: 'floor', pts: ['ischium.l', 'ischium.r', 'thighBack.l', 'thighBack.r'], target: COUCH_TOP }, props: ['couchSit'],
+    arrows: [{ pt: 't8', dir: [0, -0.6, 0.8], color: STAB, from: 0.1, to: 0.9 }, { pt: 'vertex', dirB: [0, -0.3, 1], from: 0.16, to: 0.7 }], marks: [{ pt: 'thighBack.r', from: 0.5, to: 0.72 }, { pt: 'calf.r', from: 0.52, to: 0.72 }] };
+  // FABER (Patrick): stopa na przeciwległym kolanie, docisk kolana ku kozetce
+  const FA = (d) => ({ ...SU, 'thigh.r': 50, 'shank.r': -45, 'hipZ.r': 30 + 22 * d, 'hipY.r': -35 - 15 * d, 'foot.r': -45 });
+  L.faber = { frames: hold(FA(0), FA(1), 0.4, 0.75), pin: SUPINE, props: ['couch'],
+    arrows: [{ pt: 'knee.r', dirB: [1, 0, 0], from: 0.2, to: 0.75 }, { pt: 'asis.l', dir: [0, -1, 0], color: STAB, from: 0.1, to: 0.8 }], marks: [{ pt: 'hipJ.r', from: 0.4, to: 0.78 }, { pt: 'sacrum', from: 0.4, to: 0.78 }] };
+  L.faber_error = { frames: hold(FA(0), { ...FA(0), 'hipZ.r': 34, 'hipY.r': -38 }, 0.4, 0.75), pin: SUPINE, props: ['couch'], marks: [{ pt: 'hipJ.r', from: 0.4, to: 0.78 }] };
+  const FD = (d) => ({ ...SU, 'thigh.r': 92, 'shank.r': 2, 'foot.r': 2, 'hipZ.r': -18 * d, 'hipY.r': 32 * d });
+  L.faddir = { frames: [{ t: 0, p: SU }, { t: 0.25, p: FD(0) }, { t: 0.5, p: FD(1) }, { t: 0.75, p: FD(1) }, { t: 1, p: SU }], pin: SUPINE, props: ['couch'],
+    arrows: [{ pt: 'knee.r', dirB: [0, 0, 1], from: 0.05, to: 0.25 }, { pt: 'ankleMed.r', dirB: [-1, 0, 0], from: 0.28, to: 0.5 }], marks: [{ pt: 'hipJ.r', from: 0.48, to: 0.78 }] };
+  // palce–podłoga
+  const FF = (d) => ({ pelvis: 75 * d, trunk: 128 * d, neck: 15 * d, 'arm.l': 0, 'arm.r': 0 });
+  L.fingerfloor = { frames: hold(FF(0), FF(1), 0.45, 0.75), pin: lockFeet, props: ['mat'] };
+  L.fingerfloor_error = { frames: hold(FF(0), { pelvis: 35, trunk: 80, neck: 10 }, 0.45, 0.75), pin: lockFeet, props: ['mat'], marks: [{ pt: 'thighBack.r', from: 0.4, to: 0.75 }] };
+  // trójfazowy test Mennella: leżenie przodem, bierny wyprost prawego biodra, trzy miejsca stabilizacji
+  const MN = { ...PR, 'arm.l': 0, 'arm.r': 0 }, MX = { ...MN, 'thigh.r': -18, 'hipY.r': 8 };
+  L.mennell = { frames: [{ t: 0, p: MN }, { t: 0.15, p: MX }, { t: 0.28, p: MN }, { t: 0.48, p: MX }, { t: 0.61, p: MN }, { t: 0.81, p: MX }, { t: 1, p: MN }], pin: { mode: 'floor', pts: [...PRONE_PTS, 'toeTip.l', 'toeTip.r'], target: COUCH_TOP }, props: ['couch'],
+    arrows: [{ pt: 'ischium.r', dir: [0, -0.7, 0.7], color: STAB, from: 0, to: 0.3 }, { pt: 's2', dir: [0, -0.7, 0.7], color: STAB, from: 0.33, to: 0.63 }, { pt: 't12', dir: [0, -0.7, 0.7], color: STAB, from: 0.66, to: 1 },
+      { pt: 'kneeLow.r', dir: [0, 1, 0], from: 0.03, to: 0.15 }, { pt: 'kneeLow.r', dir: [0, 1, 0], from: 0.36, to: 0.48 }, { pt: 'kneeLow.r', dir: [0, 1, 0], from: 0.69, to: 0.81 }],
+    marks: [{ pt: 'hipJ.r', from: 0.1, to: 0.28 }, { pt: 'sacrum', from: 0.43, to: 0.61 }, { pt: 't12', from: 0.76, to: 0.95 }] };
+  // ślizg kończyn górnych przy ścianie w siadzie
+  const WA0 = { pelvis: -5, trunk: -3, 'thigh.l': 130, 'thigh.r': 130, 'shank.l': 50, 'shank.r': 50, 'foot.l': 20, 'foot.r': 20 };
+  const WAW = (d) => { const o = { ...WA0 }; for (const sd of ['l', 'r']) Object.assign(o, { [`shZ.${sd}`]: 85 + 75 * d, [`shY.${sd}`]: -90 * (1 - d), [`forearm.${sd}`]: 90 * (1 - d) }); return o; };
+  const WAPIN = { mode: 'support', axis: 'x', pts: ['ischium.l', 'ischium.r'], ptsB: ['heel.l', 'heel.r'], target: 0 };
+  L.wallangel = { frames: [{ t: 0, p: WAW(0) }, { t: 0.35, p: WAW(1) }, { t: 0.5, p: WAW(1) }, { t: 0.85, p: WAW(0) }, { t: 1, p: WAW(0) }], pin: WAPIN, props: ['wallBack'] };
+  const WAE = (d) => ({ ...WAW(d * 0.7), 'arm.l': 25, 'arm.r': 25, trunk: -10, neck: -10 });
+  L.wallangel_error = { frames: [{ t: 0, p: WAE(0) }, { t: 0.35, p: WAE(1) }, { t: 0.5, p: WAE(1) }, { t: 0.85, p: WAE(0) }, { t: 1, p: WAE(0) }], pin: WAPIN, props: ['wallBack'] };
+  // --- kończyna dolna ---
+  const LA = (t) => ({ ...SU, 'thigh.r': 22, 'shank.r': -3, 'foot.r': -3, 'tib.r': t });
+  L.lachman = { frames: [{ t: 0, p: SU }, { t: 0.25, p: LA(0) }, { t: 0.45, p: LA(0.006) }, { t: 0.6, p: LA(0) }, { t: 0.75, p: LA(0.006) }, { t: 0.88, p: LA(0) }, { t: 1, p: SU }], pin: SUPINE, props: ['couch'],
+    arrows: [{ pt: 'shin.r', dirB: [0, 0, 1], from: 0.3, to: 0.85 }, { pt: 'thighFront.r', dirB: [0, 0, -1], color: STAB, from: 0.25, to: 0.88 }] };
+  L.lachman_error = { ...L.lachman, frames: [{ t: 0, p: SU }, { t: 0.25, p: LA(0) }, { t: 0.45, p: LA(0.02) }, { t: 0.6, p: LA(0) }, { t: 0.75, p: LA(0.02) }, { t: 0.88, p: LA(0) }, { t: 1, p: SU }] };
+  const DR = (t) => ({ ...SU, 'thigh.r': 42, 'shank.r': -54, 'foot.r': -90, 'tib.r': t });
+  const drawer = (amp) => [{ t: 0, p: SU }, { t: 0.25, p: DR(0) }, { t: 0.45, p: DR(amp) }, { t: 0.6, p: DR(0) }, { t: 0.75, p: DR(amp) }, { t: 0.88, p: DR(0) }, { t: 1, p: SU }];
+  L.drawer_ant = { frames: drawer(0.005), pin: SUPINE, props: ['couch'], arrows: [{ pt: 'shin.r', dirB: [0, 0, 1], from: 0.3, to: 0.85 }, { pt: 'toe.r', dir: [0, -1, 0], color: STAB, from: 0.25, to: 0.88 }] };
+  L.drawer_ant_error = { ...L.drawer_ant, frames: drawer(0.018) };
+  L.drawer_post = { frames: drawer(-0.004), pin: SUPINE, props: ['couch'], arrows: [{ pt: 'shin.r', dirB: [0, 0, -1], from: 0.3, to: 0.85, gap: 0.005 }, { pt: 'toe.r', dir: [0, -1, 0], color: STAB, from: 0.25, to: 0.88 }] };
+  L.drawer_post_error = { ...L.drawer_post, frames: drawer(-0.016) };
+  const VV = (z) => ({ ...SU, 'thigh.r': 18, 'shank.r': -6, 'foot.r': -6, 'kneeZ.r': z });
+  const vv = (a) => [{ t: 0, p: SU }, { t: 0.15, p: VV(0) }, { t: 0.32, p: VV(-a) }, { t: 0.45, p: VV(0) }, { t: 0.62, p: VV(a) }, { t: 0.75, p: VV(0) }, { t: 1, p: SU }];
+  L.valgus = { frames: vv(2.5), pin: SUPINE, props: ['couch'],
+    arrows: [{ pt: 'kneeLat.r', dirB: [1, 0, 0], color: STAB, from: 0.15, to: 0.45 }, { pt: 'ankleMed.r', dirB: [-1, 0, 0], from: 0.15, to: 0.45 }, { pt: 'kneeMed.r', dirB: [-1, 0, 0], color: STAB, from: 0.46, to: 0.75 }, { pt: 'ankleMed.r', dirB: [1, 0, 0], from: 0.46, to: 0.75, gap: 0.06 }],
+    marks: [{ pt: 'kneeMed.r', from: 0.28, to: 0.45 }, { pt: 'kneeLat.r', from: 0.58, to: 0.75 }] };
+  L.valgus_error = { ...L.valgus, frames: vv(9) };
+  const MC = (flex, rot, z) => ({ ...SU, 'thigh.r': 95, 'shank.r': 95 - flex, 'foot.r': 95 - flex, 'kneeY.r': rot, 'kneeZ.r': z });
+  L.mcmurray = { frames: [{ t: 0, p: SU }, { t: 0.15, p: MC(135, 0, 0) }, { t: 0.25, p: MC(135, -25, -4) }, { t: 0.45, p: MC(90, -25, -4) }, { t: 0.55, p: MC(135, 0, 0) }, { t: 0.65, p: MC(135, 25, 4) }, { t: 0.85, p: MC(90, 25, 4) }, { t: 1, p: SU }], pin: SUPINE, props: ['couch'],
+    arrows: [{ pt: 'jointMed.r', dir: [0, 1, 0], color: STAB, from: 0.15, to: 0.9, len: 0.1 }, { pt: 'heelBack.r', dirB: [-1, 0, 0], from: 0.2, to: 0.45 }, { pt: 'heelBack.r', dirB: [1, 0, 0], from: 0.6, to: 0.85 }],
+    marks: [{ pt: 'jointMed.r', from: 0.35, to: 0.47 }, { pt: 'kneeLat.r', from: 0.75, to: 0.87 }] };
+  const AP = (rot) => ({ ...PR, 'arm.l': 0, 'arm.r': 0, 'shank.r': -90, 'foot.r': -90, 'kneeY.r': rot });
+  L.apley_knee = { frames: [{ t: 0, p: PR }, { t: 0.12, p: AP(0) }, { t: 0.25, p: AP(25) }, { t: 0.35, p: AP(-25) }, { t: 0.45, p: AP(0) }, { t: 0.6, p: AP(25) }, { t: 0.72, p: AP(-25) }, { t: 0.85, p: AP(0) }, { t: 1, p: PR }], pin: PRONE_PIN, props: ['couch'],
+    arrows: [{ pt: 'heelBack.r', dirB: [0, 1, 0], from: 0.12, to: 0.47 }, { pt: 'ankleMed.r', dirB: [0, -1, 0], from: 0.5, to: 0.86, color: '#c084fc' }, { pt: 'thighBack.r', dir: [0, -1, 0], color: STAB, from: 0.1, to: 0.9 }],
+    marks: [{ pt: 'jointMed.r', from: 0.2, to: 0.45 }] };
+  // Ober: leżenie na lewym boku, prawa kończyna odwiedziona i wyprostowana, potem opada do przywiedzenia
+  const OB = (abd) => ({ rz: -90, 'thigh.l': 45, 'shank.l': -45, 'arm.l': 90, 'forearm.l': 150, 'arm.r': 0, 'thigh.r': -10, 'hipZ.r': abd });
+  const OBPIN = { mode: 'floor', pts: ['trochanter.l', 'humerusLat.l', 'kneeLat.l'], target: COUCH_TOP };
+  L.ober = { frames: [{ t: 0, p: OB(0) }, { t: 0.3, p: OB(32) }, { t: 0.4, p: OB(32) }, { t: 0.7, p: OB(-12) }, { t: 0.85, p: OB(-12) }, { t: 1, p: OB(0) }], pin: OBPIN, props: ['couch'],
+    arrows: [{ pt: 'ankleMed.r', dirB: [1, 0, 0], from: 0.05, to: 0.3 }, { pt: 'asis.r', dir: [0, -1, 0], color: STAB, from: 0.05, to: 0.9 }] };
+  L.ober_error = { ...L.ober, frames: [{ t: 0, p: OB(0) }, { t: 0.3, p: OB(32) }, { t: 0.4, p: OB(32) }, { t: 0.7, p: OB(18) }, { t: 0.85, p: OB(18) }, { t: 1, p: OB(0) }], marks: [{ pt: 'kneeLat.r', from: 0.6, to: 0.9 }] };
+  // Thomas: przyciągnięcie prawego kolana do klatki, obserwacja lewej kończyny
+  const TH = (d) => ({ ...SU, 'thigh.r': 125 * d, 'shank.r': 125 * d - 135 * d, 'foot.r': -10 * d, 'arm.l': 32 * d, 'arm.r': 32 * d, 'forearm.l': 52 * d, 'forearm.r': 52 * d, 'shH.l': 45 * d, 'shH.r': 22 * d });
+  L.thomas = { frames: hold(TH(0), TH(1), 0.4, 0.8), pin: SUPINE, props: ['couch'] };
+  L.thomas_error = { frames: hold(TH(0), { ...TH(1), 'thigh.l': 18, 'shank.l': 10, 'foot.l': 10 }, 0.4, 0.8), pin: SUPINE, props: ['couch'], marks: [{ pt: 'hipJ.l', from: 0.4, to: 0.82 }] };
+  // Kendall: leżenie tyłem na brzegu kozetki, podudzia zwisają; obserwacja lewej kończyny
+  const KD = { ...SU, 'shank.l': -90, 'shank.r': -90, 'foot.l': -90, 'foot.r': -90 };
+  const KD1 = { ...KD, 'thigh.r': 125, 'shank.r': -10, 'foot.r': -10, 'arm.l': 32, 'arm.r': 32, 'forearm.l': 52, 'forearm.r': 52, 'shH.l': 45, 'shH.r': 22 };
+  const KPIN = { mode: 'floor', pts: ['occiput', 'scap.l', 'scap.r', 'sacrum', 'thighBack.l'], target: COUCH_TOP };
+  L.kendall = { frames: hold(KD, KD1, 0.4, 0.8), pin: KPIN, props: ['couchKnee'] };
+  L.kendall_error = { frames: hold(KD, { ...KD1, 'thigh.l': 10, 'shank.l': -45, 'foot.l': -45 }, 0.4, 0.8), pin: KPIN, props: ['couchKnee'], marks: [{ pt: 'thighFront.l', from: 0.4, to: 0.82 }] };
+  // rotacja wewnętrzna bioder w leżeniu przodem (kolana zgięte 90°, podudzia opadają na zewnątrz)
+  const IR = (r, l) => ({ ...PR, 'arm.l': 0, 'arm.r': 0, 'shank.l': -90, 'shank.r': -90, 'foot.l': -90, 'foot.r': -90, 'hipY.r': r, 'hipY.l': l });
+  L.hip_ir = { frames: hold(IR(0, 0), IR(38, 38), 0.45, 0.75), pin: PRONE_PIN, props: ['couch'], arrows: [{ pt: 'knee.r', dir: [0, -1, 0], color: STAB, from: 0.05, to: 0.9 }] };
+  L.hip_ir_error = { frames: hold(IR(0, 0), IR(14, 38), 0.45, 0.75), pin: PRONE_PIN, props: ['couch'], marks: [{ pt: 'hipJ.r', from: 0.45, to: 0.78 }] };
   return L;
 }
 
@@ -310,4 +468,4 @@ export function buildTest(kit, key) {
   if (!spec) throw new Error(`Nieznana animacja testu: ${key}`);
   return buildPose(kit, spec);
 }
-export const testProps = (B, key) => { const L = library(B)[key]; return { list: L?.props ?? [], at: L?.propsAt ?? 0 }; };
+export const testProps = (B, key) => { const L = library(B)[key]; return { list: L?.props ?? [], at: L?.propsAt ?? 0, fx: { arrows: L?.arrows ?? [], marks: L?.marks ?? [] } }; };

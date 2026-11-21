@@ -677,10 +677,12 @@ $('#hud').addEventListener('click', (e) => { const b = e.target.closest('button'
     }
     if (rp.has('debug')) {
       Object.assign(window, { __motion: motion, __model: model, __engine: engine, __view: view, __applyView: applyView });
-      const [{ createProps }, { testProps }] = await Promise.all([import('./props.js'), import('./poses.js')]);
+      const [{ createProps }, { testProps, library }] = await Promise.all([import('./props.js'), import('./poses.js')]);
       const pr = createProps(engine, motion, model);
-      window.__props = (key) => { const t = testProps(motion._body, key); pr.build(t.list, t.at); };
+      window.__props = (key) => { const t = testProps(motion._body, key); pr.build(t.list, t.at, t.fx); };
       window.__com = (on) => pr.updateCom(on);
+      // kontrola: punkty strzałek, znaczników i przypięć z biblioteki animacji istnieją w modelu
+      window.__ptCheck = () => { motion.setup({ rig: 'test:sts' }, 'r', []); const B = motion._body, out = []; for (const [k, a] of Object.entries(library(B))) { const pins = [].concat(a.pin ?? []); for (const n of [...(a.arrows ?? []), ...(a.marks ?? [])].map((x) => x.pt).concat(pins.flatMap((p) => [...(p.pts ?? []), ...(p.ptsB ?? [])]))) if (!B.pt[n]) out.push(`${k}: ${n}`); } motion.reset(); return [...new Set(out)]; };
     } // testy automatyczne
     const ctx = { engine, model, view, applyView, need, hint, panelBody, esc, card, examCards, noteCard, openNote, setMode, select, entDir, MUSCLES, NERVES, modeIs: (m) => mode === m, home };
     modes.settings = initSettings(ctx);

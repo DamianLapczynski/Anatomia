@@ -572,7 +572,7 @@ export default {
     src: 'McGill i in. 1999; McGill 2007.',
   },
   trendelenburg: {
-    pl: 'Test Trendelenburga', en: 'Trendelenburg Test', skrot: 'Trendelenburg', grp: 'sport',
+    pl: 'Test Trendelenburga', en: 'Trendelenburg Test', skrot: 'Trendelenburg', grp: 'sport', video: '0rcczDEWDqU',
     cel: 'Ocena czynności odwodzicieli biodra (m. pośladkowy średni i mały) kończyny podporowej.',
     dla: 'Ból biodra, zespół bólowy krętarza większego, choroba zwyrodnieniowa biodra, po endoprotezie, uszkodzenie n. pośladkowego górnego.',
     sprzet: 'Brak (ewentualnie oparcie o ścianę jednym palcem dla równowagi).',

@@ -90,12 +90,17 @@ const common = [
   ['ft-com', async (p) => { await p.click('#panelBody [data-ft=com]'); await p.waitForTimeout(1500); }],
   ['ft-blad', async (p) => { await p.click('#panelBody [data-ft=err]'); await p.waitForTimeout(2500); }],
   ['ft-sorensen', async (p) => { await p.click('#panelBody [data-ft=list]'); await p.click('#panelBody [data-ft-open=sorensen]'); await p.waitForTimeout(2500); }],
+  ['ft-kliniczny', async (p) => { await p.click('#panelBody [data-ft=list]'); await p.click('#panelBody [data-ft-open=lachman]'); await p.waitForTimeout(2000); }],
+  ['ft-kliniczny-dodatni', async (p) => { await p.click('#panelBody [data-ft=err]'); await p.waitForTimeout(2000); }],
+  ['ft-slump', async (p) => { await p.click('#panelBody [data-ft=list]'); await p.click('#panelBody [data-ft-open=slump]'); await p.waitForTimeout(2500); }],
   ['ft-szukaj', search('Timed Up and Go')],
+  ['ft-szukaj-kliniczny', search('McMurray')],
   ['klinika-quiz', async (p) => { await mode('clinic')(p); await p.click('#panelBody [data-ft=list]', { timeout: 15000 }); await p.click('#panelBody [data-ft=back]', { timeout: 15000 }); await p.click('#panelBody [data-act=quiz]'); }],
   ['klinika-odp', async (p) => { await p.click('#panelBody [data-opt="0"]'); }],
   ['quiz', mode('quiz')],
   ['egzamin', async (p) => { await mode('quiz')(p); await p.click('#panelBody [data-act=exam]'); await p.click('#panelBody [data-ex-preset=kd]'); await p.click('#panelBody [data-ex-count="10"]'); await p.click('#panelBody [data-ex=start]'); }],
   ['egzamin-pytania', async (p) => { for (let i = 0; i < 10; i++) { await p.click('#panelBody [data-exopt="0"]'); await p.waitForTimeout(150); } }],
+  ['egzamin-testy', async (p) => { await mode('atlas')(p); await mode('quiz')(p); await p.click('#panelBody [data-act=exam]'); await p.click('#panelBody [data-ex-preset=func]'); await p.click('#panelBody [data-ex-count="10"]'); await p.click('#panelBody [data-ex=start]'); for (let i = 0; i < 10; i++) { await p.click('#panelBody [data-exopt="0"]', { timeout: 5000 }); await p.waitForTimeout(150); } }],
   ['powtorki', mode('srs')],
 ];
 // SMOKE_ONLY=regex – tylko wybrane kroki (szybkie sprawdzenie jednego obszaru)

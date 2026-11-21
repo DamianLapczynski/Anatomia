@@ -1,5 +1,6 @@
 // Powtórki rozłożone w czasie (algorytm SM-2) – fiszki generowane z bazy wiedzy, postęp w src/store.js (lokalnie + chmura).
 import FT from './data/func_tests.js';
+import CT from './data/clinical_tests.js';
 import { REGIONS } from './model.js';
 import { store } from './store.js';
 
@@ -38,6 +39,10 @@ export function initSrs(ctx) {
     CARDS.push({ id: `${k}:ft`, deck: 'ft', kind: 'functest', key: k, q: `${t.pl} (${t.skrot}) – co mierzy i jak go wykonać?`, a: () => `<p>${esc(t.cel)}</p><ol class="ft-steps" style="margin-top:6px">${t.wykonanie.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>` });
     CARDS.push({ id: `${k}:norm`, deck: 'ft', kind: 'functest', key: k, q: `${t.pl} (${t.skrot}) – jak ocenić wynik? Normy i punkty odcięcia?`, a: () => `<p>${esc(t.pomiar)}</p><ul style="margin-top:6px">${t.normy.map(([g, v]) => `<li>${esc(g)}: <b>${esc(v)}</b></li>`).join('')}</ul>` });
   }
+  for (const [k, t] of Object.entries(CT)) {
+    CARDS.push({ id: `${k}:ct`, deck: 'ft', kind: 'functest', key: k, q: `${t.pl} – co ocenia i jak go wykonać?`, a: () => `<p>${esc(t.cel)}</p><p style="margin-top:6px"><b>Pozycja:</b> ${esc(t.pozycja)}</p><ol class="ft-steps" style="margin-top:6px">${t.wykonanie.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>` });
+    CARDS.push({ id: `${k}:ctplus`, deck: 'ft', kind: 'functest', key: k, q: `${t.pl} – wynik dodatni? Co sugeruje i dlaczego?`, a: () => `<p><b>Wynik dodatni:</b> ${esc(t.dodatni)}</p><p style="margin-top:6px"><b>Sugeruje:</b> ${esc(t.sugeruje)}</p><p style="margin-top:6px">💡 ${esc(t.dlaczego)}</p>` });
+  }
   const byId = new Map(CARDS.map((c) => [c.id, c]));
   const active = () => CARDS.filter((c) => st.decks[c.deck]);
   const dueList = () => { const now = Date.now(); return active().filter((c) => cards[c.id] && cards[c.id].due <= now).sort((a, b) => cards[a.id].due - cards[b.id].due); };
@@ -67,7 +72,7 @@ export function initSrs(ctx) {
     if (!queue.length) { ctx.hint('Sesja zakończona 🎉', 'ok'); return homeView(); }
     cur = queue.shift(); shown = false;
     const ent = cur.kind === 'muscle' ? model.muscleEntity(cur.key, st.side) : cur.kind === 'functest'
-      ? { type: 'functest', key: cur.key, ids: FT[cur.key].muscles.flatMap((k) => model.muscleEntity(k, st.side).ids), att: [], bones: [], nerves: [], nervePath: [] }
+      ? { type: 'functest', key: cur.key, ids: (FT[cur.key] ?? CT[cur.key]).muscles.flatMap((k) => model.muscleEntity(k, st.side).ids), att: [], bones: [], nerves: [], nervePath: [] }
       : model.nerveEntity(cur.key, st.side);
     cur.ent = ent;
     await ctx.need('bones', 'muscles', 'nerves', 'attachments');

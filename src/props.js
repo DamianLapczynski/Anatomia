@@ -23,9 +23,11 @@ export function createProps(engine, motion, model) {
   const add = (o, x, y, z) => { o.position.set(x, y, z); group.add(o); return o; };
 
   /** Rozmieszcza rekwizyty dla bieżącej animacji. at – postęp (k), w którym liczona jest poza odniesienia. */
-  function build(list, at = 0) {
+  function build(list, at = 0, fx = {}) {
     clear();
-    if (!list?.length || !motion.active) return;
+    if (!motion.active) return;
+    effects(fx);
+    if (!list?.length) { update(); return; }
     const keep = motion.active.k ?? 0;
     motion.set(at);
     const b = B();
@@ -49,6 +51,26 @@ export function createProps(engine, motion, model) {
         const frame = box(alongZ ? 0.56 : len - 0.06, 0.06, alongZ ? len - 0.06 : 0.56, C.metal); frame.position.y = COUCH_TOP - 0.12; g.add(frame);
         for (const sx of [-1, 1]) for (const sz of [-1, 1]) { const leg = cyl(0.02, COUCH_TOP - 0.15, C.metal); leg.position.set(alongZ ? sx * 0.25 : sx * (len / 2 - 0.08), (COUCH_TOP - 0.15) / 2, alongZ ? sz * (len / 2 - 0.08) : sz * 0.25); g.add(leg); }
         add(g, alongZ ? cx : c0, 0, alongZ ? c0 : cz);
+      } else if (name === 'couchSit' || name === 'couchKnee') {
+        // couchSit – siad na brzegu kozetki (kozetka w poprzek, pod udami, podudzia zwisają);
+        // couchKnee – leżenie tyłem na brzegu (test Kendall): kozetka kończy się tuż nad dołem podkolanowym
+        const g = new THREE.Group(), knee = P('knee.l').add(P('knee.r')).multiplyScalar(0.5);
+        if (name === 'couchSit') {
+          const isch = P('ischium.l').add(P('ischium.r')).multiplyScalar(0.5), front = knee.z - 0.1, len = 0.62;
+          const top = box(1.95, 0.09, len, C.pad); top.position.set(0, COUCH_TOP - 0.045, 0); g.add(top);
+          for (const sx of [-1, 1]) for (const sz of [-1, 1]) { const leg = cyl(0.02, COUCH_TOP - 0.15, C.metal); leg.position.set(sx * 0.9, (COUCH_TOP - 0.15) / 2, sz * 0.25); g.add(leg); }
+          add(g, isch.x, 0, front - len / 2);
+        } else {
+          const head = P('vertex'), along = Math.abs(knee.z - head.z) > Math.abs(knee.x - head.x), a = along ? knee.z : knee.x, h = along ? head.z : head.x;
+          const end = a + Math.sign(h - a) * 0.07, start = h - Math.sign(h - a) * 0.15, len = Math.abs(start - end), c0 = (start + end) / 2;
+          const top = box(along ? 0.62 : len, 0.09, along ? len : 0.62, C.pad); top.position.y = COUCH_TOP - 0.045; g.add(top);
+          for (const e of [-1, 1]) for (const w of [-1, 1]) { const leg = cyl(0.02, COUCH_TOP - 0.15, C.metal); leg.position.set(along ? w * 0.25 : e * (len / 2 - 0.08), (COUCH_TOP - 0.15) / 2, along ? e * (len / 2 - 0.08) : w * 0.25); g.add(leg); }
+          add(g, along ? cx : c0, 0, along ? c0 : cz);
+        }
+      } else if (name === 'wallBack') {
+        // ściana za plecami (siad przy ścianie) – styka się z łopatkami i kością krzyżową
+        const z = Math.min(P('scap.l').z, P('scap.r').z, P('sacrum').z) - 0.015;
+        add(box(1.6, 1.6, 0.02, C.wall), cx, 0.8, z - 0.01);
       } else if (name === 'mat') {
         const alongZ = bb.max.z - bb.min.z > bb.max.x - bb.min.x;
         add(box(alongZ ? 0.8 : Math.max(1.9, bb.max.x - bb.min.x + 0.3), MAT_TOP, alongZ ? Math.max(1.9, bb.max.z - bb.min.z + 0.3) : 0.8, C.mat), cx, MAT_TOP / 2, cz);
@@ -98,6 +120,37 @@ export function createProps(engine, motion, model) {
     update();
   }
   function update() { for (const f of dyn) f(); }
+
+  // strzałki siły badającego (kierunek oporu / ruchu biernego / stabilizacji) i znaczniki miejsca bólu przy wyniku dodatnim.
+  // arrow: { pt, dir: [x,y,z] w układzie świata (np. [0,-1,0] – w dół) albo dirB – w układzie kości (obraca się z nią),
+  //          from, to – przedział postępu animacji, color }; mark: { pt, from, to }
+  function effects({ arrows = [], marks = [] } = {}) {
+    const k = () => motion.active?.k ?? 0;
+    const inWin = (a) => { const t = k(); return t >= (a.from ?? 0) && t <= (a.to ?? 1); };
+    for (const a of arrows) {
+      const col = a.color ?? '#ffb020', len = a.len ?? 0.16;
+      const ar = new THREE.ArrowHelper(V(0, 1, 0), V(0, 0, 0), len, col, len * 0.32, len * 0.2);
+      ar.traverse((o) => { if (o.material) { o.material.depthTest = false; o.material.transparent = true; } o.renderOrder = 12; });
+      ar.line.material.linewidth = 3; group.add(ar);
+      dyn.push(() => {
+        const b = B(), q = b.pt[a.pt]; if (!q) { ar.visible = false; return; }
+        ar.visible = inWin(a); if (!ar.visible) return;
+        const at = motion.pointAt(q.p, q.id);
+        let d;
+        if (a.dirB) { const p2 = q.p.clone().add(V(...a.dirB).multiplyScalar(0.1)); d = motion.pointAt(p2, q.id).sub(at).normalize(); } else d = V(...a.dir).normalize();
+        ar.setDirection(d); ar.position.copy(at).addScaledVector(d, -(len + (a.gap ?? 0.03)));
+      });
+    }
+    for (const m of marks) {
+      const s = new THREE.Mesh(new THREE.SphereGeometry(0.018, 16, 12), new THREE.MeshBasicMaterial({ color: '#ff2d55', transparent: true, depthTest: false }));
+      s.renderOrder = 12; group.add(s);
+      dyn.push(() => {
+        const b = B(), q = b.pt[m.pt]; s.visible = !!q && inWin(m); if (!s.visible) return;
+        s.position.copy(motion.pointAt(q.p, q.id));
+        const ph = (performance.now() / 600) % 1; s.scale.setScalar(1 + 0.6 * ph); s.material.opacity = 0.95 - 0.6 * ph;
+      });
+    }
+  }
 
   // ---- środek ciężkości (COM) i podstawa podparcia (BOS) ----
   const com = new THREE.Group(); com.visible = false; engine.overlay.add(com);
