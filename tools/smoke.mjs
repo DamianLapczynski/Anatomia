@@ -43,7 +43,12 @@ const mode = (m) => async (p) => { await p.click(`#modes [data-mode=${m}]`); };
 const search = (text) => async (p) => {
   await p.fill('#q', text); await p.waitForSelector('#results .r', { timeout: 5000 }); await p.click('#results .r');
 };
-const clickText = (sel, text) => async (p) => { await p.locator(sel, { hasText: text }).first().click(); };
+// element może leżeć w zwiniętej sekcji (Nauka) – rozwijamy ją jak użytkownik, potem klikamy
+const clickText = (sel, text) => async (p) => {
+  const l = p.locator(sel, { hasText: text }).first();
+  await l.evaluate((el) => { const d = el.closest('details'); if (d && !d.open) d.open = true; });
+  await l.click();
+};
 
 const common = [
   ['atlas', mode('atlas')],
