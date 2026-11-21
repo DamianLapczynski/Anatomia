@@ -80,7 +80,7 @@ export function initKeys(ctx) {
       left.querySelectorAll('[data-layer]').forEach((el, i) => el.setAttribute('data-kh', String((i + 1) % 10)));
       put('[data-act=iso]', 'I'); put('[data-act=hide]', 'H'); put('[data-act=center]', 'C'); put('[data-act=side]', 'S'); put('[data-act=trace]', 'T');
     } else if (m === 'quiz') {
-      panelBody.querySelectorAll('[data-opt]').forEach((el) => el.setAttribute('data-kh', String(+el.dataset.opt + 1)));
+      panelBody.querySelectorAll('[data-opt], [data-exopt]').forEach((el, i) => el.setAttribute('data-kh', String(i + 1)));
       panelBody.querySelectorAll('[data-k=type] button').forEach((el, i) => el.setAttribute('data-kh', String(i + 1)));
       put('[data-act=start]', '⏎'); put('[data-act=next]', '⏎'); put('[data-act=skip]', '␣'); put('[data-act=show]', 'A'); put('.acts [data-act=menu]', 'Esc');
     } else if (m === 'srs') {
@@ -158,7 +158,7 @@ export function initKeys(ctx) {
 
   const quiz = (e, k) => {
     if (e.repeat) return false;
-    const opts = [...panelBody.querySelectorAll('[data-opt]')];
+    const opts = [...panelBody.querySelectorAll('[data-opt], [data-exopt]')];
     if (/^[1-9]$/.test(k)) {
       if (opts.length) { const o = opts[+k - 1]; if (o && !o.disabled) { o.click(); return true; } return true; }
       const types = panelBody.querySelectorAll('[data-k=type] button'); if (types[+k - 1]) { types[+k - 1].click(); return true; }

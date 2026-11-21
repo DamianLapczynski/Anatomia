@@ -72,7 +72,7 @@ export function initSettings(ctx) {
   function render() {
     const p = prefs(), srs = store.get('settings', 'srs') ?? {}, perDay = srs.perDay ?? 15;
     const notes = Object.entries(store.all('notes')).sort(([, a], [, b]) => (b.t ?? 0) - (a.t ?? 0));
-    const counts = { srs: Object.keys(store.all('srs')).length, quiz: Object.values(store.all('quiz')).reduce((a, r) => a + (r.ok ?? 0) + (r.bad ?? 0), 0), learn: Object.keys(store.all('learn')).length };
+    const counts = { srs: Object.keys(store.all('srs')).length, quiz: Object.values(store.all('quiz')).reduce((a, r) => a + (r.ok ?? 0) + (r.bad ?? 0), 0), learn: Object.keys(store.all('learn')).filter((k) => !k.startsWith('exam~')).length };
     root.innerHTML = `<div class="box" role="dialog" aria-label="Ustawienia">
       <div class="head"><h3>Ustawienia</h3><button data-close aria-label="Zamknij">✕</button></div>
       <section><h4>Konto i baza danych</h4>${acct.html()}</section>

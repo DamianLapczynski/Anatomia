@@ -75,6 +75,8 @@ const common = [
   ['klinika-quiz', async (p) => { await p.click('#panelBody [data-act=home]'); await p.click('#panelBody [data-act=quiz]'); }],
   ['klinika-odp', async (p) => { await p.click('#panelBody [data-opt="0"]'); }],
   ['quiz', mode('quiz')],
+  ['egzamin', async (p) => { await mode('quiz')(p); await p.click('#panelBody [data-act=exam]'); await p.click('#panelBody [data-ex-preset=kd]'); await p.click('#panelBody [data-ex-count="10"]'); await p.click('#panelBody [data-ex=start]'); }],
+  ['egzamin-pytania', async (p) => { for (let i = 0; i < 10; i++) { await p.click('#panelBody [data-exopt="0"]'); await p.waitForTimeout(150); } }],
   ['powtorki', mode('srs')],
 ];
 const steps = [...common];

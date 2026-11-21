@@ -1,13 +1,14 @@
 // Quiz na modelu 3D: wskaż strukturę, rozpoznaj podświetloną, pytania o fakty.
 import { polishName } from './data/names.js';
-import { REGIONS } from './model.js';
+import { REGIONS, JOINTS } from './model.js';
+import { initExam } from './exam.js';
 import { store } from './store.js';
 import { prefs } from './settings.js';
 
 const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const SYS = [['muscles', 'Mięśnie'], ['bones', 'Kości'], ['nerves', 'Nerwy'], ['arteries', 'Tętnice']];
 const TYPES = [['point', 'Wskaż na modelu'], ['name', 'Rozpoznaj strukturę'], ['facts', 'Fakty o mięśniach']];
-const QNAME = { point: 'wskaż', name: 'rozpoznaj', 'facts.n': 'unerwienie', 'facts.i': 'przyczep końcowy', 'facts.o': 'przyczep początkowy', 'facts.f': 'czynność', clinic: 'przypadki kliniczne' };
+const QNAME = { point: 'wskaż', name: 'rozpoznaj', 'facts.n': 'unerwienie', 'facts.i': 'przyczep końcowy', 'facts.o': 'przyczep początkowy', 'facts.f': 'czynność', clinic: 'przypadki kliniczne', 'exam.name': 'egzamin – rozpoznaj', 'exam.fact': 'egzamin – fakty', 'exam.nerveOf': 'egzamin – unerwienie', 'exam.nerve': 'egzamin – nerwy', 'exam.joint': 'egzamin – stawy' };
 const FACTS = [
   ['n', (m) => `Co unerwia: ${m.lat}?`], ['i', (m) => `Gdzie jest przyczep końcowy: ${m.lat}?`],
   ['o', (m) => `Gdzie jest przyczep początkowy: ${m.lat}?`], ['f', (m) => `Jaka jest główna czynność: ${m.lat}?`],
@@ -51,11 +52,11 @@ export function initQuiz(ctx) {
       ${S.type === 'point' && S.sys === 'muscles' && !S.scope ? `<h4>Warstwa mięśni</h4><div class="seg" data-k="deep"><button data-v="0" class="${!S.deep ? 'on' : ''}">Powierzchowne</button><button data-v="1" class="${S.deep ? 'on' : ''}">Głębokie</button></div>` : ''}
       <p class="en" style="margin-top:12px">Pula pytań: <b>${pool().length}</b></p>
       <div class="acts"><button class="primary" data-act="start" ${pool().length < minPool ? 'disabled' : ''}>Start</button><button data-act="zero">Wyzeruj wynik</button></div>
-      <div class="acts"><button data-act="stats">Statystyki i słabe punkty</button></div>
+      <div class="acts"><button data-act="stats">Statystyki i słabe punkty</button><button data-act="exam">Egzamin (na czas)</button></div>
       <p class="note">${prefs().quizToSrs ? 'Błędne odpowiedzi dotyczące mięśni trafiają od razu do Powtórek.' : 'Błędne odpowiedzi nie trafiają do Powtórek (zmienisz to w Ustawieniach).'} Każda odpowiedź zapisuje się w statystykach${ctx.cloudUser?.() ? ' (synchronizowanych z kontem)' : ''}.</p>`;
   }
   // ---- statystyki z całej historii odpowiedzi ----
-  const titleOf = (r) => (r.kind === 'muscle' ? MUSCLES[r.key]?.pl : r.kind === 'nerve' ? NERVES[r.key]?.pl : r.kind === 'clinic' ? `Klinika: ${r.key.startsWith('root~') ? `korzeń ${r.key.slice(5)}` : NERVES[r.key.slice(6)]?.pl ?? r.key}` : polishName(r.key) ?? r.key);
+  const titleOf = (r) => (r.kind === 'muscle' ? MUSCLES[r.key]?.pl : r.kind === 'nerve' ? NERVES[r.key]?.pl : r.kind === 'joint' ? JOINTS[r.key]?.pl : r.kind === 'clinic' ? `Klinika: ${r.key.startsWith('root~') ? `korzeń ${r.key.slice(5)}` : NERVES[r.key.slice(6)]?.pl ?? r.key}` : polishName(r.key) ?? r.key);
   function itemStats() { // łączy typy pytań: wynik na strukturę
     const by = new Map();
     for (const r of Object.values(store.all('quiz'))) {
@@ -195,6 +196,7 @@ export function initQuiz(ctx) {
       if (a === 'start' || a === 'next') next();
       else if (a === 'menu') menu();
       else if (a === 'stats') stats();
+      else if (a === 'exam') exam.menu();
       else if (a === 'weak') { const ks = weakList().filter((x) => x.kind === 'muscle').slice(0, 20).map((x) => x.key); api.scoped(ks, 'Słabe punkty'); }
       else if (a === 'zero') { S.ok = S.bad = S.streak = 0; menu(); }
       else if (a === 'unscope') { S.scope = null; menu(); }
@@ -206,7 +208,7 @@ export function initQuiz(ctx) {
   const api = {
     enter: menu,
     scoped(keys, label, lid = null) { S.scope = { keys, label, lid, ok: 0, n: 0, ids: new Set(keys.flatMap((k) => model.muscleEntity(k, S.side).ids)) }; S.sys = 'muscles'; if (S.type === 'point' && keys.length < 2) S.type = 'facts'; menu(); },
-    leave() { view.only = null; view.tints.clear(); view.iso = null; ctx.hint('', '', 1); },
+    leave() { exam.leave(); view.only = null; view.tints.clear(); view.iso = null; ctx.hint('', '', 1); },
     onPick(hit) {
       if (S.type !== 'point' || !S.cur || S.answered) return true;
       if (!hit) return true;
@@ -219,5 +221,7 @@ export function initQuiz(ctx) {
       return true;
     },
   };
+  ctx.quizMenu = menu;
+  const exam = initExam(ctx);
   return api;
 }
