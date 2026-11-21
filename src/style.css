@@ -277,12 +277,12 @@ input[type=range]{width:100%;padding:0;accent-color:var(--acc);background:transp
   color-scheme:dark;
 }
 /* rodzina noir – wspólne zasady; każdy styl podaje tylko --acc-hi / --acc-lo (metaliczny gradient) i --acc-edge */
-:root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald]) .lat{font-size:1.22em;color:var(--acc)}
-:root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald]) button.on,:root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald]) button.primary{background:linear-gradient(180deg,var(--acc-hi),var(--acc-lo));box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
-:root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald]) .seg button.on,:root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald]) #modes button.on{background:var(--seg-on);color:var(--acc);box-shadow:inset 0 0 0 .5px var(--acc-edge)}
-:root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald]) .themes button.on{background:transparent;box-shadow:none}
-:root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald]) .brand:before{background:linear-gradient(145deg,var(--acc-hi),var(--acc-lo))}
-:root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald]) h4,:root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald]) .card h5{font-weight:600}
+:root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald],[data-theme=wigilia]) .lat{font-size:1.22em;color:var(--acc)}
+:root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald],[data-theme=wigilia]) button.on,:root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald],[data-theme=wigilia]) button.primary{background:linear-gradient(180deg,var(--acc-hi),var(--acc-lo));box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+:root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald],[data-theme=wigilia]) .seg button.on,:root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald],[data-theme=wigilia]) #modes button.on{background:var(--seg-on);color:var(--acc);box-shadow:inset 0 0 0 .5px var(--acc-edge)}
+:root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald],[data-theme=wigilia]) .themes button.on{background:transparent;box-shadow:none}
+:root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald],[data-theme=wigilia]) .brand:before{background:linear-gradient(145deg,var(--acc-hi),var(--acc-lo))}
+:root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald],[data-theme=wigilia]) h4,:root:is([data-theme=noir],[data-theme=onyx],[data-theme=velvet],[data-theme=chiaro],[data-theme=emerald],[data-theme=wigilia]) .card h5{font-weight:600}
 
 /* ONYKS – czerń i platyna, zimne białe światło, stalowa kontra */
 :root[data-theme=onyx]{
@@ -468,3 +468,50 @@ body.kb #modes button[data-kh]::after{margin-left:2px}
 :is(button,.list .it,.chip,.link,.test,.layer,.mark,input,textarea,summary):focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .list .it:focus-visible,.layer:focus-visible{outline-offset:-2px}
 .sources summary{cursor:pointer;color:var(--acc);margin:6px 0}.sources ul{margin:6px 0 0 18px;padding:0;font-size:13px;line-height:1.5;color:var(--mut)}
+
+/* ==========================================================================
+   Zima / święta
+   ========================================================================== */
+/* WIGILIA – noc w jodłowym lesie: złoto świec, księżycowa poświata, śnieg */
+:root[data-theme=wigilia]{
+  --bg:#030b09;--surface:#0a1714;--surface2:#11211d;--surface3:#1a2d28;
+  --fill:rgba(220,240,230,.08);--fill2:rgba(220,240,230,.05);--line:rgba(210,235,225,.12);--sep:rgba(210,235,225,.08);
+  --tx:#f3f1e8;--mut:rgba(240,238,228,.58);--mut2:rgba(240,238,228,.3);
+  --acc:#e7c26a;--acc-tx:#1b1303;--acc-hi:#f3d892;--acc-lo:#b98b2e;--acc-edge:rgba(231,194,106,.45);--seg-on:#1f332d;--seg-tx:#f3f1e8;
+  --ok:#8fd6a0;--bad:#ff7a72;--warn:#f0c070;--orig:#ff8a80;--ins:#9cbcff;--clinc:#a5d8e0;
+  --glass:rgba(8,20,17,.6);--glass-line:rgba(220,240,230,.1);
+  --shadow:0 24px 70px rgba(0,0,0,.7);--knob:#f3f1e8;
+  --stage:radial-gradient(60% 35% at 50% 105%,rgba(231,194,106,.13) 0%,transparent 70%),radial-gradient(45% 55% at 50% 25%,#1b3a33 0%,#0a1714 50%,#020605 100%);
+  --font-display:"Fraunces",Georgia,serif;--display-wt:600;--display-ls:-.01em;--h2:29px;
+  --lat-font:"Fraunces",Georgia,serif;--lat-wt:500;--cap-ls:.16em;--cap-size:10.5px;
+  --card:color-mix(in srgb,#11211d 80%,transparent);
+  --snow:rgba(255,255,255,.9);--snow-edge:rgba(255,255,255,0);
+  color-scheme:dark;
+}
+/* SZRON – mroźny poranek: lodowa biel, zieleń jodły, śnieg */
+:root[data-theme=szron]{
+  --bg:#e6eef4;--surface:#f3f7fa;--surface2:#fff;--surface3:#e2eaf1;
+  --fill:rgba(40,80,110,.08);--fill2:rgba(40,80,110,.05);--line:rgba(40,80,110,.14);--sep:rgba(40,80,110,.1);
+  --tx:#0f2230;--mut:rgba(20,45,65,.62);--mut2:rgba(20,45,65,.34);
+  --acc:#1d6b51;--acc-tx:#fff;--seg-on:#fff;--seg-tx:#0f2230;
+  --ok:#1f8a5a;--bad:#c8323f;--warn:#b8720c;--orig:#c8323f;--ins:#2a5fb0;--clinc:#1f7a90;
+  --glass:rgba(246,250,252,.7);--glass-line:rgba(255,255,255,.85);
+  --shadow:0 18px 50px rgba(30,60,90,.16),0 2px 6px rgba(30,60,90,.06);--knob:#fff;
+  --stage:radial-gradient(70% 60% at 50% 30%,#ffffff 0%,#eaf2f7 50%,#cddbe6 100%);
+  --font-display:"Instrument Serif",Georgia,serif;--display-wt:400;--display-ls:0;--h2:33px;
+  --lat-font:"Instrument Serif",Georgia,serif;--lat-wt:400;--cap-ls:.14em;--cap-size:10.5px;
+  --card:rgba(255,255,255,.78);
+  --snow:rgba(150,182,207,.7);--snow-edge:rgba(150,182,207,.22);
+  color-scheme:light;
+}
+:root[data-theme=szron] .lat{font-size:1.2em}
+
+/* padający śnieg za modelem – trzy warstwy płatków o różnej wielkości i prędkości; pętla bez przeskoku */
+/* śnieg leży za płótnem 3D (z-index:-1 w izolowanej scenie), więc nie zasłania modelu */
+:root:is([data-theme=wigilia],[data-theme=szron]) #stage{isolation:isolate}
+:root:is([data-theme=wigilia],[data-theme=szron]) #stage:after{content:"";position:absolute;inset:0;pointer-events:none;z-index:-1;opacity:.85;
+  background-image:radial-gradient(circle at 23px 41px,var(--snow) 1.0px,var(--snow-edge) 1.4px,transparent 2.0px),radial-gradient(circle at 121px 97px,var(--snow) 0.7px,var(--snow-edge) 1.0px,transparent 1.4px),radial-gradient(circle at 64px 150px,var(--snow) 1.2px,var(--snow-edge) 1.7px,transparent 2.4px),radial-gradient(circle at 150px 20px,var(--snow) 0.6px,var(--snow-edge) 0.8px,transparent 1.2px),radial-gradient(circle at 181px 23px,var(--snow) 1.3px,var(--snow-edge) 1.8px,transparent 2.6px),radial-gradient(circle at 37px 170px,var(--snow) 0.9px,var(--snow-edge) 1.3px,transparent 1.8px),radial-gradient(circle at 140px 121px,var(--snow) 0.6px,var(--snow-edge) 0.8px,transparent 1.2px),radial-gradient(circle at 90px 60px,var(--snow) 0.8px,var(--snow-edge) 1.1px,transparent 1.6px),radial-gradient(circle at 90px 60px,var(--snow) 1.7px,var(--snow-edge) 2.4px,transparent 3.4px),radial-gradient(circle at 230px 210px,var(--snow) 1.0px,var(--snow-edge) 1.4px,transparent 2.0px),radial-gradient(circle at 20px 250px,var(--snow) 0.7px,var(--snow-edge) 1.0px,transparent 1.4px),radial-gradient(circle at 300px 140px,var(--snow) 2.1px,var(--snow-edge) 2.9px,transparent 4.2px),radial-gradient(circle at 60px 280px,var(--snow) 1.2px,var(--snow-edge) 1.7px,transparent 2.4px),radial-gradient(circle at 170px 20px,var(--snow) 0.8px,var(--snow-edge) 1.1px,transparent 1.6px),radial-gradient(circle at 20px 330px,var(--snow) 2.6px,var(--snow-edge) 3.6px,transparent 5.2px),radial-gradient(circle at 250px 90px,var(--snow) 1.4px,var(--snow-edge) 2.0px,transparent 2.8px),radial-gradient(circle at 400px 420px,var(--snow) 3.0px,var(--snow-edge) 4.2px,transparent 6.0px),radial-gradient(circle at 130px 500px,var(--snow) 1.6px,var(--snow-edge) 2.2px,transparent 3.2px);
+  background-size:173px 173px,173px 173px,173px 173px,173px 173px,229px 229px,229px 229px,229px 229px,229px 229px,281px 281px,281px 281px,281px 281px,347px 347px,347px 347px,347px 347px,419px 419px,419px 419px,557px 557px,557px 557px;
+  animation:anat-snow 34s linear infinite}
+@keyframes anat-snow{from{background-position:0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0}to{background-position:60px 346px,60px 346px,60px 346px,60px 346px,-80px 458px,-80px 458px,-80px 458px,-80px 458px,50px 562px,50px 562px,50px 562px,-165px 1041px,-165px 1041px,-165px 1041px,135px 1257px,135px 1257px,-140px 2228px,-140px 2228px}}
+@media (prefers-reduced-motion:reduce){:root:is([data-theme=wigilia],[data-theme=szron]) #stage:after{animation:none}}
