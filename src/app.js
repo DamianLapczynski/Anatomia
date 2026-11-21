@@ -14,6 +14,7 @@ import { structDesc } from './data/struct_kb.js';
 import { initKeys } from './keys.js';
 import { store } from './store.js';
 import { initSettings, prefs } from './settings.js';
+import { isLearning, toggleLearning } from './mine.js';
 // kroje stylów Atlas (Fraunces) i Noir (Instrument Serif) – przeglądarka pobiera je dopiero, gdy styl ich użyje
 import '@fontsource/fraunces/latin-600.css';
 import '@fontsource/fraunces/latin-ext-600.css';
@@ -360,6 +361,7 @@ function actions(ent) {
   return `<div class="acts">
     <button data-act="iso" class="${view.iso ? 'on' : 'primary'}">${view.iso ? 'Zakończ izolację' : 'Izoluj'}</button>
     <button data-act="center">Centruj</button><button data-act="hide">Ukryj</button>${ent.side ? sides : ''}
+    ${ent.type === 'muscle' ? `<button data-act="learnmark" class="${isLearning(ent.key) ? 'on' : ''}" aria-pressed="${isLearning(ent.key)}">${isLearning(ent.key) ? '★ Uczę się' : '☆ Uczę się'}</button>` : ''}
   </div>`;
 }
 function renderAtlas() {
@@ -476,6 +478,7 @@ panelBody.addEventListener('click', (e) => {
   else if (A) {
     const a = A.dataset.act;
     if (a === 'iso') { if (view.iso) exitIso(); else { isolateEntity(current); renderAtlas(); } }
+    else if (a === 'learnmark') { const on = toggleLearning(current.key); hint(on ? 'Dodano do „Uczę się” (Nauka)' : 'Usunięto z „Uczę się”', on ? 'ok' : '', 1600); renderAtlasKeepScroll(); }
     else if (a === 'trace') { const key = current.key; modes.learn.openNerve(key); setMode('learn'); }
     else if (a === 'center') { if (current.type === 'landmark') focusPoint(current, entDirPoint(current)); else engine.focus(current.ids, { pad: 1.8 }); }
     else if (a === 'bone') { const b = current.bones?.[0]; if (b !== undefined) { exitIso(false); select(model.structEntity(b), { isolate: true }); } }
