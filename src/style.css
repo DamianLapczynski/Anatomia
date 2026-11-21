@@ -540,3 +540,11 @@ details.sec>.list{padding:0 6px 8px}
 .list .it .x{background:transparent;padding:0 0 0 10px;font-size:13px;color:var(--mut2)}
 .list .it .x:hover{background:transparent;color:var(--bad)}
 .star.on,.star{box-shadow:none!important}.star.on{background:transparent!important}
+
+/* ---- iOS (aplikacja z ekranu początkowego): luka pod oknem – patrz fixStandaloneGap w app.js ---- */
+html.iosgap,html.iosgap body{overflow:hidden;height:100%}
+html.iosgap #app{position:absolute;top:0;left:0;right:0;bottom:auto;height:calc(100% + var(--ios-gap))}
+html.iosgap #settings{position:absolute}
+@media (max-width:820px){
+  html.iosgap #modes,html.iosgap #left,html.iosgap #panel{position:absolute}
+}

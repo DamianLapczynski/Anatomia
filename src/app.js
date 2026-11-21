@@ -118,6 +118,29 @@ function updateInsets() {
   const L = vis(left), P = vis($('#panel')), T = vis($('#top'));
   engine.setInsets({ l: L ? L.right : 0, r: P ? innerWidth - P.left : 0, t: T ? T.bottom : 0 });
 }
+// iOS, aplikacja z ekranu początkowego: okno bywa krótsze od ekranu o wysokość paska statusu, a w powstałym
+// pasie na dole iOS nie rysuje elementów przypiętych do okna (position: fixed). Zwykłe pozycjonowanie rysuje –
+// gdy wykryjemy lukę, układ przechodzi na position: absolute i rozciąga się do krawędzi (klasa html.iosgap).
+function fixStandaloneGap() {
+  const r = document.documentElement;
+  const standalone = navigator.standalone || matchMedia('(display-mode: standalone)').matches;
+  let gap = 0;
+  if (standalone && screen.width && screen.height) {
+    const portrait = innerHeight >= innerWidth, a = Math.min(screen.width, screen.height), b = Math.max(screen.width, screen.height);
+    const W = portrait ? a : b, H = portrait ? b : a;
+    if (Math.abs(innerWidth - W) <= 1) gap = Math.round(H - innerHeight); // tylko okno na cały ekran (nie podział ekranu na iPadzie)
+  }
+  const on = gap > 0 && gap < 100;
+  r.style.setProperty('--ios-gap', `${on ? gap : 0}px`);
+  r.classList.toggle('iosgap', on);
+  // na telefonie pasek zakładek musi leżeć bezpośrednio w #app, żeby position: absolute liczyło się od jego dołu
+  const modes = $('#modes'), top = $('#top'), phone = matchMedia('(max-width: 820px)').matches;
+  if (on && phone) { if (modes.parentElement !== app) app.appendChild(modes); }
+  else if (modes.parentElement !== top) top.appendChild(modes);
+}
+fixStandaloneGap();
+addEventListener('resize', fixStandaloneGap);
+addEventListener('orientationchange', () => setTimeout(fixStandaloneGap, 300));
 addEventListener('resize', updateInsets);
 requestAnimationFrame(updateInsets);
 engine.setLook(theme());
