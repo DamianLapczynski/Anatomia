@@ -8,6 +8,7 @@ const UL_J = ['glenohumeral', 'acromioclavicular', 'sternoclavicular', 'elbow', 
 const LL_J = ['hip', 'knee', 'patellofemoral', 'ankle', 'subtalar', 'tibiofibular'];
 const AX_J = ['sacroiliac', 'pubic_symphysis', 'lumbar_facets', 'cervical_upper', 'tmj'];
 const ALL_T = ['name', 'fact', 'nerveOf', 'nerve', 'joint'];
+// rodzaj func – testy funkcjonalne (src/data/func_tests.js)
 
 export const PRESETS = [
   { id: 'kg', pl: 'Kończyna górna', desc: 'Mięśnie obręczy i kończyny górnej, splot ramienny, stawy od mostkowo-obojczykowego do nadgarstka.', regs: ['kg'], extra: ['trapezius', 'latissimus_dorsi', 'levator_scapulae', 'rhomboid_major', 'rhomboid_minor', 'serratus_anterior', 'pectoralis_major', 'pectoralis_minor', 'subclavius'], nerves: UL_N, joints: UL_J, types: ALL_T },
@@ -16,7 +17,8 @@ export const PRESETS = [
   { id: 'gs', pl: 'Głowa i szyja', desc: 'Mięśnie szyi, żucia, mimiczne, gałki ocznej; nerwy czaszkowe; staw skroniowo-żuchwowy.', regs: ['gs'], nerves: ['facial', 'trigeminal', 'accessory', 'oculomotor', 'trochlear', 'abducens', 'hypoglossal', 'vagus', 'glossopharyngeal', 'ansa_cervicalis', 'suboccipital'], joints: ['tmj', 'cervical_upper'], types: ALL_T },
   { id: 'nerves', pl: 'Nerwy obwodowe', desc: 'Unerwienie mięśni, korzenie, zakresy ruchowe nerwów kończyn.', regs: ['kg', 'kd'], nerves: [...UL_N, ...LL_N], joints: [], types: ['nerveOf', 'nerve'] },
   { id: 'joints', pl: 'Stawy i testy kliniczne', desc: 'Budowa stawów, pozycje zamknięte, wzorce torebkowe, testy specjalne.', regs: [], nerves: [], joints: [...UL_J, ...LL_J, ...AX_J], types: ['joint'] },
-  { id: 'all', pl: 'Całość – kolokwium końcowe', desc: 'Wszystkie okolice, nerwy i stawy.', regs: ['gs', 'tu', 'kg', 'kd'], nerves: [...UL_N, ...LL_N, 'intercostal', 'phrenic', 'facial', 'trigeminal', 'accessory'], joints: [...UL_J, ...LL_J, ...AX_J], types: ALL_T },
+  { id: 'func', pl: 'Testy funkcjonalne', desc: 'Cel, wykonanie i normy testów: TUG, 30CST, FRT, Berg, 6MWT, 10MWT, FMS, Y-Balance, skoki, Sørensen…', regs: [], nerves: [], joints: [], types: ['func'] },
+  { id: 'all', pl: 'Całość – kolokwium końcowe', desc: 'Wszystkie okolice, nerwy i stawy.', regs: ['gs', 'tu', 'kg', 'kd'], nerves: [...UL_N, ...LL_N, 'intercostal', 'phrenic', 'facial', 'trigeminal', 'accessory'], joints: [...UL_J, ...LL_J, ...AX_J], types: [...ALL_T, 'func'] },
 ];
 
 /** Ocena orientacyjna w skali stosowanej na wielu uczelniach (progi 60/69/77/85/93%). */

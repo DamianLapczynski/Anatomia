@@ -515,3 +515,10 @@ body.kb #modes button[data-kh]::after{margin-left:2px}
   animation:anat-snow 34s linear infinite}
 @keyframes anat-snow{from{background-position:0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0}to{background-position:60px 346px,60px 346px,60px 346px,60px 346px,-80px 458px,-80px 458px,-80px 458px,-80px 458px,50px 562px,50px 562px,50px 562px,-165px 1041px,-165px 1041px,-165px 1041px,135px 1257px,135px 1257px,-140px 2228px,-140px 2228px}}
 @media (prefers-reduced-motion:reduce){:root:is([data-theme=wigilia],[data-theme=szron]) #stage:after{animation:none}}
+/* testy funkcjonalne */
+.ft-phase{min-height:2.8em;margin:8px 0;line-height:1.4}
+.ft-err{margin-top:8px;color:var(--warn,#f5a524);font-weight:500}
+.ft-norms{width:100%;border-collapse:collapse;font-size:14px}.ft-norms td{padding:6px 4px;vertical-align:top;border-top:.5px solid var(--sep)}.ft-norms tr:first-child td{border-top:0}.ft-norms td:last-child{text-align:right;font-weight:600;white-space:normal}
+.ft-steps{margin:0;padding-left:20px}.ft-steps li+li{margin-top:5px}
+.ft-quote{font-style:italic}
+.ft-anim input[type=range]{width:100%}

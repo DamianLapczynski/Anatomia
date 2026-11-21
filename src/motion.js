@@ -99,9 +99,8 @@ export class Motion {
       return moving.has(bb);
     };
     const skins = [];
-    const sides = /^test/.test(move.rig) ? ['r', 'l'] : [side]; // testy funkcjonalne: całe ciało, obie strony
-    for (const key of muscleKeys) for (const sd of sides) {
-      const e = this.model.muscleEntity(key, sd);
+    for (const key of muscleKeys) {
+      const e = this.model.muscleEntity(key, side);
       const ori = e.att.filter((i) => meta[i].role === 'origin'), ins = e.att.filter((i) => meta[i].role === 'insertion');
       for (const pid of e.att) { const b = boneOfPatch(pid); if (b != null && moving.has(b)) rigid.add(pid); }
       for (const id of e.ids) {
@@ -230,8 +229,9 @@ export class Motion {
       S = new Float32Array(out); samples.set(id, S); return S;
     };
     const skins = [];
-    for (const key of muscleKeys) {
-      const e = this.model.muscleEntity(key, side);
+    const sides = /^test/.test(move.rig) ? ['r', 'l'] : [side]; // testy funkcjonalne: całe ciało, obie strony
+    for (const key of muscleKeys) for (const sd of sides) {
+      const e = this.model.muscleEntity(key, sd);
       for (const pid of e.att) { const b = boneOfPatch(pid); if (b != null && sigOf.has(b)) rigid.set(pid, groupOf(b)); }
       for (const id of e.ids) {
         if (!eng.meshes[id]) continue;

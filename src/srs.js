@@ -1,20 +1,22 @@
 // Powtórki rozłożone w czasie (algorytm SM-2) – fiszki generowane z bazy wiedzy, postęp w src/store.js (lokalnie + chmura).
+import FT from './data/func_tests.js';
 import { REGIONS } from './model.js';
 import { store } from './store.js';
 
 const DAY = 86400000;
 const today = () => new Date().toISOString().slice(0, 10);
-const DECKS = [...REGIONS.slice(1), ['nv', 'Nerwy']];
+const DECKS = [...REGIONS.slice(1), ['nv', 'Nerwy'], ['ft', 'Testy funkcjonalne']];
 
 export function initSrs(ctx) {
   const { engine, model, view, applyView, panelBody, esc, MUSCLES, NERVES } = ctx;
-  const DEF = { perDay: 15, day: { date: today(), n: 0 }, decks: { gs: true, tu: true, kg: true, kd: true, nv: true }, side: 'r' };
+  const DEF = { perDay: 15, day: { date: today(), n: 0 }, decks: { gs: true, tu: true, kg: true, kd: true, nv: true, ft: true }, side: 'r' };
   const cards = store.all('srs'); // id karty → { ef, iv, reps, lapses, due, t }
-  let st = { ...DEF, ...(store.get('settings', 'srs') ?? {}) };
+  const load = () => { const sv = store.get('settings', 'srs') ?? {}; return { ...DEF, ...sv, decks: { ...DEF.decks, ...(sv.decks ?? {}) } }; }; // nowe talie domyślnie włączone
+  let st = load();
   const save = () => { const { perDay, day, decks, side } = st; store.put('settings', 'srs', { perDay, day, decks, side }); badge(); };
   const putCard = (id, c) => { const { t, ...v } = c; store.put('srs', id, v); };
   store.on((ns, id, remote) => {
-    if (ns === 'settings' && remote) st = { ...DEF, ...(store.get('settings', 'srs') ?? {}) };
+    if (ns === 'settings' && remote) st = load();
     if (ns !== 'srs' && ns !== 'settings') return;
     badge();
     if (remote && ctx.modeIs('srs') && !cur) homeView(); // zmiana z innego urządzenia – odśwież ekran startowy
@@ -31,6 +33,10 @@ export function initSrs(ctx) {
   for (const [k, n] of Object.entries(NERVES)) {
     CARDS.push({ id: `${k}:motor`, deck: 'nv', kind: 'nerve', key: k, q: 'Jakie mięśnie unerwia? Z jakich korzeni pochodzi?', a: () => `<p><b>Korzenie:</b> ${esc(n.roots)}</p><p style="margin-top:6px">${esc(n.motor)}</p>` });
     CARDS.push({ id: `${k}:palsy`, deck: 'nv', kind: 'nerve', key: k, q: 'Objawy uszkodzenia?', a: () => `<p>${esc(n.palsy)}</p>${n.tip ? `<p style="margin-top:6px">💡 ${esc(n.tip)}</p>` : ''}` });
+  }
+  for (const [k, t] of Object.entries(FT)) {
+    CARDS.push({ id: `${k}:ft`, deck: 'ft', kind: 'functest', key: k, q: `${t.pl} (${t.skrot}) – co mierzy i jak go wykonać?`, a: () => `<p>${esc(t.cel)}</p><ol class="ft-steps" style="margin-top:6px">${t.wykonanie.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>` });
+    CARDS.push({ id: `${k}:norm`, deck: 'ft', kind: 'functest', key: k, q: `${t.pl} (${t.skrot}) – jak ocenić wynik? Normy i punkty odcięcia?`, a: () => `<p>${esc(t.pomiar)}</p><ul style="margin-top:6px">${t.normy.map(([g, v]) => `<li>${esc(g)}: <b>${esc(v)}</b></li>`).join('')}</ul>` });
   }
   const byId = new Map(CARDS.map((c) => [c.id, c]));
   const active = () => CARDS.filter((c) => st.decks[c.deck]);
@@ -60,11 +66,13 @@ export function initSrs(ctx) {
   async function nextCard() {
     if (!queue.length) { ctx.hint('Sesja zakończona 🎉', 'ok'); return homeView(); }
     cur = queue.shift(); shown = false;
-    const ent = cur.kind === 'muscle' ? model.muscleEntity(cur.key, st.side) : model.nerveEntity(cur.key, st.side);
+    const ent = cur.kind === 'muscle' ? model.muscleEntity(cur.key, st.side) : cur.kind === 'functest'
+      ? { type: 'functest', key: cur.key, ids: FT[cur.key].muscles.flatMap((k) => model.muscleEntity(k, st.side).ids), att: [], bones: [], nerves: [], nervePath: [] }
+      : model.nerveEntity(cur.key, st.side);
     cur.ent = ent;
     await ctx.need('bones', 'muscles', 'nerves', 'attachments');
     stage(false);
-    engine.focus(ent.ids, { pad: 2.1, dir: ctx.entDir(ent) });
+    engine.focus(ent.ids, ent.type === 'functest' ? { pad: 1.2 } : { pad: 2.1, dir: ctx.entDir(ent) });
     render();
   }
   function stage(revealed) {
@@ -115,7 +123,7 @@ export function initSrs(ctx) {
       if (a === 'go') start();
       else if (a === 'home') homeView();
       else if (a === 'reveal') { shown = true; stage(true); render(); }
-      else if (a === 'atlas') { const ent = cur.ent; ctx.setMode('atlas'); ctx.select(ent, { isolate: true }); }
+      else if (a === 'atlas') { const ent = cur.ent; if (ent.type === 'functest') { ctx.openNote(`functest:${ent.key}`); return; } ctx.setMode('atlas'); ctx.select(ent, { isolate: true }); }
       else if (a === 'wipe') { if (confirm('Na pewno wyzerować cały postęp powtórek?' + (ctx.cloudUser?.() ? ' Zniknie też z pozostałych urządzeń.' : ''))) { store.clear('srs'); st.day = { date: today(), n: 0 }; save(); homeView(); } }
       else if (a === 'export') { const blob = new Blob([JSON.stringify({ ...st, cards })], { type: 'application/json' }); const u = URL.createObjectURL(blob); Object.assign(document.createElement('a'), { href: u, download: `anatomia-postep-${today()}.json` }).click(); URL.revokeObjectURL(u); }
       else if (a === 'import') {

@@ -59,6 +59,19 @@ for (const [id, j] of Object.entries(JOINTS)) {
   for (const f of ['pl', 'lat', 'reg', 'type', 'closed', 'rest', 'capsular', 'k', 's']) if (!j[f]) { console.log(`[staw ${id}] brak pola ${f}`); bad++; }
 }
 console.log(`stawy: ${Object.keys(JOINTS).length} | testy: ${Object.values(JOINTS).reduce((a, j) => a + j.tests.length, 0)}`);
+// testy funkcjonalne
+const FT = (await import('../src/data/func_tests.js')).default;
+const { library } = await import('../src/poses.js');
+const ANIM = library({});
+for (const [id, t] of Object.entries(FT)) {
+  for (const f of ['pl', 'en', 'grp', 'cel', 'dla', 'sprzet', 'wykonanie', 'polecenie', 'pomiar', 'normy', 'interpretacja', 'dlaczego', 'bledy', 'muscles', 'anim', 'src']) if (!t[f]) { console.log(`[test ${id}] brak pola ${f}`); bad++; }
+  for (const k of [...t.muscles, ...t.anim.phases.flatMap((p) => p.muscles)]) if (!allKb[k]) { console.log(`[test ${id}] brak mięśnia: ${k}`); bad++; }
+  for (const j of t.joints ?? []) if (!JOINTS[j]) { console.log(`[test ${id}] brak stawu: ${j}`); bad++; }
+  for (const a of [t.anim.key, t.anim.error].filter(Boolean)) if (!ANIM[a]) { console.log(`[test ${id}] brak animacji: ${a}`); bad++; }
+  const ts = t.anim.phases.map((p) => p.t); if (ts.some((v, i) => i && v <= ts[i - 1])) { console.log(`[test ${id}] fazy nie rosną w czasie`); bad++; }
+}
+for (const [k, a] of Object.entries(ANIM)) { const ts = a.frames.map((f) => f.t); if (ts.some((v, i) => i && v < ts[i - 1]) || ts[0] !== 0 || ts[ts.length - 1] !== 1) { console.log(`[animacja ${k}] klatki muszą rosnąć od 0 do 1`); bad++; } }
+console.log(`testy funkcjonalne: ${Object.keys(FT).length} | animacje: ${Object.keys(ANIM).length}`);
 const { ROOTS } = await import('../src/data/roots.js');
 const labelNames = new Set(JSON.parse(fs.readFileSync('public/data/labels.json', 'utf8')).map((l) => l.n));
 for (const [id, r] of Object.entries(ROOTS)) {

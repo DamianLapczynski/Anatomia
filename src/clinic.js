@@ -5,6 +5,7 @@ import { ROOTS, segmentsOf } from './data/roots.js';
 import { MOVES } from './data/movements.js';
 import { store } from './store.js';
 import { prefs } from './settings.js';
+import { initFuncTests } from './functests.js';
 
 const RED = '#e5484d', ORANGE = '#f5a524';
 const MOTOR_ROOTS = ['C5', 'C6', 'C7', 'C8', 'Th1', 'L2', 'L3', 'L4', 'L5', 'S1'];
@@ -22,6 +23,8 @@ const GROUPS = [
 export function initClinic(ctx) {
   const { engine, model, view, applyView, panelBody, esc, card, MUSCLES, NERVES } = ctx;
   const S = { screen: 'home', side: prefs().side, kind: null, key: null, quiz: null };
+  ctx.clinicHome = () => home();
+  const ft = initFuncTests(ctx);
   const p = (t) => (t ? `<p>${esc(t)}</p>` : '');
   const lc = (t) => t.charAt(0).toLowerCase() + t.slice(1);
   const segs = Object.fromEntries(Object.keys(MUSCLES).map((k) => [k, segmentsOf(MUSCLES[k].n)]));
@@ -89,7 +92,7 @@ export function initClinic(ctx) {
   function home() {
     S.screen = 'home'; clearStage();
     let h = `<h2>Klinika</h2><p class="en">Co się stanie, gdy uszkodzisz nerw albo korzeń? Model pokazuje porażone mięśnie, a lista – ruchy, które pacjent straci. Do tego badanie neurologiczne i quiz z przypadków.</p>
-      <div class="acts"><button class="primary" data-act="quiz">Quiz kliniczny</button><button data-act="exam">Badanie neurologiczne</button></div>
+      <div class="acts"><button class="primary" data-act="quiz">Quiz kliniczny</button><button data-act="exam">Badanie neurologiczne</button><button data-act="ft">Testy funkcjonalne</button></div>
       <h4>Uszkodzenie korzenia (miotomy)</h4><div class="chips">${MOTOR_ROOTS.map((r) => `<span class="chip" data-root="${r}">${r}</span>`).join('')}</div>`;
     for (const [g, keys] of GROUPS) {
       h += `<h4>Uszkodzenie nerwu – ${g}</h4><div class="list">${keys.filter((k) => NERVES[k]).map((k) => { const L = lesion('nerve', k); return `<div class="it" data-nerve="${k}"><span>${esc(NAME(k))}</span><small>${esc(NERVES[k].roots)} · ${L.st.size} mięśni · ${L.moves.filter((x) => x.lost).length} ruchów zniesionych</small></div>`; }).join('')}</div>`;
@@ -200,6 +203,7 @@ export function initClinic(ctx) {
       const a = A.dataset.act;
       if (a === 'home') home();
       else if (a === 'exam') exam();
+      else if (a === 'ft') { S.screen = 'ft'; S.ftLast = null; clearStage(); ft.list(); }
       else if (a === 'side') { S.side = S.side === 'r' ? 'l' : 'r'; if (S.screen === 'exam') exam(); else openLesion(S.kind, S.key); }
       else if (a === 'atlas') { ctx.setMode('atlas'); ctx.select(model.nerveEntity(S.key, S.side), { isolate: true }); }
       else if (a === 'quiz') { S.quiz = { ok: 0, bad: 0 }; newQuestion(); quizView(); clearStage(); }
@@ -209,10 +213,11 @@ export function initClinic(ctx) {
   });
 
   return {
-    enter() { if (S.screen === 'lesion') openLesion(S.kind, S.key); else if (S.screen === 'exam') exam(); else if (S.screen === 'quiz' && S.quiz?.cur) quizView(); else home(); },
-    leave() { clearStage(); },
+    enter() { if (S.screen === 'ft') { const id = S.ftPending ?? S.ftLast; S.ftPending = null; if (id) ft.open(id); else ft.list(); return; } if (S.screen === 'lesion') openLesion(S.kind, S.key); else if (S.screen === 'exam') exam(); else if (S.screen === 'quiz' && S.quiz?.cur) quizView(); else home(); },
+    leave() { S.ftLast = ft.current(); ft.leave(); clearStage(); },
     onPick(hit) {
       if (!hit) return true;
+      if (ft.active()) { const ent = model.entityOf(hit.id); ctx.hint(`${ent.title}${ent.lat ? ` – ${ent.lat}` : ''}`); return true; }
       const ent = model.entityOf(hit.id);
       if (ent.type === 'muscle' && S.screen === 'lesion') {
         const st = lesion(S.kind, S.key).st.get(ent.key);
@@ -221,5 +226,6 @@ export function initClinic(ctx) {
       return true;
     },
     openLesion: (kind, key) => { S.kind = kind; S.key = key; S.screen = 'lesion'; },
+    openFT: (id) => { S.screen = 'ft'; if (ctx.modeIs('clinic')) ft.open(id); else S.ftPending = id; },
   };
 }

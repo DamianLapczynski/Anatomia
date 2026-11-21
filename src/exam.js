@@ -2,13 +2,14 @@
 // do końca, na końcu wynik ogólny, wg rodzaju pytania i okolicy, lista błędów i zapis w historii.
 import { PRESETS, grade } from './data/exam_presets.js';
 import { JOINTS } from './model.js';
+import FT from './data/func_tests.js';
 import { store } from './store.js';
 import { prefs } from './settings.js';
 
 const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const pickOne = (a) => a[Math.floor(Math.random() * a.length)];
-const TYPE_PL = { name: 'Rozpoznaj mięsień', fact: 'Przyczepy, unerwienie, czynność', nerveOf: 'Który nerw unerwia', nerve: 'Nerwy: korzenie i mięśnie', joint: 'Stawy i testy' };
-const REG_PL = { gs: 'Głowa i szyja', tu: 'Tułów', kg: 'Kończyna górna', kd: 'Kończyna dolna', nv: 'Nerwy', st: 'Stawy' };
+const TYPE_PL = { name: 'Rozpoznaj mięsień', fact: 'Przyczepy, unerwienie, czynność', nerveOf: 'Który nerw unerwia', nerve: 'Nerwy: korzenie i mięśnie', joint: 'Stawy i testy', func: 'Testy funkcjonalne' };
+const REG_PL = { gs: 'Głowa i szyja', tu: 'Tułów', kg: 'Kończyna górna', kd: 'Kończyna dolna', nv: 'Nerwy', st: 'Stawy', ft: 'Testy funkcjonalne' };
 
 export function initExam(ctx) {
   const { engine, model, view, applyView, panelBody, esc, MUSCLES, NERVES } = ctx;
@@ -68,9 +69,21 @@ export function initExam(ctx) {
       return mk({ type: 'joint', reg: 'st', kind: 'joint', key: jk, q: `Pozycja zamknięta (najciaśniejsza): ${j.pl}?`, explain: j.closed }, j.closed, distract(j.closed, others.map((o) => o.closed).filter((x) => x !== '—')));
     },
   };
+  G.func = (P) => {
+    const keys = (P.func ?? Object.keys(FT)).filter((k) => FT[k]); if (keys.length < 4) return null;
+    const k = pickOne(keys), t = FT[k], others = Object.keys(FT).filter((x) => x !== k).map((x) => FT[x]);
+    const kind = pickOne(['cel', 'which', 'norm']);
+    const base = { type: 'func', reg: 'ft', kind: 'functest', key: k };
+    if (kind === 'which') return mk({ ...base, q: `Który test: ${t.cel.split(/[;:]/)[0].replace(/\.$/, '')}?`, explain: `${t.pl} (${t.skrot})` }, `${t.pl} (${t.skrot})`, distract(`${t.pl} (${t.skrot})`, others.filter((o) => o.grp === t.grp || Math.random() < 0.3).map((o) => `${o.pl} (${o.skrot})`)));
+    if (kind === 'norm') {
+      const [g, v] = pickOne(t.normy);
+      return mk({ ...base, q: `${t.pl} (${t.skrot}) – ${g}?`, explain: t.interpretacja }, v, distract(v, others.flatMap((o) => o.normy.map(([, x]) => x)).concat(t.normy.map(([, x]) => x).filter((x) => x !== v))));
+    }
+    return mk({ ...base, q: `Co ocenia ${t.pl} (${t.skrot})?`, explain: t.dlaczego }, t.cel, distract(t.cel, others.map((o) => o.cel)));
+  };
   function build(P, n) {
     const muscles = [...new Set([...Object.keys(MUSCLES).filter((k) => P.regs.includes(MUSCLES[k].reg)), ...(P.extra ?? [])])];
-    const types = P.types.filter((t) => (t === 'name' || t === 'fact' || t === 'nerveOf' ? muscles.length >= 4 : t === 'nerve' ? P.nerves.length >= 4 : P.joints.length));
+    const types = P.types.filter((t) => (t === 'name' || t === 'fact' || t === 'nerveOf' ? muscles.length >= 4 : t === 'nerve' ? P.nerves.length >= 4 : t === 'func' ? true : P.joints.length));
     const out = [], seen = new Set();
     for (let guard = 0; out.length < n && guard < n * 30; guard++) {
       const t = types[out.length % types.length], q = G[t](P, muscles);

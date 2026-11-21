@@ -5,6 +5,7 @@ import trunk from './data/muscles_trunk.js';
 import NERVES from './data/nerves.js';
 import COMPLEXES from './data/complexes.js';
 import JOINTS from './data/joints.js';
+import FUNC_TESTS from './data/func_tests.js';
 import { polishName } from './data/names.js';
 import { EXAM, FILL } from './data/muscle_exam.js';
 
@@ -165,6 +166,7 @@ export function buildModel(meta, latin) {
   // indeks wyszukiwania
   const search = [];
   for (const [key, e] of Object.entries(MUSCLES)) search.push({ kind: 'muscle', key, label: e.pl, sub: e.lat, text: `${e.pl} ${e.lat} ${e.mesh.join(' ')}`.toLowerCase() });
+  for (const [key, t] of Object.entries(FUNC_TESTS)) search.push({ kind: 'functest', key, label: t.pl, sub: `${t.skrot} · test funkcjonalny`, text: `${t.pl} ${t.en} ${t.skrot}`.toLowerCase() });
   for (const [key, j] of Object.entries(JOINTS)) search.push({ kind: 'joint', key, label: j.pl, sub: `${j.lat} · staw`, text: `${j.pl} ${j.lat} ${j.alias.join(' ')}`.toLowerCase() });
   for (const [key, e] of Object.entries(COMPLEXES)) search.push({ kind: 'complex', key, label: e.pl, sub: `${e.lat} · ${e.keys.length} mięśnie`, text: `${e.pl} ${e.lat} ${e.alias.join(' ')}`.toLowerCase() });
   for (const [key, e] of Object.entries(NERVES)) search.push({ kind: 'nerve', key, label: e.pl, sub: e.lat, text: `${e.pl} ${e.lat} ${e.mesh[0] ?? ''} ${(e.alias ?? []).join(' ')}`.toLowerCase() });
@@ -181,7 +183,7 @@ export function buildModel(meta, latin) {
     if (!words.length) return [];
     const out = [];
     for (const s of search) if (words.every((w) => s.text.includes(w))) { out.push(s); }
-    const rank = (s) => (s.kind === 'complex' || s.kind === 'joint' ? -1 : s.kind === 'muscle' ? 0 : s.kind === 'nerve' ? 1 : s.kind === 'landmark' ? 1.5 : 2) + (fold(s.label).startsWith(words[0]) ? -0.5 : 0);
+    const rank = (s) => (s.kind === 'complex' || s.kind === 'joint' || s.kind === 'functest' ? -1 : s.kind === 'muscle' ? 0 : s.kind === 'nerve' ? 1 : s.kind === 'landmark' ? 1.5 : 2) + (fold(s.label).startsWith(words[0]) ? -0.5 : 0);
     return out.sort((a, b) => rank(a) - rank(b) || a.label.length - b.label.length).slice(0, limit);
   }
 

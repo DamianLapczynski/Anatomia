@@ -146,7 +146,7 @@ function focusVisible() { applyView(); const ids = visibleIds(); if (ids.length)
 
 // ---------- wyszukiwarka ----------
 const q = $('#q'), results = $('#results');
-const KIND_COLOR = { muscle: '#a83d36', nerve: '#f5cc33', complex: '#3ecf8e', landmark: '#ffb454', joint: '#cfcbb5' };
+const KIND_COLOR = { muscle: '#a83d36', nerve: '#f5cc33', complex: '#3ecf8e', landmark: '#ffb454', joint: '#cfcbb5', functest: '#ff7a45' };
 q.addEventListener('input', () => {
   const list = model ? model.find(q.value) : [];
   results.hidden = !list.length;
@@ -158,6 +158,7 @@ results.addEventListener('click', (e) => {
   const it = results._list[+r.dataset.i];
   results.hidden = true; q.blur();
   if (it.kind === 'complex') { modes.learn.openComplex(it.key); if (mode === 'learn') modes.learn.enter(); else setMode('learn'); return; }
+  if (it.kind === 'functest') { if (mode === 'clinic') modes.clinic.openFT(it.key); else { modes.clinic.openFT(it.key); setMode('clinic'); } return; }
   setMode('atlas');
   openItem(it);
 });
@@ -329,6 +330,7 @@ document.addEventListener('input', (e) => {
 /** Otwiera strukturę, do której należy notatka (id: rodzaj:klucz). */
 function openNote(id) {
   const [kind, ...rest] = id.split(':'), key = rest.join(':'), side = defSide();
+  if (kind === 'functest') { modes.clinic.openFT(key); if (mode !== 'clinic') setMode('clinic'); return; }
   if (kind === 'complex') { modes.learn.openComplex(key); if (mode === 'learn') modes.learn.enter(); else setMode('learn'); return; }
   setMode('atlas');
   if (kind === 'muscle' && MUSCLES[key]) select(model.muscleEntity(key, side), { isolate: true });
@@ -636,7 +638,7 @@ $('#hud').addEventListener('click', (e) => { const b = e.target.closest('button'
     modes.quiz = initQuiz(ctx); modes.srs = initSrs(ctx);
     ctx.quizScoped = (keys, label, lid) => { setMode('quiz'); modes.quiz.scoped(keys, label, lid); };
     modes.learn = initLearn(ctx);
-    Object.assign(ctx, { labels: () => labels, setPointMarks, clearMarks, openMove: (id, side) => { setMode('motion'); modes.motion.open(id, side); } });
+    Object.assign(ctx, { motion, JOINTS, labels: () => labels, setPointMarks, clearMarks, openMove: (id, side) => { setMode('motion'); modes.motion.open(id, side); } });
     modes.clinic = initClinic(ctx);
     renderLeft(); renderAtlas();
     if (isPhone()) app.classList.add('sheet-min');
