@@ -7,6 +7,7 @@ import { Motion } from './motion.js';
 import { initQuiz } from './quiz.js';
 import { initSrs } from './srs.js';
 import { initLearn } from './learn.js';
+import { initClinic } from './clinic.js';
 import { landmarkPL } from './data/landmarks.js';
 import { polishName } from './data/names.js';
 import { structDesc } from './data/struct_kb.js';
@@ -269,7 +270,7 @@ engine.addEventListener('pick', (e) => {
 
 // ---------- punkty kostne ----------
 let markList = [];
-function clearMarks() { markList = []; marks.innerHTML = ''; }
+function clearMarks() { markList = []; marks.innerHTML = ''; marks.classList.remove('always'); }
 function showMarks(ent) {
   clearMarks();
   const m = ent.meta, key = m.s ? `${m.n}.r` : m.n;
@@ -282,6 +283,15 @@ function showMarks(ent) {
   });
   placeMarks();
   return list;
+}
+/** Znaczniki punktów (np. dermatomy w trybie Klinika): [{ v: [x, y, z], label, act }]; withLabels – podpisy zawsze widoczne. */
+function setPointMarks(list, withLabels = false) {
+  clearMarks(); marks.classList.toggle('always', withLabels);
+  markList = list.map(({ v, label, act }, i) => {
+    const el = document.createElement('div'); el.className = `mark${act ? ' act' : ''}`; el.dataset.i = i; el.innerHTML = `<em>${esc(label)}</em>`; marks.appendChild(el);
+    return { el, v: new THREE.Vector3(...v), l: null };
+  });
+  placeMarks();
 }
 function placeMarks() {
   for (const k of markList) { const p = engine.project(k.v); k.el.style.transform = `translate(${p.x}px,${p.y}px)`; k.el.style.display = p.behind ? 'none' : ''; }
@@ -589,6 +599,8 @@ $('#hud').addEventListener('click', (e) => { const b = e.target.closest('button'
     modes.quiz = initQuiz(ctx); modes.srs = initSrs(ctx);
     ctx.quizScoped = (keys, label, lid) => { setMode('quiz'); modes.quiz.scoped(keys, label, lid); };
     modes.learn = initLearn(ctx);
+    Object.assign(ctx, { labels: () => labels, setPointMarks, clearMarks, openMove: (id, side) => { setMode('motion'); modes.motion.open(id, side); } });
+    modes.clinic = initClinic(ctx);
     renderLeft(); renderAtlas();
     if (isPhone()) app.classList.add('sheet-min');
     await engine.ensureAll(['skeleton', 'muscles']);

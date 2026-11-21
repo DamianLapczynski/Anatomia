@@ -59,6 +59,14 @@ for (const [id, j] of Object.entries(JOINTS)) {
   for (const f of ['pl', 'lat', 'reg', 'type', 'closed', 'rest', 'capsular', 'k', 's']) if (!j[f]) { console.log(`[staw ${id}] brak pola ${f}`); bad++; }
 }
 console.log(`stawy: ${Object.keys(JOINTS).length} | testy: ${Object.values(JOINTS).reduce((a, j) => a + j.tests.length, 0)}`);
+const { ROOTS } = await import('../src/data/roots.js');
+const labelNames = new Set(JSON.parse(fs.readFileSync('public/data/labels.json', 'utf8')).map((l) => l.n));
+for (const [id, r] of Object.entries(ROOTS)) {
+  if (r.myo) { if (!allKb[r.myo.muscle]) { console.log(`[korzeń ${id}] brak mięśnia: ${r.myo.muscle}`); bad++; } if (!moveIds.has(r.myo.move)) { console.log(`[korzeń ${id}] brak ruchu: ${r.myo.move}`); bad++; } }
+  const at = r.derm?.at; if (!at) { console.log(`[korzeń ${id}] brak dermatomu`); bad++; continue; }
+  if (at.lm && !labelNames.has(at.lm)) { console.log(`[korzeń ${id}] brak punktu kostnego: ${at.lm}`); bad++; }
+  if (at.mesh && !names.all.has(at.mesh)) { console.log(`[korzeń ${id}] brak siatki: ${at.mesh}`); bad++; }
+}
 const { STRUCT_KEYS } = await import('../src/data/struct_kb.js');
 for (const k of STRUCT_KEYS) if (!names.all.has(k)) { console.log(`[opis struktury] brak siatki: ${k}`); bad++; }
 // pokrycie polskich nazw (siatki bez wpisu w bazie mięśni/nerwów wyświetlają się nazwą ze słownika)

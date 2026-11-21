@@ -7,7 +7,7 @@ import { prefs } from './settings.js';
 const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const SYS = [['muscles', 'Mięśnie'], ['bones', 'Kości'], ['nerves', 'Nerwy'], ['arteries', 'Tętnice']];
 const TYPES = [['point', 'Wskaż na modelu'], ['name', 'Rozpoznaj strukturę'], ['facts', 'Fakty o mięśniach']];
-const QNAME = { point: 'wskaż', name: 'rozpoznaj', 'facts.n': 'unerwienie', 'facts.i': 'przyczep końcowy', 'facts.o': 'przyczep początkowy', 'facts.f': 'czynność' };
+const QNAME = { point: 'wskaż', name: 'rozpoznaj', 'facts.n': 'unerwienie', 'facts.i': 'przyczep końcowy', 'facts.o': 'przyczep początkowy', 'facts.f': 'czynność', clinic: 'przypadki kliniczne' };
 const FACTS = [
   ['n', (m) => `Co unerwia: ${m.lat}?`], ['i', (m) => `Gdzie jest przyczep końcowy: ${m.lat}?`],
   ['o', (m) => `Gdzie jest przyczep początkowy: ${m.lat}?`], ['f', (m) => `Jaka jest główna czynność: ${m.lat}?`],
@@ -55,7 +55,7 @@ export function initQuiz(ctx) {
       <p class="note">${prefs().quizToSrs ? 'Błędne odpowiedzi dotyczące mięśni trafiają od razu do Powtórek.' : 'Błędne odpowiedzi nie trafiają do Powtórek (zmienisz to w Ustawieniach).'} Każda odpowiedź zapisuje się w statystykach${ctx.cloudUser?.() ? ' (synchronizowanych z kontem)' : ''}.</p>`;
   }
   // ---- statystyki z całej historii odpowiedzi ----
-  const titleOf = (r) => (r.kind === 'muscle' ? MUSCLES[r.key]?.pl : r.kind === 'nerve' ? NERVES[r.key]?.pl : polishName(r.key) ?? r.key);
+  const titleOf = (r) => (r.kind === 'muscle' ? MUSCLES[r.key]?.pl : r.kind === 'nerve' ? NERVES[r.key]?.pl : r.kind === 'clinic' ? `Klinika: ${r.key.startsWith('root~') ? `korzeń ${r.key.slice(5)}` : NERVES[r.key.slice(6)]?.pl ?? r.key}` : polishName(r.key) ?? r.key);
   function itemStats() { // łączy typy pytań: wynik na strukturę
     const by = new Map();
     for (const r of Object.values(store.all('quiz'))) {

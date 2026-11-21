@@ -1,12 +1,12 @@
 // Skróty klawiszowe: komputer i iPad z klawiaturą. Moduł „naciska” te same przyciski, co kliknięcia,
 // więc działa w każdym trybie bez zmian w ich kodzie. Ściąga: klawisz ? albo przycisk ⌨ u góry.
-const MODE_ORDER = ['atlas', 'learn', 'motion', 'quiz', 'srs'];
-const MODE_PL = { atlas: 'Atlas', learn: 'Nauka', motion: 'Ruch', quiz: 'Quiz', srs: 'Powtórki' };
-const LIST_SEL = '.list .it[data-nerve], .list .it[data-sector], .list .it[data-step], .list .it[data-move]';
+const MODE_ORDER = ['atlas', 'learn', 'motion', 'clinic', 'quiz', 'srs'];
+const MODE_PL = { atlas: 'Atlas', learn: 'Nauka', motion: 'Ruch', clinic: 'Klinika', quiz: 'Quiz', srs: 'Powtórki' };
+const LIST_SEL = '.list .it[data-nerve], .list .it[data-sector], .list .it[data-step], .list .it[data-move], .list .it[data-root], .list .it[data-joint], .list .it[data-complex]';
 
 const HELP = {
   global: [
-    ['Alt + 1…5', 'Tryb: Atlas, Nauka, Ruch, Quiz, Powtórki'],
+    ['Alt + 1…6', 'Tryb: Atlas, Nauka, Ruch, Klinika, Quiz, Powtórki'],
     ['[  ]', 'Poprzedni / następny tryb (gdy Alt + cyfra nie działa)'],
     ['/ | Ctrl + K', 'Szukaj (↑ ↓ wybór, Enter otwiera, Esc zamyka)'],
     ['Shift + ← → ↑ ↓', 'Obracaj model'],
@@ -50,6 +50,12 @@ const HELP = {
     ['A', 'Zobacz w atlasie'],
     ['Esc | M', 'Zakończ, wróć do menu'],
   ],
+  clinic: [
+    ['↑ ↓  Enter', 'Wybierz nerw z listy i otwórz symulację'],
+    ['1 … 4', 'Odpowiedź w quizie klinicznym'],
+    ['Enter | Spacja', 'Następne pytanie'],
+    ['Esc | Backspace', 'Wróć do ekranu Kliniki'],
+  ],
   srs: [
     ['Enter | Spacja', 'Start sesji; pokaż odpowiedź; po odsłonięciu „Dobrze”'],
     ['1  2  3  4', 'Oceń: Nie wiem · Trudne · Dobrze · Łatwe'],
@@ -83,6 +89,9 @@ export function initKeys(ctx) {
     } else if (m === 'learn') {
       put('[data-act=start]', '⏎'); put('[data-act=next]', '→'); put('[data-act=prev]', '←'); put('[data-act=quiz]', 'Q'); put('[data-act=atlas]', 'A'); put('[data-act=side]', 'S');
       put('[data-act=group]', 'Esc'); put('[data-act=home]', 'Esc');
+    } else if (m === 'clinic') {
+      panelBody.querySelectorAll('[data-opt]').forEach((el) => el.setAttribute('data-kh', String(+el.dataset.opt + 1)));
+      put('[data-act=next]', '⏎'); put('[data-act=side]', 'S'); put('[data-act=home]', 'Esc');
     } else if (m === 'motion') {
       put('[data-act=play]', '␣'); put('[data-act=ant]', 'A'); put('[data-act=side]', 'S'); put('[data-act=back]', 'Esc');
     }
@@ -201,7 +210,17 @@ export function initKeys(ctx) {
     if (e.key === 'Escape') return click('[data-act=back]');
     return false;
   };
-  const byMode = { atlas, quiz, srs, learn, motion };
+  const clinic = (e, k) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') return moveSel(e.key === 'ArrowDown' ? 1 : -1);
+    if (e.repeat) return false;
+    const opts = [...panelBody.querySelectorAll('[data-opt]')];
+    if (/^[1-4]$/.test(k) && opts.length) { const o = opts[+k - 1]; if (o && !o.disabled) o.click(); return true; }
+    if (k === 'Enter' || k === ' ') return openSel() || click('[data-act=next]');
+    if (k === 's') return click('[data-act=side]');
+    if (e.key === 'Escape') return click('[data-act=home]');
+    return false;
+  };
+  const byMode = { atlas, quiz, srs, learn, motion, clinic };
 
   // ---------- szukajka: strzałki po wynikach ----------
   q.addEventListener('keydown', (e) => {
@@ -227,7 +246,7 @@ export function initKeys(ctx) {
     if (!box.hidden) { if (e.key === 'Escape' || e.key === '?' || e.key === 'Backspace') { e.preventDefault(); hideHelp(); } return; }
     if (e.key === '?') { e.preventDefault(); showHelp(); return; }
     if (e.key === '/') { e.preventDefault(); q.focus(); return; }
-    if (e.altKey) { const n = /^Digit([1-5])$/.exec(e.code); if (n) { e.preventDefault(); ctx.setMode(MODE_ORDER[+n[1] - 1]); } return; }
+    if (e.altKey) { const n = /^Digit([1-6])$/.exec(e.code); if (n) { e.preventDefault(); ctx.setMode(MODE_ORDER[+n[1] - 1]); } return; }
     if (e.key === 'Backspace') e = new Proxy(e, { get: (o, p) => (p === 'key' ? 'Escape' : typeof o[p] === 'function' ? o[p].bind(o) : o[p]) }); // iPad bez klawisza Esc
     const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
     if (k === '[' || k === ']') { const i = MODE_ORDER.indexOf(ctx.getMode()); e.preventDefault(); ctx.setMode(MODE_ORDER[(i + (k === ']' ? 1 : MODE_ORDER.length - 1)) % MODE_ORDER.length]); return; }
@@ -236,7 +255,7 @@ export function initKeys(ctx) {
     else {
       handled = byMode[ctx.getMode()]?.(e, k) ?? false;
       // strzałki bez wybranej akcji obracają model; +/−/Home/F/B/R/L działają wszędzie, gdzie nie przeszkadzają
-      if (!handled && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key) && ['atlas', 'motion', 'quiz', 'srs', 'learn'].includes(ctx.getMode())) handled = camera(e);
+      if (!handled && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key) && ['atlas', 'motion', 'quiz', 'srs', 'learn', 'clinic'].includes(ctx.getMode())) handled = camera(e);
       if (!handled && !(ctx.getMode() === 'atlas' && /^[0-9]$/.test(k))) handled = camera(e);
     }
     if (handled) { e.preventDefault(); if (e.key === ' ') spaceHandled = true; }

@@ -66,6 +66,12 @@ const common = [
   ['nauka-kanal', async (p) => { await p.click('#panelBody [data-act=home]').catch(() => {}); await clickText('#panelBody .it', 'Kanał nadgarstka')(p); }],
   ['szukaj-kompleks', search('trójkąt udowy')],
   ['ruch', mode('motion')],
+  ['klinika', mode('clinic')],
+  ['klinika-nerw', clickText('#panelBody .it', 'Nerw promieniowy')],
+  ['klinika-korzen', async (p) => { await p.click('#panelBody [data-act=home]'); await p.click('#panelBody [data-root=L5]'); }],
+  ['klinika-badanie', async (p) => { await p.click('#panelBody [data-act=home]'); await p.click('#panelBody [data-act=exam]'); }],
+  ['klinika-quiz', async (p) => { await p.click('#panelBody [data-act=home]'); await p.click('#panelBody [data-act=quiz]'); }],
+  ['klinika-odp', async (p) => { await p.click('#panelBody [data-opt="0"]'); }],
   ['quiz', mode('quiz')],
   ['powtorki', mode('srs')],
 ];
