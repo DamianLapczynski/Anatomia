@@ -118,7 +118,7 @@ export function initFuncTests(ctx) {
 
   function open(id) {
     stop(); S.active = true; S.id = id; S.err = false; S.k = 0; S.playing = true; S.last = 0;
-    render(); stage();
+    render(); panelBody.scrollTop = 0; stage();
   }
 
   panelBody.addEventListener('input', (e) => {
