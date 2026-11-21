@@ -548,3 +548,11 @@ html.iosgap #settings{position:absolute}
 @media (max-width:820px){
   html.iosgap #modes,html.iosgap #left,html.iosgap #panel{position:absolute}
 }
+
+/* ---- zwijane karty (app.js: decorateCards) ---- */
+.card[data-fold]>h5{cursor:pointer;user-select:none;-webkit-user-select:none;margin:-13px -15px 0;padding:13px 15px 5px;border-radius:var(--r)}
+.card[data-fold]>h5:after{content:"";margin-left:auto;width:6px;height:6px;flex:none;border-right:1.6px solid currentColor;border-bottom:1.6px solid currentColor;transform:rotate(45deg) translate(-2px,-2px);opacity:.7;transition:transform .25s var(--ease)}
+.card[data-fold].shut>h5:after{transform:rotate(-45deg)}
+.card[data-fold]>h5:focus-visible{outline:2px solid var(--acc);outline-offset:-2px}
+.card.shut>h5{padding-bottom:13px;margin-bottom:-13px}
+.card.shut>:not(h5){display:none!important}

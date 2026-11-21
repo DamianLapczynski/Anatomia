@@ -118,6 +118,29 @@ function updateInsets() {
   const L = vis(left), P = vis($('#panel')), T = vis($('#top'));
   engine.setInsets({ l: L ? L.right : 0, r: P ? innerWidth - P.left : 0, t: T ? T.bottom : 0 });
 }
+// ---------- zwijane karty w panelu (wszystkie tryby) ----------
+// Każda karta z nagłówkiem <h5> zwija się po stuknięciu nagłówka. Zwinięcie pamiętamy po tytule karty,
+// więc np. „Unaczynienie” zostaje zwinięte przy każdym mięśniu. Działa też dla kart dodanych w innych modułach.
+const FOLD_KEY = 'anatomia.cards.shut';
+let shutCards; try { shutCards = new Set(JSON.parse(localStorage.getItem(FOLD_KEY)) ?? []); } catch { shutCards = new Set(); }
+const foldKey = (h) => h.textContent.replace(/\(.*?\)|\d+/g, '').trim().toLowerCase();
+function decorateCards() {
+  for (const h of panelBody.querySelectorAll('.card > h5:first-child')) {
+    const c = h.parentElement; if (c.dataset.fold) continue;
+    c.dataset.fold = '1'; h.setAttribute('role', 'button'); h.tabIndex = 0;
+    const shut = shutCards.has(foldKey(h)); c.classList.toggle('shut', shut); h.setAttribute('aria-expanded', String(!shut));
+  }
+}
+function toggleCard(h) {
+  const c = h.parentElement, shut = !c.classList.contains('shut'), k = foldKey(h);
+  c.classList.toggle('shut', shut); h.setAttribute('aria-expanded', String(!shut));
+  if (shut) shutCards.add(k); else shutCards.delete(k);
+  try { localStorage.setItem(FOLD_KEY, JSON.stringify([...shutCards])); } catch { /* tryb prywatny */ }
+}
+new MutationObserver(decorateCards).observe(panelBody, { childList: true, subtree: true });
+panelBody.addEventListener('click', (e) => { const h = e.target.closest('.card[data-fold] > h5'); if (h) { e.stopPropagation(); toggleCard(h); } }, true);
+panelBody.addEventListener('keydown', (e) => { const h = e.target.closest?.('.card[data-fold] > h5'); if (h && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.stopPropagation(); toggleCard(h); } }, true);
+
 // iOS, aplikacja z ekranu początkowego: okno bywa krótsze od ekranu o wysokość paska statusu, a w powstałym
 // pasie na dole iOS nie rysuje elementów przypiętych do okna (position: fixed). Zwykłe pozycjonowanie rysuje –
 // gdy wykryjemy lukę, układ przechodzi na position: absolute i rozciąga się do krawędzi (klasa html.iosgap).
