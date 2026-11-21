@@ -187,7 +187,7 @@ export function buildModel(meta, latin) {
     if (!words.length) return [];
     const out = [];
     for (const s of search) if (words.every((w) => s.text.includes(w))) { out.push(s); }
-    const rank = (s) => (s.kind === 'complex' || s.kind === 'joint' || s.kind === 'functest' || s.kind === 'condition' ? -1 : s.kind === 'muscle' ? 0 : s.kind === 'nerve' ? 1 : s.kind === 'landmark' ? 1.5 : 2) + (fold(s.label).startsWith(words[0]) ? -0.5 : 0);
+    const rank = (s) => (s.kind === 'complex' || s.kind === 'joint' || s.kind === 'functest' ? -1 : s.kind === 'condition' ? 1.6 : s.kind === 'muscle' ? 0 : s.kind === 'nerve' ? 1 : s.kind === 'landmark' ? 1.5 : 2) + (fold(s.label).startsWith(words[0]) ? -0.5 : 0);
     return out.sort((a, b) => rank(a) - rank(b) || a.label.length - b.label.length).slice(0, limit);
   }
 
