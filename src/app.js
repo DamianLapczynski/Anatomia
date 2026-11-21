@@ -281,7 +281,7 @@ engine.addEventListener('pick', (e) => {
 
 // ---------- punkty kostne ----------
 let markList = [];
-function clearMarks() { markList = []; marks.innerHTML = ''; marks.classList.remove('always'); }
+function clearMarks() { markList = []; marks.innerHTML = ''; marks.classList.toggle('always', prefs().labels === 'always'); } // ustawienie „nazwy punktów: zawsze”
 function showMarks(ent) {
   clearMarks();
   const m = ent.meta, key = m.s ? `${m.n}.r` : m.n;
@@ -297,7 +297,7 @@ function showMarks(ent) {
 }
 /** Znaczniki punktów (np. dermatomy w trybie Klinika): [{ v: [x, y, z], label, act }]; withLabels – podpisy zawsze widoczne. */
 function setPointMarks(list, withLabels = false) {
-  clearMarks(); marks.classList.toggle('always', withLabels);
+  clearMarks(); if (withLabels) marks.classList.add('always');
   markList = list.map(({ v, label, act }, i) => {
     const el = document.createElement('div'); el.className = `mark${act ? ' act' : ''}`; el.dataset.i = i; el.innerHTML = `<em>${esc(label)}</em>`; marks.appendChild(el);
     return { el, v: new THREE.Vector3(...v), l: null };
