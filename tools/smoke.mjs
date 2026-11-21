@@ -48,6 +48,8 @@ const clickText = (sel, text) => async (p) => { await p.locator(sel, { hasText: 
 const common = [
   ['atlas', mode('atlas')],
   ['szukaj-miesien', search('naramienny')],
+  ['notatka', async (p) => { await p.click('.note-card summary'); await p.fill('textarea[data-note]', 'Test notatki z dymu'); await p.waitForTimeout(600); }],
+  ['notatka-po-przeladowaniu', async (p) => { await p.reload(); await p.waitForSelector('#loading', { state: 'hidden', timeout: 120000 }); await search('naramienny')(p); const v = await p.inputValue('textarea[data-note]'); if (v !== 'Test notatki z dymu') throw new Error(`notatka nie zapisała się: „${v}”`); }],
   ['szukaj-nerw', search('przeponowy')],
   ['szukaj-nerw-skorny', search('skórny boczny uda')],
   ['szukaj-kosc', search('kość łódeczkowata')],

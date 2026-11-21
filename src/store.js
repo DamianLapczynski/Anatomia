@@ -1,11 +1,12 @@
 // Postęp nauki „local-first”: wszystko zapisuje się od razu w tej przeglądarce (działa offline i bez konta),
 // a po zalogowaniu (src/cloud.js) dodatkowo w Firestore i wraca z innych urządzeń.
-// Przestrzenie (ns): srs – fiszki SM-2, quiz – liczniki odpowiedzi, learn – przerobione sektory, settings – ustawienia.
+// Przestrzenie (ns): srs – fiszki SM-2, quiz – liczniki odpowiedzi, learn – przerobione sektory, settings – ustawienia,
+// notes – własne notatki przy strukturach.
 // Każdy wpis ma pole t (czas zmiany): przy łączeniu urządzeń wygrywa nowszy wpis. Liczniki quizu się sumują.
 import { migrateKeys } from './data/renames.js';
 
 const LS = 'anatomia.store.v1', OLD_SRS = 'anatomia.srs.v1';
-export const NS = ['srs', 'quiz', 'learn', 'settings'];
+export const NS = ['srs', 'quiz', 'learn', 'settings', 'notes'];
 
 let data;
 try { data = JSON.parse(localStorage.getItem(LS)); } catch { data = null; }

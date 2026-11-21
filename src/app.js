@@ -12,6 +12,7 @@ import { landmarkPL } from './data/landmarks.js';
 import { polishName } from './data/names.js';
 import { structDesc } from './data/struct_kb.js';
 import { initKeys } from './keys.js';
+import { store } from './store.js';
 import { initSettings, prefs, THEMES, setStyle } from './settings.js';
 // kroje stylów Atlas (Fraunces) i Noir (Instrument Serif) – przeglądarka pobiera je dopiero, gdy styl ich użyje
 import '@fontsource/fraunces/latin-600.css';
@@ -307,6 +308,31 @@ marks.addEventListener('click', (e) => { const el = e.target.closest('.mark'); i
 // ---------- panel atlasu ----------
 const card = (title, body, color, cls = '') => (body ? `<div class="card ${cls}"><h5>${color ? `<i style="background:${color}"></i>` : ''}${title}</h5>${body}</div>` : '');
 const p = (t) => (t ? `<p>${esc(t)}</p>` : '');
+/** Własna notatka przy strukturze (zapis w store „notes”, synchronizowany z kontem). */
+function noteCard(id, title) {
+  const n = store.get('notes', id);
+  return `<details class="card note-card"${n?.text ? ' open' : ''}><summary><h5><i style="background:#ffd166"></i>Moja notatka${n?.text ? '' : ' – dodaj'}</h5></summary><textarea data-note="${esc(id)}" data-title="${esc(title)}" rows="3" placeholder="Skojarzenie, uwaga z zajęć, pytanie do prowadzącego…" aria-label="Moja notatka">${esc(n?.text ?? '')}</textarea></details>`;
+}
+let noteTimer = 0;
+document.addEventListener('input', (e) => {
+  const ta = e.target.closest?.('textarea[data-note]'); if (!ta) return;
+  clearTimeout(noteTimer);
+  noteTimer = setTimeout(() => {
+    const text = ta.value.trim(), id = ta.dataset.note;
+    if (text) store.put('notes', id, { text, title: ta.dataset.title }); else if (store.get('notes', id)) store.del('notes', id);
+  }, 400);
+});
+/** Otwiera strukturę, do której należy notatka (id: rodzaj:klucz). */
+function openNote(id) {
+  const [kind, ...rest] = id.split(':'), key = rest.join(':'), side = defSide();
+  if (kind === 'complex') { modes.learn.openComplex(key); if (mode === 'learn') modes.learn.enter(); else setMode('learn'); return; }
+  setMode('atlas');
+  if (kind === 'muscle' && MUSCLES[key]) select(model.muscleEntity(key, side), { isolate: true });
+  else if (kind === 'nerve' && NERVES[key]) select(model.nerveEntity(key, side), { isolate: true });
+  else if (kind === 'joint' && JOINTS[key]) select(model.jointEntity(key, side), { isolate: true });
+  else if (kind === 'struct') { const i = model.ids(key, side)[0] ?? model.names.get(key)?.[0]; if (i != null) select(model.structEntity(i), { isolate: true }); }
+  else if (kind === 'landmark') { const li = labels.findIndex((l) => l.n === key); if (li >= 0) openLandmark(li, side); }
+}
 /** Badanie mięśnia: palpacja, test siły (Lovett), test długości. */
 function examCards(k) {
   const rows = [['Palpacja', k.palp], ['Test siły', k.mmt], ['Test długości / rozciąganie', k.len]].filter(([, t]) => t && t !== '—');
@@ -357,7 +383,7 @@ function renderAtlas() {
     h += card('Unaczynienie', p(k.a), '#d12120');
     h += card('Czynność', `<ul>${k.f.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>${moves.length ? `<p style="margin-top:6px">Zobacz w ruchu: ${moves.map((m) => `<span class="link" data-move="${m.id}">${esc(m.pl)}</span>`).join(' · ')}</p>` : ''}`, '#3ecf8e');
     h += examCards(k);
-    h += card('Klinika i fizjoterapia', p(k.k), null, 'clin') + card('Skojarzenie', p(k.s), null, 'tip');
+    h += card('Klinika i fizjoterapia', p(k.k), null, 'clin') + card('Skojarzenie', p(k.s), null, 'tip') + noteCard(`muscle:${ent.key}`, k.pl);
     if (!ent.att.length) h += '<p class="note">Dla tego mięśnia model nie zawiera osobnych pól przyczepów – opis przyczepów powyżej.</p>';
   } else if (ent.type === 'landmark') {
     h += `<div class="en">${esc(ent.en)}</div><div class="tags"><span class="tag">Punkt kostny</span><span class="tag link" data-act="bone">${esc(ent.bonePl)}</span>${ent.side ? `<span class="tag">${SIDE_PL[ent.side]}</span>` : ''}</div>`;
@@ -369,7 +395,7 @@ function renderAtlas() {
       : near.length ? `<div class="list">${near.map((m) => `<div class="it" data-muscle="${m.key}"><span>${esc(MUSCLES[m.key].pl)}</span><small>${role(m)} · ${how(m)}</small></div>`).join('')}</div>
         <p class="note">Z modelu: pola przyczepów do 2 cm od punktu (czerwone – początkowe, niebieskie – końcowe). „Wg opisu” – punkt wymieniony w opisie przyczepu, choć w modelu pole leży dalej lub na innej strukturze (np. więzadło rzepki).</p>`
       : '<p class="en">Przy tym punkcie nie przyczepia się żaden mięsień z bazy (może to być powierzchnia stawowa, bruzda albo przyczep więzadła).</p>', '#ffb454');
-    h += `<p style="margin-top:6px"><span class="link" data-act="bone">Pokaż całą kość i jej pozostałe punkty →</span></p>`;
+    h += `<p style="margin-top:6px"><span class="link" data-act="bone">Pokaż całą kość i jej pozostałe punkty →</span></p>` + noteCard(`landmark:${ent.en}`, ent.title);
   } else if (ent.type === 'joint') {
     const j = ent.kb, moves = j.moves.map((id) => MOVES.find((m) => m.id === id)).filter(Boolean);
     h += `<div class="tags"><span class="tag">Staw</span>${ent.side ? `<span class="tag">${SIDE_PL[ent.side]}</span>` : ''}</div>`;
@@ -379,7 +405,7 @@ function renderAtlas() {
     h += card('Pozycje stawu', `<p><b>Zamknięta (najciaśniejsza):</b> ${esc(j.closed)}</p><p style="margin-top:5px"><b>Spoczynkowa (luźna):</b> ${esc(j.rest)}</p><p style="margin-top:5px"><b>Wzorzec torebkowy:</b> ${esc(j.capsular)}</p>`, '#4c9dff');
     if (moves.length) h += card('Ruchy i zakresy', `<div class="list">${moves.map((m) => `<div class="it" data-move="${m.id}"><span>${esc(m.pl)}</span><small>${esc(m.rom ?? '')}</small></div>`).join('')}</div>`, '#3ecf8e');
     h += card(`Testy kliniczne (${j.tests.length})`, j.tests.map((t, i) => `<div class="test" data-test="${i}"><b class="link">${esc(t.pl)}</b><small> – ${esc(t.cel)}</small><p>${esc(t.jak)}</p><p><i>Wynik dodatni:</i> ${esc(t.plus)}</p></div>`).join(''), '#c084fc');
-    h += card('Klinika i fizjoterapia', p(j.k), null, 'clin') + card('Skojarzenie', p(j.s), null, 'tip');
+    h += card('Klinika i fizjoterapia', p(j.k), null, 'clin') + card('Skojarzenie', p(j.s), null, 'tip') + noteCard(`joint:${ent.key}`, j.pl);
   } else if (ent.type === 'nerve') {
     const k = ent.kb;
     h += `<div class="tags"><span class="tag">Nerw</span><span class="tag">${esc(k.roots)}</span>${ent.side ? `<span class="tag">${SIDE_PL[ent.side]}</span>` : ''}</div>`;
@@ -387,7 +413,7 @@ function renderAtlas() {
     h += actions(ent) + isoControls();
     h += `<div class="acts"><button data-act="trace">Śledź drogę nerwu i jego mięśnie →</button></div>`;
     h += card('Przebieg', p(k.course), '#f5cc33') + card('Zakres ruchowy', p(k.motor) + (ent.muscles.length ? `<p style="margin-top:6px">${ent.muscles.map((m) => `<span class="link" data-muscle="${m.key}">${esc(m.lat)}</span>`).join(' · ')}</p>` : ''), '#a83d36');
-    h += card('Zakres czuciowy', p(k.sensory), '#93a0b4') + card('Uszkodzenie – objawy', p(k.palsy), null, 'clin') + card('Skojarzenie', p(k.tip), null, 'tip');
+    h += card('Zakres czuciowy', p(k.sensory), '#93a0b4') + card('Uszkodzenie – objawy', p(k.palsy), null, 'clin') + card('Skojarzenie', p(k.tip), null, 'tip') + noteCard(`nerve:${ent.key}`, k.pl);
   } else {
     const m = ent.meta;
     h += `<div class="en">${esc(ent.en)}</div><div class="tags"><span class="tag">${LAYER_PL[ent.layer]}</span><span class="tag">${REG_PL[m.reg]}</span>${ent.side ? `<span class="tag">${SIDE_PL[ent.side]}</span>` : ''}</div>`;
@@ -404,6 +430,7 @@ function renderAtlas() {
     if (js.length) h += `<p style="margin:6px 0">Staw: ${js.map((k) => `<span class="link" data-joint="${k}">${esc(JOINTS[k].pl)}</span>`).join(' · ')}</p>`;
     const pd = structDesc(ent.name);
     if (pd) h += card('Opis', p(pd), LAYER_COLOR[ent.layer]);
+    h += noteCard(`struct:${ent.name}`, ent.title);
     h += `<div id="desc"></div>`;
     loadDesc(ent.name, !!pd);
   }
@@ -594,7 +621,7 @@ $('#hud').addEventListener('click', (e) => { const b = e.target.closest('button'
       return;
     }
     if (rp.has('debug')) Object.assign(window, { __motion: motion, __model: model, __engine: engine }); // testy automatyczne
-    const ctx = { engine, model, view, applyView, need, hint, panelBody, esc, card, examCards, setMode, select, entDir, MUSCLES, NERVES, modeIs: (m) => mode === m, home };
+    const ctx = { engine, model, view, applyView, need, hint, panelBody, esc, card, examCards, noteCard, openNote, setMode, select, entDir, MUSCLES, NERVES, modeIs: (m) => mode === m, home };
     modes.settings = initSettings(ctx);
     modes.quiz = initQuiz(ctx); modes.srs = initSrs(ctx);
     ctx.quizScoped = (keys, label, lid) => { setMode('quiz'); modes.quiz.scoped(keys, label, lid); };

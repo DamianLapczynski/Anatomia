@@ -86,7 +86,7 @@ export function initLearn(ctx) {
     if (cx) h += card('Położenie', p(cx.loc), '#e62929') + card('Zawartość', p(cx.cont), '#4c9dff') + card('Unerwienie', p(cx.n), '#f5cc33') + card('Czynność', `<ul>${cx.f.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>`, '#3ecf8e');
     h += card(S.kind === 'nerve' ? 'Mięśnie unerwiane – w kolejności wzdłuż nerwu' : 'Mięśnie sektora', `<div class="list">${c.keys.map((k, i) => `<div class="it" data-step="${i}"><span><i class="dot" style="display:inline-block;background:${PALETTE[i % PALETTE.length]};margin-right:8px"></i>${esc(MUSCLES[k].pl)}</span><small>${esc(MUSCLES[k].lat)} · ${depth(k)}</small></div>`).join('')}</div>`);
     if (S.kind === 'nerve' && NERVES[S.id].tip) h += card('Skojarzenie', p(NERVES[S.id].tip), null, 'tip');
-    if (cx) h += card('Klinika i fizjoterapia', p(cx.k), null, 'clin') + card('Skojarzenie', p(cx.s), null, 'tip');
+    if (cx) h += card('Klinika i fizjoterapia', p(cx.k), null, 'clin') + card('Skojarzenie', p(cx.s), null, 'tip') + ctx.noteCard(`complex:${S.id}`, cx.pl);
     panelBody.innerHTML = h; panelBody.scrollTop = 0;
     stage();
   }
@@ -100,7 +100,7 @@ export function initLearn(ctx) {
       ${card('Przyczep początkowy', p(m.o), '#e62929')}${card('Przyczep końcowy', p(m.i), '#266bf2')}
       ${card('Unerwienie', p(m.n), '#f5cc33')}
       ${card('Czynność', `<ul>${m.f.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>`, '#3ecf8e')}
-      ${ctx.examCards(m)}${card('Klinika i fizjoterapia', p(m.k), null, 'clin')}${card('Skojarzenie', p(m.s), null, 'tip')}`;
+      ${ctx.examCards(m)}${card('Klinika i fizjoterapia', p(m.k), null, 'clin')}${card('Skojarzenie', p(m.s), null, 'tip')}${ctx.noteCard(`muscle:${k}`, m.pl)}`;
     panelBody.scrollTop = 0;
     stage();
   }

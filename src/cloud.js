@@ -1,6 +1,6 @@
 // Synchronizacja postępu przez Firebase: logowanie Google + Firestore z pamięcią offline.
 // Ładowany dynamicznie (import()) dopiero, gdy jest potrzebny – start aplikacji bez konta nie pobiera Firebase.
-// Dane: users/{uid}/{srs|quiz|learn|settings}/{id} – jeden dokument na fiszkę, pytanie, sektor.
+// Dane: users/{uid}/{srs|quiz|learn|settings|notes}/{id} – jeden dokument na fiszkę, pytanie, sektor.
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, connectAuthEmulator } from 'firebase/auth';
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, connectFirestoreEmulator, collection, doc, setDoc, deleteDoc, onSnapshot, increment } from 'firebase/firestore';
@@ -20,9 +20,12 @@ const state = { user: null, status: 'off' }; // off | sync | ok | offline | erro
 const set = (patch) => { Object.assign(state, patch); for (const f of listeners) f(state); };
 let unsub = [], pending = new Map(), errors = 0;
 
-function track(p) { // stan synchronizacji: czekające zapisy
+// Notatki doszły później: dopóki w konsoli Firebase nie opublikowano nowych reguł (firestore.rules), Firestore odrzuca je
+// z permission-denied – wtedy notatki zostają tylko w przeglądarce, a stan synchronizacji reszty danych się nie psuje.
+const softDenied = (ns, e) => { if (ns === 'notes' && e?.code === 'permission-denied') { if (!softDenied.warned) console.warn('Notatki: brak uprawnień w regułach Firestore – zapis tylko lokalny. Opublikuj firestore.rules.'); softDenied.warned = true; return true; } return false; };
+function track(p, ns) { // stan synchronizacji: czekające zapisy
   const k = Symbol(); pending.set(k, p); refresh();
-  p.then(() => { pending.delete(k); refresh(); }, (e) => { pending.delete(k); errors++; console.error('Firestore:', e); set({ status: 'error', error: e.code ?? e.message }); });
+  p.then(() => { pending.delete(k); refresh(); }, (e) => { pending.delete(k); if (softDenied(ns, e)) return refresh(); errors++; console.error('Firestore:', e); set({ status: 'error', error: e.code ?? e.message }); });
 }
 const refresh = () => { if (state.user && state.status !== 'error') set({ status: !navigator.onLine ? 'offline' : pending.size ? 'sync' : 'ok' }); };
 addEventListener('online', refresh); addEventListener('offline', refresh);
@@ -30,8 +33,8 @@ addEventListener('online', refresh); addEventListener('offline', refresh);
 const strip = (v) => { const o = {}; for (const [k, x] of Object.entries(v)) if (x !== undefined) o[k] = x; return o; };
 const ref = (ns, id) => doc(db, 'users', state.user.uid, ns, id.replace(/\//g, '∕'));
 const api = {
-  put: (ns, id, v) => track(setDoc(ref(ns, id), strip(v))),
-  del: (ns, id) => track(deleteDoc(ref(ns, id))),
+  put: (ns, id, v) => track(setDoc(ref(ns, id), strip(v)), ns),
+  del: (ns, id) => track(deleteDoc(ref(ns, id)), ns),
   inc: (ns, id, delta, extra) => { const o = strip(extra); for (const [k, d] of Object.entries(delta)) o[k] = increment(d); track(setDoc(ref(ns, id), o, { merge: true })); },
 };
 
@@ -50,7 +53,7 @@ function attach(user) {
         if (changes.length) store._remote(ns, changes);
       }
       refresh();
-    }, (e) => { console.error('Firestore:', e); set({ status: 'error', error: e.code }); }));
+    }, (e) => { if (softDenied(ns, e)) return; console.error('Firestore:', e); set({ status: 'error', error: e.code }); }));
   }
 }
 function detach() { unsub.forEach((f) => f()); unsub = []; store._detach(); set({ user: null, status: 'off' }); }

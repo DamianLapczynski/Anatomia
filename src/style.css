@@ -454,3 +454,8 @@ body.kb #modes button[data-kh]::after{margin-left:2px}
 #settings .themes{grid-template-columns:repeat(4,1fr);margin-top:6px}
 #settings .opt.col{flex-direction:column;align-items:stretch}
 .btnlink{display:inline-block;padding:7px 12px;border-radius:9px;background:var(--acc);color:var(--onacc,#06121f);font-weight:600;text-decoration:none}
+/* notatki */
+.note-card summary{cursor:pointer;list-style:none}.note-card summary::-webkit-details-marker{display:none}
+.note-card:not([open]) summary h5{margin:0}
+.note-card textarea{width:100%;box-sizing:border-box;margin-top:6px;min-height:72px;resize:vertical;font:inherit;font-size:14px;line-height:1.45;color:var(--tx);background:var(--fill);border:0;border-radius:10px;padding:9px 11px;outline:none}
+.note-card textarea:focus{box-shadow:0 0 0 2px var(--acc)}

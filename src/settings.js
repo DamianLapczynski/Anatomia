@@ -71,6 +71,7 @@ export function initSettings(ctx) {
 
   function render() {
     const p = prefs(), srs = store.get('settings', 'srs') ?? {}, perDay = srs.perDay ?? 15;
+    const notes = Object.entries(store.all('notes')).sort(([, a], [, b]) => (b.t ?? 0) - (a.t ?? 0));
     const counts = { srs: Object.keys(store.all('srs')).length, quiz: Object.values(store.all('quiz')).reduce((a, r) => a + (r.ok ?? 0) + (r.bad ?? 0), 0), learn: Object.keys(store.all('learn')).length };
     root.innerHTML = `<div class="box" role="dialog" aria-label="Ustawienia">
       <div class="head"><h3>Ustawienia</h3><button data-close aria-label="Zamknij">✕</button></div>
@@ -91,8 +92,11 @@ export function initSettings(ctx) {
         ${opt('Nowe fiszki dziennie', 'Powtórki (SM-2)', seg('perDay', [5, 10, 15, 20, 30].map((n) => [n, n]), perDay))}
         ${opt('Błędy z quizu do powtórek', 'Źle odpowiedziany mięsień od razu wraca w Powtórkach', sw('quizToSrs', p.quizToSrs))}
       </section>
+      <section><h4>Moje notatki (${notes.length})</h4>
+        ${notes.length ? `<div class="list">${notes.map(([id, n]) => `<div class="it col" data-note-open="${esc(id)}"><span>${esc(n.title ?? id)}</span><small>${esc(n.text.length > 140 ? `${n.text.slice(0, 140)}…` : n.text)}</small></div>`).join('')}</div>` : '<p class="en">Notatkę dodasz na karcie mięśnia, nerwu, stawu, kości lub kompleksu („Moja notatka”). Zapisuje się sama i synchronizuje z kontem.</p>'}
+      </section>
       <section><h4>Dane</h4>
-        <p class="en">W tej przeglądarce: ${counts.srs} fiszek w nauce, ${counts.quiz} odpowiedzi w quizach, ${counts.learn} sektorów w Nauce.</p>
+        <p class="en">W tej przeglądarce: ${counts.srs} fiszek w nauce, ${counts.quiz} odpowiedzi w quizach, ${counts.learn} sektorów w Nauce, ${notes.length} notatek.</p>
         <div class="acts"><button data-do="export">Eksport całego postępu</button><button data-do="import">Import</button></div>
         <div class="acts"><button data-do="update">Pobierz najnowszą wersję aplikacji</button><button data-do="wipe">Wyczyść dane w tej przeglądarce</button></div>
       </section>
@@ -108,7 +112,8 @@ export function initSettings(ctx) {
   btn.addEventListener('click', () => (root.hidden ? open() : close()));
   root.addEventListener('click', async (e) => {
     if (e.target === root || e.target.closest('[data-close]')) return close();
-    const S = e.target.closest('[data-set]'), D = e.target.closest('[data-do]'), A = e.target.closest('[data-acct]');
+    const S = e.target.closest('[data-set]'), D = e.target.closest('[data-do]'), A = e.target.closest('[data-acct]'), N = e.target.closest('[data-note-open]');
+    if (N) { close(); ctx.openNote(N.dataset.noteOpen); return; }
     if (A) return acct.act(A.dataset.acct);
     if (S) {
       const k = S.dataset.set, raw = S.dataset.v, v = raw === 'true' ? true : raw === 'false' ? false : /^[\d.]+$/.test(raw) ? Number(raw) : raw;
@@ -118,15 +123,15 @@ export function initSettings(ctx) {
     }
     const d = D?.dataset.do;
     if (d === 'export') {
-      const { srs, quiz, learn, settings } = store._dump();
-      const blob = new Blob([JSON.stringify({ app: 'anatomia', v: 2, date: new Date().toISOString(), srs, quiz, learn, settings })], { type: 'application/json' });
+      const { srs, quiz, learn, settings, notes } = store._dump();
+      const blob = new Blob([JSON.stringify({ app: 'anatomia', v: 3, date: new Date().toISOString(), srs, quiz, learn, settings, notes })], { type: 'application/json' });
       const u = URL.createObjectURL(blob); Object.assign(document.createElement('a'), { href: u, download: `anatomia-postep-${new Date().toISOString().slice(0, 10)}.json` }).click(); URL.revokeObjectURL(u);
     } else if (d === 'import') {
       const inp = Object.assign(document.createElement('input'), { type: 'file', accept: 'application/json' });
       inp.onchange = async () => {
         try {
           const j = JSON.parse(await inp.files[0].text());
-          if (j.app === 'anatomia') { for (const ns of ['srs', 'learn', 'settings']) for (const [id, v] of Object.entries(j[ns] ?? {})) { const { t, ...rest } = v; store.put(ns, id, rest); } for (const [id, v] of Object.entries(j.quiz ?? {})) store.inc('quiz', id, { ok: v.ok ?? 0, bad: v.bad ?? 0 }, { kind: v.kind, key: v.key, q: v.q }); }
+          if (j.app === 'anatomia') { for (const ns of ['srs', 'learn', 'settings', 'notes']) for (const [id, v] of Object.entries(j[ns] ?? {})) { const { t, ...rest } = v; store.put(ns, id, rest); } for (const [id, v] of Object.entries(j.quiz ?? {})) store.inc('quiz', id, { ok: v.ok ?? 0, bad: v.bad ?? 0 }, { kind: v.kind, key: v.key, q: v.q }); }
           else if (j.cards) { for (const [id, c] of Object.entries(j.cards)) { const { t, ...rest } = c; store.put('srs', id, rest); } } // stary eksport z Powtórek
           else throw new Error('format');
           apply(); render(); ctx.hint('Zaimportowano postęp', 'ok');
@@ -144,7 +149,7 @@ export function initSettings(ctx) {
     } else if (d === 'keys') { close(); document.getElementById('keysBtn').click(); }
   });
   document.addEventListener('keydown', (e) => { if (!root.hidden && e.key === 'Escape') { e.stopImmediatePropagation(); close(); } }, true);
-  store.on((ns, id, remote) => { if (ns === 'settings' && remote) { apply(); if (!root.hidden) render(); } });
+  store.on((ns, id, remote) => { if (ns === 'settings' && remote) { apply(); if (!root.hidden) render(); } else if (ns === 'notes' && remote && !root.hidden) render(); });
   apply(); renderBtn();
   return { open, close, prefs };
 }
