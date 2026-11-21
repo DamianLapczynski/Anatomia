@@ -111,6 +111,8 @@ Dane: `users/{uid}/srs|quiz|learn|settings|notes/{id}` – jeden dokument na fis
 
 Safari blokuje logowanie Google przez inną domenę niż ta, na której działa aplikacja, dlatego na urządzeniach Apple używaj kopii z **https://anatomia-3d-6b134.web.app** (tam aplikacja i logowanie są w tej samej domenie). Publikuje ją workflow `.github/workflows/firebase-hosting.yml`, gdy w repozytorium jest sekret **`FIREBASE_SERVICE_ACCOUNT`**: Konsola Firebase → Ustawienia projektu → Service accounts → Generate new private key, a zawartość pobranego pliku JSON wklej w GitHub → Settings → Secrets and variables → Actions → New repository secret. Pliku z kluczem nikomu nie wysyłaj i usuń go po dodaniu sekretu.
 
+Jednorazowo trzeba też dopisać tę domenę do klienta OAuth, inaczej Google pokaże **„Błąd 400: redirect_uri_mismatch”**: Google Cloud Console → Interfejsy API i usługi → Dane logowania → „Web client (auto created by Google Service)” → w „Autoryzowane źródła JavaScript” `https://anatomia-3d-6b134.web.app`, a w „Autoryzowane identyfikatory URI przekierowania” `https://anatomia-3d-6b134.web.app/__/auth/handler` → Zapisz (zmiana działa po kilku minutach).
+
 ## Uruchomienie
 
 ```bash

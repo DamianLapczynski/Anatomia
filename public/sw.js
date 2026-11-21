@@ -5,6 +5,8 @@ self.addEventListener('activate', (e) => e.waitUntil(caches.keys().then((ks) => 
 self.addEventListener('fetch', (e) => {
   const u = new URL(e.request.url);
   if (e.request.method !== 'GET' || u.origin !== location.origin) return;
+  // zastrzeżone ścieżki Firebase Hosting (logowanie: /__/auth/handler, /__/auth/iframe, /__/firebase/init.json) – zawsze z sieci, bez cache
+  if (u.pathname.startsWith('/__/')) return;
   const heavy = /\/(models|data)\//.test(u.pathname) || /\/assets\//.test(u.pathname);
   e.respondWith(caches.open(C).then(async (cache) => {
     const hit = await cache.match(e.request);

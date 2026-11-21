@@ -59,7 +59,11 @@ function attach(user) {
 function detach() { unsub.forEach((f) => f()); unsub = []; store._detach(); set({ user: null, status: 'off' }); }
 
 onAuthStateChanged(auth, (u) => { detach(); if (u) { try { localStorage.setItem('anatomia.cloud', '1'); } catch { /* */ } attach(u); } });
-getRedirectResult(auth).catch((e) => set({ error: e.code }));
+// powrót z logowania przekierowaniem: account.js ładuje ten moduł, gdy flaga = 'redirect' (ustawiona przed wyjściem do Google)
+getRedirectResult(auth).catch((e) => set({ error: e.code ?? e.message })).finally(() => {
+  try { if (localStorage.getItem('anatomia.cloud') === 'redirect' && !auth.currentUser) localStorage.removeItem('anatomia.cloud'); } catch { /* */ }
+});
+const redirect = (p) => { try { if (localStorage.getItem('anatomia.cloud') !== '1') localStorage.setItem('anatomia.cloud', 'redirect'); } catch { /* */ } return signInWithRedirect(auth, p); };
 
 export const cloud = {
   state,
@@ -68,11 +72,11 @@ export const cloud = {
     if (EMU) { return signInWithCredential(auth, GoogleAuthProvider.credential('{"sub": "test-user", "email": "test@example.com", "email_verified": true}')); }
     const p = new GoogleAuthProvider(); p.setCustomParameters({ prompt: 'select_account' });
     // aplikacja z ekranu głównego: okno logowania nie wraca do aplikacji – przekierowanie (działa, gdy logowanie jest w tej samej domenie: Firebase Hosting)
-    if (STANDALONE && onFirebaseHosting) return signInWithRedirect(auth, p);
+    if (STANDALONE && onFirebaseHosting) return redirect(p);
     try { await signInWithPopup(auth, p); }
     catch (e) {
       // aplikacja z ekranu głównego (iOS) i przeglądarki blokujące okna – przekierowanie zamiast popupu
-      if (['auth/popup-blocked', 'auth/operation-not-supported-in-this-environment', 'auth/cancelled-popup-request'].includes(e.code)) return signInWithRedirect(auth, p);
+      if (['auth/popup-blocked', 'auth/operation-not-supported-in-this-environment', 'auth/cancelled-popup-request'].includes(e.code)) return redirect(p);
       if (e.code !== 'auth/popup-closed-by-user') throw e;
     }
   },
