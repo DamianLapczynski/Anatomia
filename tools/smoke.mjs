@@ -59,6 +59,14 @@ const common = [
   ['staw-test', clickText('#panelBody .test', 'Lachmana')],
   ['staw-wiezadlo', clickText('#panelBody .it', 'krzyżowe tylne')],
   ['szukaj-wiezadlo', search('więzadło skokowo-strzałkowe przednie')],
+  ['desktop-klawiatura', async (p) => {
+    await mode('atlas')(p);
+    const el = p.locator('#left [data-layer=joints]'); const before = await el.getAttribute('aria-checked');
+    await el.focus(); await p.keyboard.press('Space'); await p.waitForTimeout(300);
+    const after = await p.locator('#left [data-layer=joints]').getAttribute('aria-checked');
+    if (before === after) throw new Error('Spacja nie przełączyła warstwy');
+    await p.locator('#left [data-layer=joints]').focus(); await p.keyboard.press('Enter');
+  }],
   ['nauka', mode('learn')],
   ['nauka-staw', clickText('#panelBody .it', 'Staw ramienny')],
   ['nauka-wroc', mode('learn')],

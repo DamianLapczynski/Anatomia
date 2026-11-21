@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -20,13 +20,13 @@
     <button id="menuBtn" class="icon" aria-label="Warstwy">☰</button>
     <div class="brand">Anatomia<span>3D</span></div>
     <div id="searchbox">
-      <input id="q" type="search" autocomplete="off" placeholder="Szukaj: mięsień, kość, nerw, tętnica… (PL / łac. / ang.)">
+      <input id="q" type="search" autocomplete="off" aria-label="Szukaj struktury" placeholder="Szukaj: mięsień, kość, nerw, tętnica… (PL / łac. / ang.)">
       <div id="results" hidden></div>
     </div>
     <button id="keysBtn" class="icon" title="Skróty klawiszowe (?)" aria-label="Skróty klawiszowe">⌨</button>
     <button id="setBtn" class="icon" aria-label="Ustawienia" title="Ustawienia">⚙</button>
-    <nav id="modes">
-      <button data-mode="atlas" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4.6" r="2.3"/><path d="M5 9h14M12 9v6m0 0-3 6.5M12 15l3 6.5"/></svg>Atlas</button>
+    <nav id="modes" aria-label="Tryby aplikacji">
+      <button data-mode="atlas" class="on" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4.6" r="2.3"/><path d="M5 9h14M12 9v6m0 0-3 6.5M12 15l3 6.5"/></svg>Atlas</button>
       <button data-mode="learn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5C5.8 4 9 4 12 6c3-2 6.2-2 9-.5v13c-2.8-1.5-6-1.5-9 .5-3-2-6.2-2-9-.5z"/><path d="M12 6v13"/></svg>Nauka</button>
       <button data-mode="motion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="4.5" r="2.2"/><path d="M6 11l4-3 4 1.5 2 4h3M10 8l-1.5 6.5L12 17v4.5M8.5 14.5 6 21"/></svg>Ruch</button>
       <button data-mode="clinic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v6a4 4 0 0 0 8 0V3"/><path d="M10 13v2.5a4.5 4.5 0 0 0 9 0V13"/><circle cx="19" cy="11" r="2"/></svg>Klinika</button>
@@ -35,19 +35,19 @@
     </nav>
   </header>
   <div id="settings" hidden></div>
-  <aside id="left"></aside>
+  <aside id="left" aria-label="Warstwy i widok"></aside>
   <main id="stage">
-    <canvas id="c"></canvas>
+    <canvas id="c" role="img" aria-label="Model 3D ciała – przeciągnij, aby obrócić; kółko lub szczypanie przybliża"></canvas>
     <div id="marks"></div>
-    <div id="hud">
+    <div id="hud" role="toolbar" aria-label="Widok modelu">
       <button data-view="front" title="Przód">Przód</button><button data-view="back" title="Tył">Tył</button>
-      <button data-view="right" title="Prawy bok">P</button><button data-view="left" title="Lewy bok">L</button>
-      <button data-act="home" title="Cała sylwetka">⌂</button>
+      <button data-view="right" title="Prawy bok" aria-label="Widok z prawej strony">P</button><button data-view="left" title="Lewy bok" aria-label="Widok z lewej strony">L</button>
+      <button data-act="home" title="Cała sylwetka" aria-label="Cała sylwetka">⌂</button>
     </div>
-    <div id="hint"></div>
-    <div id="loading"><div class="spin"></div><span>Wczytywanie modelu…</span></div>
+    <div id="hint" role="status" aria-live="polite"></div>
+    <div id="loading" role="status"><div class="spin"></div><span>Wczytywanie modelu…</span></div>
   </main>
-  <aside id="panel"><button id="grip" aria-label="Zwiń / rozwiń panel"></button><div id="panelBody"></div></aside>
+  <aside id="panel" aria-label="Opis i nauka"><button id="grip" aria-label="Zwiń / rozwiń panel"></button><div id="panelBody"></div></aside>
 </div>
 <script type="module" src="./src/app.js"></script>
 </body>

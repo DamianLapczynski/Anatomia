@@ -20,6 +20,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: node tools/validate_kb.mjs   # spójność bazy wiedzy z modelem – błąd zatrzymuje publikację
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:

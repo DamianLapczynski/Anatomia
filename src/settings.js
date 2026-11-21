@@ -73,7 +73,7 @@ export function initSettings(ctx) {
     const p = prefs(), srs = store.get('settings', 'srs') ?? {}, perDay = srs.perDay ?? 15;
     const notes = Object.entries(store.all('notes')).sort(([, a], [, b]) => (b.t ?? 0) - (a.t ?? 0));
     const counts = { srs: Object.keys(store.all('srs')).length, quiz: Object.values(store.all('quiz')).reduce((a, r) => a + (r.ok ?? 0) + (r.bad ?? 0), 0), learn: Object.keys(store.all('learn')).filter((k) => !k.startsWith('exam~')).length };
-    root.innerHTML = `<div class="box" role="dialog" aria-label="Ustawienia">
+    root.innerHTML = `<div class="box" role="dialog" aria-modal="true" aria-label="Ustawienia">
       <div class="head"><h3>Ustawienia</h3><button data-close aria-label="Zamknij">✕</button></div>
       <section><h4>Konto i baza danych</h4>${acct.html()}</section>
       <section><h4>Wygląd</h4>
@@ -103,6 +103,16 @@ export function initSettings(ctx) {
       <section class="about"><h4>O aplikacji</h4>
         <p><b>Anatomia 3D</b> – atlas do nauki fizjoterapii. Wersja z ${esc(new Date(__BUILD__).toLocaleDateString('pl-PL'))}.</p>
         <p>Modele 3D: Z-Anatomy i BodyParts3D (CC BY-SA). Opisy pisane do nauki – nie przeszły recenzji anatoma, weryfikuj z podręcznikiem.</p>
+        <details class="sources"><summary>Źródła treści</summary><ul>
+          <li>A. Bochenek, M. Reicher – <i>Anatomia człowieka</i>, t. I–V (PZWL) – budowa, przyczepy, unerwienie, nazwy polskie.</li>
+          <li>F. Paulsen, J. Waschke – <i>Sobotta. Atlas anatomii człowieka</i>; F. Netter – <i>Atlas anatomii człowieka</i>.</li>
+          <li>Terminologia Anatomica 2 (FIPAT) – nazwy łacińskie.</li>
+          <li>F. Kendall i in. – <i>Muscles: Testing and Function</i>; H. Hislop – <i>Daniels and Worthingham's Muscle Testing</i> – testy siły i długości, palpacja.</li>
+          <li>F. Kaltenborn – <i>Manual Mobilization of the Joints</i>; J. Cyriax – pozycje stawów i wzorce torebkowe.</li>
+          <li>D. Magee – <i>Orthopedic Physical Assessment</i> – testy kliniczne.</li>
+          <li>ASIA/ISCoS – <i>International Standards for Neurological Classification of SCI</i> (ISNCSCI) – miotomy i punkty kluczowe dermatomów.</li>
+          <li>Opisy angielskie struktur: Wikipedia (CC BY-SA) za pośrednictwem Z-Anatomy.</li>
+        </ul></details>
         <div class="acts"><button data-do="keys">Skróty klawiszowe</button></div>
       </section></div>`;
   }

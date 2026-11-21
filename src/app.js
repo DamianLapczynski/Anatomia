@@ -79,13 +79,13 @@ function hint(text, cls = '', ms = 2200) {
 function renderLeft() {
   left.innerHTML = `
     <h4>Warstwy</h4>
-    ${LAYERS.map(([k, n, c]) => `<div class="layer ${view.layers[k] ? 'on' : ''}" data-layer="${k}" style="--c:${c}"><i></i><span>${n}</span></div>`).join('')}
+    ${LAYERS.map(([k, n, c]) => `<div class="layer ${view.layers[k] ? 'on' : ''}" data-layer="${k}" style="--c:${c}" role="switch" aria-checked="${!!view.layers[k]}" tabindex="0"><i></i><span>${n}</span></div>`).join('')}
     <h4>Warstwa mięśni</h4>
-    <div class="seg" data-seg="depth">${[['all', 'Wszystkie'], ['sup', 'Powierzchowne'], ['deep', 'Głębokie']].map(([k, n]) => `<button data-v="${k}" class="${view.depth === k ? 'on' : ''}">${n}</button>`).join('')}</div>
+    <div class="seg" data-seg="depth">${[['all', 'Wszystkie'], ['sup', 'Powierzchowne'], ['deep', 'Głębokie']].map(([k, n]) => `<button data-v="${k}" class="${view.depth === k ? 'on' : ''}" aria-pressed="${view.depth === k}">${n}</button>`).join('')}</div>
     <h4>Strona ciała</h4>
-    <div class="seg" data-seg="side">${[['both', 'Obie'], ['r', 'Prawa'], ['l', 'Lewa']].map(([k, n]) => `<button data-v="${k}" class="${view.side === k ? 'on' : ''}">${n}</button>`).join('')}</div>
+    <div class="seg" data-seg="side">${[['both', 'Obie'], ['r', 'Prawa'], ['l', 'Lewa']].map(([k, n]) => `<button data-v="${k}" class="${view.side === k ? 'on' : ''}" aria-pressed="${view.side === k}">${n}</button>`).join('')}</div>
     <h4>Okolica</h4>
-    <div class="seg" data-seg="region">${REGIONS.map(([k, n]) => `<button data-v="${k}" class="${view.region === k ? 'on' : ''}">${n}</button>`).join('')}</div>
+    <div class="seg" data-seg="region">${REGIONS.map(([k, n]) => `<button data-v="${k}" class="${view.region === k ? 'on' : ''}" aria-pressed="${view.region === k}">${n}</button>`).join('')}</div>
     <h4>Szybkie zestawy</h4>
     <div class="seg">
       <button data-preset="skeleton">Szkielet</button><button data-preset="muscles">Mięśnie</button>
@@ -97,6 +97,16 @@ function renderLeft() {
     <h4>Widok</h4>
     <div class="seg"><button data-act="showall">Pokaż ukryte${view.hidden.size ? ` (${view.hidden.size})` : ''}</button><button data-act="reset">Reset</button></div>
     <p class="note">Modele 3D: Z-Anatomy / BodyParts3D (CC BY-SA 4.0). Treści opisowe do nauki – weryfikuj z podręcznikiem i prowadzącym.</p>`;
+}
+// ---------- dostępność z klawiatury ----------
+// klikalne elementy list, chipy i linki w panelach dostają fokus i rolę przycisku; Enter / Spacja je uruchamia
+const A11Y_SEL = '.list .it, .chip, .link, .test, .mark';
+function a11yMark(root) { for (const el of root.querySelectorAll(A11Y_SEL)) if (!el.hasAttribute('tabindex')) { el.tabIndex = 0; if (!el.getAttribute('role')) el.setAttribute('role', 'button'); } }
+for (const root of [panelBody, left, marks]) {
+  new MutationObserver(() => a11yMark(root)).observe(root, { childList: true, subtree: true });
+  root.addEventListener('keydown', (e) => {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches?.(`${A11Y_SEL}, [data-layer]`)) { e.preventDefault(); e.stopPropagation(); e.target.click(); }
+  });
 }
 // ---------- motywy ----------
 // styl ustawia settings.js (applyLook); tu tylko scena 3D i podświetlenie miniatury w panelu warstw
@@ -569,7 +579,7 @@ function setMode(m) {
   if (m === mode) return;
   modes[mode]?.leave?.();
   mode = m; app.dataset.mode = m;
-  document.querySelectorAll('#modes button').forEach((b) => b.classList.toggle('on', b.dataset.mode === m));
+  document.querySelectorAll('#modes button').forEach((b) => { b.classList.toggle('on', b.dataset.mode === m); if (b.dataset.mode === m) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
   app.classList.remove('sheet-min', 'sheet-max', 'menu');
   modes[m].enter();
   applyView();

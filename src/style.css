@@ -464,3 +464,7 @@ body.kb #modes button[data-kh]::after{margin-left:2px}
 .exam-prog{flex:1;height:5px;border-radius:3px;background:var(--fill);overflow:hidden}.exam-prog i{display:block;height:100%;background:var(--acc)}
 #exTimer{font-variant-numeric:tabular-nums;font-weight:600;color:var(--tx)}#exTimer.warn{color:var(--bad)}
 .exam-wrong{cursor:pointer}.exam-wrong p+p{margin-top:4px}
+/* fokus z klawiatury – widoczny tylko przy nawigacji klawiszami */
+:is(button,.list .it,.chip,.link,.test,.layer,.mark,input,textarea,summary):focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.list .it:focus-visible,.layer:focus-visible{outline-offset:-2px}
+.sources summary{cursor:pointer;color:var(--acc);margin:6px 0}.sources ul{margin:6px 0 0 18px;padding:0;font-size:13px;line-height:1.5;color:var(--mut)}

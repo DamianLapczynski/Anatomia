@@ -4,16 +4,21 @@ Interaktywny atlas anatomii 3D do nauki na studiach fizjoterapii: układ kostny,
 
 ## Co potrafi
 
-- **Atlas** – 3300 osobnych struktur (kości, więzadła, mięśnie, pola przyczepów, tętnice, żyły, nerwy, mózg i rdzeń). Warstwy, strona ciała, okolice, wyszukiwarka PL / łac. / ang., ukrywanie kolejnych warstw.
-- **Punkty kostne w wyszukiwarce** – ok. 560 punktów (PL / łac. / ang.), np. „guzowatość kości piszczelowej”, „SIAS”, „guz kulszowy”: kość ze znacznikiem punktu, pola przyczepów leżące przy nim i lista mięśni (początek / koniec) – z modelu 3D (do 2 cm od punktu) i z opisów przyczepów w bazie.
-- **Izolacja mięśnia** – mięsień + pola przyczepu początkowego (czerwone) i końcowego (niebieskie) na kościach + nerw z drogą od korzeni + tętnica; resztę ciała można przyciemnić albo ukryć, a każdy element kontekstu włączać osobno.
-- **Baza wiedzy** – 180 pozycji mięśniowych (przyczepy, unerwienie z segmentami, unaczynienie, czynność, klinika / fizjoterapia, skojarzenie), 25 nerwów (przebieg, zakres ruchowy i czuciowy, objawy uszkodzenia), ok. 760 punktów kostnych (dla głównych kości kończyn, obręczy i kości krzyżowej z polskimi nazwami).
-- **Nauka** – małe sektory mięśni (ok. 50 grup), kompleksy uczone razem (np. gęsia stopa – mięśnie, kaletka i wspólny przyczep) i drogi 24 nerwów: przegląd w kolorach, przejście mięsień po mięśniu, quiz z tego samego zakresu. Filtr warstwy: mięśnie powierzchowne / głębokie.
-- **Ruch** – 82 ruchy z podziałem na agonistów, synergistów i antagonistów (stawy kończyn, kciuk i palce, tułów i miednica, dno miednicy, szyja, żuchwa, mimika, gałka oczna); 70 z animacją szkieletu – także wielostawowe: pięść i opozycja kciuka, palce stopy, rotacja goleni w zgiętym kolanie, łopatka, kręgosłup kręg po kręgu, głowa, żuchwa, oddychanie, połykanie. Ruchy bez udziału kości (mimika, gałka oczna, dno miednicy) pokazują pulsujące mięśnie główne.
-- **Quiz** – wskaż strukturę na modelu, rozpoznaj podświetloną, pytania o unerwienie / przyczepy / czynność.
-- **Powtórki** – fiszki z modelem 3D i algorytmem SM-2; eksport i import jako kopia zapasowa.
-- **Ustawienia (⚙)** – konto i baza danych (logowanie Google), motyw jasny / ciemny / systemowy, kolor akcentu, wielkość tekstu, jakość grafiki, domyślna strona ciała, tempo animacji, nazwy punktów kostnych, liczba nowych fiszek, eksport / import całego postępu, pobranie najnowszej wersji. Ustawienia synchronizują się z kontem.
-- **Postęp i synchronizacja** – powtórki, statystyki quizów (najsłabsze mięśnie, wynik wg rodzaju pytania i okolicy, „Ćwicz słabe”) i przerobione sektory Nauki. Bez konta zapisują się w przeglądarce; po zalogowaniu kontem Google (⚙ Ustawienia) – we własnej bazie Firestore, wspólnej dla telefonu, iPada i komputera, także offline.
+- **Atlas** – 3300 osobnych struktur (kości, więzadła, mięśnie, pola przyczepów, tętnice, żyły, nerwy, mózg i rdzeń), **wszystkie z polską nazwą**. Warstwy, strona ciała, okolice, wyszukiwarka PL / łac. / ang., ukrywanie kolejnych warstw.
+- **Polskie opisy** – ok. 170 kluczowych struktur (kości, główne naczynia, serce, mózgowie, rdzeń, oko, ucho) plus każdy kręg, żebro i kość śródręcza / śródstopia: budowa, znaczenie, klinika. Angielski opis z Wikipedii zostaje jako rozwijane uzupełnienie.
+- **Punkty kostne w wyszukiwarce** – ok. 560 punktów (PL / łac. / ang.), np. „guzowatość kości piszczelowej”, „SIAS”, „guz kulszowy”: kość ze znacznikiem punktu, pola przyczepów leżące przy nim i lista mięśni (początek / koniec).
+- **Izolacja mięśnia** – mięsień + pola przyczepu początkowego (czerwone) i końcowego (niebieskie) na kościach + nerw z drogą od korzeni + tętnica; resztę ciała można przyciemnić albo ukryć.
+- **Baza wiedzy** – 180 mięśni (przyczepy, unerwienie z segmentami, unaczynienie, czynność, klinika, skojarzenie), w tym 113 z **badaniem**: palpacja, test siły w skali Lovetta, test długości / rozciąganie (`src/data/muscle_exam.js`); 48 nerwów, w tym nerwy czaszkowe i gałęzie bez siatki w modelu (n. pośladkowy dolny, przeponowy – pokazywane przez swoje mięśnie); ok. 760 punktów kostnych.
+- **Stawy** – 17 stawów (`src/data/joints.js`): budowa i osie, więzadła z funkcją (klik podświetla więzadło, a reszta tkanek znika), pozycja zamknięta i spoczynkowa, wzorzec torebkowy, ruchy z zakresami i 41 testów klinicznych (Lachman, McMurray, FADIR, Neer, Phalen…) z podświetleniem badanej struktury.
+- **Nauka** – sektory mięśni (ok. 50 grup), 18 kompleksów, kanałów i przestrzeni (stożek rotatorów, kanał nadgarstka, kanał Guyona, trójkąt udowy, dół podkolanowy, tabakierka anatomiczna, „core”, dno miednicy…) z zawartością i nerwami na modelu, drogi nerwów i lista stawów.
+- **Klinika** – symulator uszkodzenia nerwu lub korzenia C5–S1: porażone mięśnie na czerwono, osłabione na pomarańczowo i lista utraconych ruchów liczona z bazy ruchów; badanie neurologiczne (miotomy, odruchy, punkty kluczowe dermatomów ISNCSCI na modelu); quiz kliniczny „pacjent nie wykona X – który nerw / korzeń?” (`src/clinic.js`, `src/data/roots.js`).
+- **Ruch** – 82 ruchy z podziałem na agonistów, synergistów i antagonistów; 70 z animacją szkieletu – także wielostawowe (pięść, opozycja kciuka, kręgosłup kręg po kręgu, żuchwa, oddychanie, połykanie).
+- **Quiz** – wskaż strukturę na modelu, rozpoznaj podświetloną, pytania o unerwienie / przyczepy / czynność; **Egzamin** na czas (10–60 pytań mieszanych z zakresu: kończyna górna, dolna, tułów, głowa i szyja, nerwy, stawy, całość), bez podpowiedzi do końca, z wynikiem wg rodzaju pytania i okolicy, oceną orientacyjną i historią. Zakresy w `src/data/exam_presets.js` – można dopisać sylabus swojej uczelni.
+- **Powtórki** – fiszki z modelem 3D i algorytmem SM-2 (przyczepy, unerwienie, czynność, test siły, nerwy); eksport i import jako kopia zapasowa.
+- **Notatki** – własna notatka przy każdym mięśniu, nerwie, stawie, kości i kompleksie; lista wszystkich notatek w ⚙ Ustawieniach.
+- **Ustawienia (⚙)** – konto i baza danych (logowanie Google), styl, kolor akcentu, wielkość tekstu, jakość grafiki, domyślna strona ciała, tempo animacji, nazwy punktów kostnych, liczba nowych fiszek, eksport / import, notatki, źródła treści.
+- **Postęp i synchronizacja** – powtórki, statystyki quizów i egzaminów, przerobione sektory Nauki i notatki. Bez konta zapisują się w przeglądarce; po zalogowaniu kontem Google – we własnej bazie Firestore, wspólnej dla telefonu, iPada i komputera, także offline.
+- **Dostępność** – strona daje się powiększać, przyciski i listy mają etykiety i obsługę z klawiatury (Tab, Enter / Spacja), widoczny fokus.
 
 ## Style graficzne
 
@@ -41,11 +46,12 @@ Działają na komputerze i na iPadzie z klawiaturą we wszystkich trybach; klawi
 
 | Gdzie | Skróty |
 | --- | --- |
-| Wszędzie | `Alt+1…5` lub `[` `]` tryby · `/` lub `Ctrl+K` szukaj · `Shift+strzałki` obrót · `+` `−` zoom · `F` `B` `R` `L` widoki · `Home` cała sylwetka · `Esc` lub `Backspace` wstecz |
+| Wszędzie | `Alt+1…6` lub `[` `]` tryby · `/` lub `Ctrl+K` szukaj · `Shift+strzałki` obrót · `+` `−` zoom · `F` `B` `R` `L` widoki · `Home` cała sylwetka · `Esc` lub `Backspace` wstecz |
 | Atlas | `1…9, 0` warstwy · `D` powierzchowne/głębokie · `I` izoluj · `H` ukryj · `U` pokaż ukryte · `C` centruj · `S` strona · `T` droga nerwu · `←` `→` sąsiedni mięsień |
 | Nauka | `↑` `↓` wybór z listy · `Enter` otwórz / dalej · `←` `→` poprzedni/następny mięsień · `Q` quiz z zakresu · `A` atlas |
 | Ruch | `↑` `↓` `Enter` wybór ruchu · `←` `→` inny ruch · `Spacja` odtwarzanie · `A` antagoniści · `S` strona |
 | Quiz | `1…4` odpowiedź (w menu `1…3` rodzaj pytań) · `Enter`/`Spacja` start, dalej, „nie wiem” · `A` atlas · `M` menu |
+| Klinika | `↑` `↓` `Enter` wybór nerwu · `1…4` odpowiedź w quizie · `Enter` następne pytanie · `S` strona · `Esc` wstecz |
 | Powtórki | `Spacja` odsłoń · `1` Nie wiem · `2` Trudne · `3` Dobrze · `4` Łatwe · `Spacja` po odsłonięciu = Dobrze · `A` atlas |
 
 ## Rolki (wideo 1080×1920)
@@ -95,9 +101,9 @@ Aplikacja działa bez tego – wtedy postęp zostaje w przeglądarce. Żeby wł�
 2. **Ustawienia projektu → Twoje aplikacje → Web (`</>`)** → zarejestruj aplikację i skopiuj obiekt `firebaseConfig` do `src/firebase-config.js` (zamiast `null`). Te wartości są publiczne – dane chronią reguły.
 3. **Authentication → Rozpocznij → Google** → włącz. W **Ustawienia → Autoryzowane domeny** dodaj domenę, pod którą działa aplikacja (np. `twoj-login.github.io`).
 4. **Firestore Database → Utwórz bazę** → region `europe-central2` (Warszawa), tryb produkcyjny.
-5. **Firestore → Reguły** → wklej zawartość `firestore.rules` i opublikuj. Po pierwszym logowaniu możesz zawęzić dostęp do swojego konta (uid z zakładki Authentication).
+5. **Firestore → Reguły** → wklej zawartość `firestore.rules` i opublikuj. Po każdej zmianie tego pliku (np. dodanie notatek – kolekcja `notes`) trzeba go opublikować ponownie; do tego czasu notatki zapisują się tylko w przeglądarce. Po pierwszym logowaniu możesz zawęzić dostęp do swojego konta (uid z zakładki Authentication).
 
-Dane: `users/{uid}/srs|quiz|learn|settings/{id}` – jeden dokument na fiszkę, pytanie i sektor; przy dwóch urządzeniach wygrywa nowsza zmiana, a liczniki quizu się sumują. Test lokalny bez prawdziwego projektu: `npx firebase-tools emulators:start --only auth,firestore --project demo-anatomia` i adres aplikacji z `?emu`.
+Dane: `users/{uid}/srs|quiz|learn|settings|notes/{id}` – jeden dokument na fiszkę, pytanie i sektor; przy dwóch urządzeniach wygrywa nowsza zmiana, a liczniki quizu się sumują. Test lokalny bez prawdziwego projektu: `npx firebase-tools emulators:start --only auth,firestore --project demo-anatomia` i adres aplikacji z `?emu`.
 
 ### Firebase Hosting (logowanie na iPadzie / iPhonie)
 
@@ -107,9 +113,13 @@ Safari blokuje logowanie Google przez inną domenę niż ta, na której działa 
 
 ```bash
 npm install
-npm run dev      # wersja deweloperska
-npm run build    # wersja produkcyjna w dist/
+npm run dev        # wersja deweloperska
+npm run build      # wersja produkcyjna w dist/
+npm run validate   # spójność bazy wiedzy z modelem (nazwy siatek, klucze mięśni, ruchy, pokrycie polskich nazw)
+npm test           # walidacja + build + test dymny w Chromium (wymaga Playwright: npm run reel:setup)
 ```
+
+Walidacja bazy uruchamia się też w obu workflow przed publikacją – błąd w danych zatrzymuje wdrożenie. Wersję pamięci offline (`public/sw.js`) build liczy sam ze skrótu zawartości `public/models` i `public/data`, więc po podmianie modeli nie trzeba jej zmieniać ręcznie, a zwykła zmiana kodu nie zmusza użytkowników do ponownego pobierania modeli.
 
 Publikacja: workflow `.github/workflows/pages.yml` buduje i wystawia aplikację na GitHub Pages (w ustawieniach repozytorium: Settings → Pages → Source: **GitHub Actions**).
 
@@ -134,6 +144,10 @@ node tools/add_bp3d.mjs <katalog_stl_BodyParts3D>               # mięśnie spoz
 - Nazwy łacińskie: Terminologia Anatomica 2 (zestawienie z repozytorium Z-Anatomy).
 - Pliki w `public/models` i `public/data` jako utwory zależne pozostają na licencji CC BY-SA 4.0.
 
+## Źródła treści
+
+Bochenek, Reicher – *Anatomia człowieka*; Sobotta, Netter – atlasy; Terminologia Anatomica 2; Kendall – *Muscles: Testing and Function*; Hislop – *Daniels and Worthingham's Muscle Testing*; Kaltenborn – *Manual Mobilization of the Joints*; Cyriax (wzorce torebkowe); Magee – *Orthopedic Physical Assessment*; ASIA/ISCoS – ISNCSCI (miotomy, dermatomy). Lista jest też w aplikacji: ⚙ → O aplikacji → Źródła treści.
+
 ## Zastrzeżenie
 
-Opisy mięśni i nerwów zostały napisane do nauki i nie przeszły recenzji anatoma. Mogą różnić się w szczegółach od podręcznika obowiązującego na uczelni (np. zakresy segmentów). Przed egzaminem zweryfikuj je z podręcznikiem i materiałami prowadzącego. Aplikacja nie służy do diagnostyki.
+Opisy mięśni, nerwów, stawów, testów klinicznych i struktur oraz symulacja uszkodzeń zostały napisane do nauki i nie przeszły recenzji anatoma ani fizjoterapeuty klinicysty. Mogą różnić się w szczegółach od podręcznika obowiązującego na uczelni (np. zakresy segmentów). Przed egzaminem zweryfikuj je z podręcznikiem i materiałami prowadzącego. Aplikacja nie służy do diagnostyki.
