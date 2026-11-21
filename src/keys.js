@@ -1,12 +1,12 @@
 // Skróty klawiszowe: komputer i iPad z klawiaturą. Moduł „naciska” te same przyciski, co kliknięcia,
 // więc działa w każdym trybie bez zmian w ich kodzie. Ściąga: klawisz ? albo przycisk ⌨ u góry.
-const MODE_ORDER = ['atlas', 'learn', 'motion', 'clinic', 'quiz', 'srs'];
+const MODE_ORDER = ['atlas', 'learn', 'motion', 'clinic', 'cond', 'quiz', 'srs'];
 const MODE_PL = { atlas: 'Atlas', learn: 'Nauka', motion: 'Ruch', clinic: 'Klinika', quiz: 'Quiz', srs: 'Powtórki' };
 const LIST_SEL = '.list .it[data-nerve], .list .it[data-sector], .list .it[data-step], .list .it[data-move], .list .it[data-root], .list .it[data-joint], .list .it[data-complex]';
 
 const HELP = {
   global: [
-    ['Alt + 1…6', 'Tryb: Atlas, Nauka, Ruch, Klinika, Quiz, Powtórki'],
+    ['Alt + 1…7', 'Tryb: Atlas, Nauka, Ruch, Klinika, Schorzenia, Quiz, Powtórki'],
     ['[  ]', 'Poprzedni / następny tryb (gdy Alt + cyfra nie działa)'],
     ['/ | Ctrl + K', 'Szukaj (↑ ↓ wybór, Enter otwiera, Esc zamyka)'],
     ['Shift + ← → ↑ ↓', 'Obracaj model'],
@@ -246,7 +246,7 @@ export function initKeys(ctx) {
     if (!box.hidden) { if (e.key === 'Escape' || e.key === '?' || e.key === 'Backspace') { e.preventDefault(); hideHelp(); } return; }
     if (e.key === '?') { e.preventDefault(); showHelp(); return; }
     if (e.key === '/') { e.preventDefault(); q.focus(); return; }
-    if (e.altKey) { const n = /^Digit([1-6])$/.exec(e.code); if (n) { e.preventDefault(); ctx.setMode(MODE_ORDER[+n[1] - 1]); } return; }
+    if (e.altKey) { const n = /^Digit([1-7])$/.exec(e.code); if (n) { e.preventDefault(); ctx.setMode(MODE_ORDER[+n[1] - 1]); } return; }
     if (e.key === 'Backspace') e = new Proxy(e, { get: (o, p) => (p === 'key' ? 'Escape' : typeof o[p] === 'function' ? o[p].bind(o) : o[p]) }); // iPad bez klawisza Esc
     const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
     if (k === '[' || k === ']') { const i = MODE_ORDER.indexOf(ctx.getMode()); e.preventDefault(); ctx.setMode(MODE_ORDER[(i + (k === ']' ? 1 : MODE_ORDER.length - 1)) % MODE_ORDER.length]); return; }

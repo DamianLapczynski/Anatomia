@@ -1,16 +1,17 @@
 // Powtórki rozłożone w czasie (algorytm SM-2) – fiszki generowane z bazy wiedzy, postęp w src/store.js (lokalnie + chmura).
 import FT from './data/func_tests.js';
 import CT from './data/clinical_tests.js';
+import COND from './data/conditions.js';
 import { REGIONS } from './model.js';
 import { store } from './store.js';
 
 const DAY = 86400000;
 const today = () => new Date().toISOString().slice(0, 10);
-const DECKS = [...REGIONS.slice(1), ['nv', 'Nerwy'], ['ft', 'Testy funkcjonalne']];
+const DECKS = [...REGIONS.slice(1), ['nv', 'Nerwy'], ['ft', 'Testy funkcjonalne'], ['sch', 'Schorzenia']];
 
 export function initSrs(ctx) {
   const { engine, model, view, applyView, panelBody, esc, MUSCLES, NERVES } = ctx;
-  const DEF = { perDay: 15, day: { date: today(), n: 0 }, decks: { gs: true, tu: true, kg: true, kd: true, nv: true, ft: true }, side: 'r' };
+  const DEF = { perDay: 15, day: { date: today(), n: 0 }, decks: { gs: true, tu: true, kg: true, kd: true, nv: true, ft: true, sch: true }, side: 'r' };
   const cards = store.all('srs'); // id karty → { ef, iv, reps, lapses, due, t }
   const load = () => { const sv = store.get('settings', 'srs') ?? {}; return { ...DEF, ...sv, decks: { ...DEF.decks, ...(sv.decks ?? {}) } }; }; // nowe talie domyślnie włączone
   let st = load();
@@ -43,6 +44,10 @@ export function initSrs(ctx) {
     CARDS.push({ id: `${k}:ct`, deck: 'ft', kind: 'functest', key: k, q: `${t.pl} – co ocenia i jak go wykonać?`, a: () => `<p>${esc(t.cel)}</p><p style="margin-top:6px"><b>Pozycja:</b> ${esc(t.pozycja)}</p><ol class="ft-steps" style="margin-top:6px">${t.wykonanie.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>` });
     CARDS.push({ id: `${k}:ctplus`, deck: 'ft', kind: 'functest', key: k, q: `${t.pl} – wynik dodatni? Co sugeruje i dlaczego?`, a: () => `<p><b>Wynik dodatni:</b> ${esc(t.dodatni)}</p><p style="margin-top:6px"><b>Sugeruje:</b> ${esc(t.sugeruje)}</p><p style="margin-top:6px">💡 ${esc(t.dlaczego)}</p>` });
   }
+  for (const [k, c] of Object.entries(COND)) {
+    CARDS.push({ id: `${k}:sx`, deck: 'sch', kind: 'condition', key: k, q: `${c.pl} – objawy i jak to zbadać?`, a: () => `<ul>${c.objawy.map((x) => `<li>${esc(x)}</li>`).join('')}</ul><p style="margin-top:6px"><b>Badanie:</b></p><ul>${c.badanie.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` });
+    CARDS.push({ id: `${k}:mx`, deck: 'sch', kind: 'condition', key: k, q: `${c.pl} – jak powstaje i jak to leczyć?`, a: () => `<p>${esc(c.mech)}</p><p style="margin-top:6px"><b>Fizjoterapia:</b></p><ul>${c.fizjo.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` });
+  }
   const byId = new Map(CARDS.map((c) => [c.id, c]));
   const active = () => CARDS.filter((c) => st.decks[c.deck]);
   const dueList = () => { const now = Date.now(); return active().filter((c) => cards[c.id] && cards[c.id].due <= now).sort((a, b) => cards[a.id].due - cards[b.id].due); };
@@ -71,13 +76,14 @@ export function initSrs(ctx) {
   async function nextCard() {
     if (!queue.length) { ctx.hint('Sesja zakończona 🎉', 'ok'); return homeView(); }
     cur = queue.shift(); shown = false;
-    const ent = cur.kind === 'muscle' ? model.muscleEntity(cur.key, st.side) : cur.kind === 'functest'
-      ? { type: 'functest', key: cur.key, ids: (FT[cur.key] ?? CT[cur.key]).muscles.flatMap((k) => model.muscleEntity(k, st.side).ids), att: [], bones: [], nerves: [], nervePath: [] }
+    const musclesOf = (k) => (cur.kind === 'condition' ? [...(COND[k].viz.muscles ?? []), ...(COND[k].viz.inv ?? [])] : (FT[k] ?? CT[k]).muscles).filter((m) => ctx.MUSCLES[m]);
+    const ent = cur.kind === 'muscle' ? model.muscleEntity(cur.key, st.side) : cur.kind === 'functest' || cur.kind === 'condition'
+      ? { type: 'functest', key: cur.key, ids: musclesOf(cur.key).flatMap((k) => model.muscleEntity(k, st.side).ids), att: [], bones: [], nerves: [], nervePath: [] }
       : model.nerveEntity(cur.key, st.side);
     cur.ent = ent;
     await ctx.need('bones', 'muscles', 'nerves', 'attachments');
     stage(false);
-    engine.focus(ent.ids, ent.type === 'functest' ? { pad: 1.2 } : { pad: 2.1, dir: ctx.entDir(ent) });
+    if (ent.ids.length) engine.focus(ent.ids, ent.type === 'functest' ? { pad: 1.2 } : { pad: 2.1, dir: ctx.entDir(ent) }); else ctx.home();
     render();
   }
   function stage(revealed) {

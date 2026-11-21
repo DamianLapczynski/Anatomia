@@ -7,7 +7,7 @@
 //   kąty względne: hipZ / shZ – odwiedzenie, hipY / shY – rotacja wewnętrzna, shH – przywiedzenie poziome ramienia, trunkZ – skłon boczny (+ w prawo),
 //   trunkY – skręt (+ w lewo), pelvisZ – przechylenie miednicy (+ = prawa strona w dół), neck – zgięcie szyi (+ = zgięcie);
 //   pro – pronacja przedramienia (− supinacja), ulnar – odchylenie łokciowe ręki (− promieniowe), kneeY – rotacja
-//   wewnętrzna goleni (− zewnętrzna), tib – przesunięcie piszczeli do przodu względem uda (m, − do tyłu; szuflada, Lachman);
+//   wewnętrzna goleni (− zewnętrzna), inv – inwersja stopy (− ewersja), tib – przesunięcie piszczeli do przodu względem uda (m, − do tyłu; szuflada, Lachman);
 //   rx / ry / rz – obrót całego ciała (leżenie, nawrót), x / y / z – przesunięcie (metry).
 // „pin” przypina ciało do podłoża: lock – wskazane punkty (np. pięty) zostają w miejscu, floor – najniższy z punktów
 // dotyka powierzchni o wysokości target (podłoga, blat kozetki, mata). Dzięki temu kontakt z podłożem wynika z geometrii.
@@ -86,6 +86,20 @@ export function bodyOf(kit) {
     P(`kneeMed.${s}`, 'Femur', s, V(-sx, -0.8, 0));
     P(`jointMed.${s}`, 'Tibia', s, V(-sx, 0.8, 0.3), 0.01);
     P(`greaterTub.${s}`, 'Humerus', s, V(sx * 0.6, 1, 0.5), 0.01);
+    P(`medEpi.${s}`, 'Humerus', s, V(-sx, -0.6, 0));
+    P(`latMall.${s}`, 'Fibula', s, V(sx * 0.3, -1, 0.5), 0.01);
+    P(`achilles.${s}`, 'Calcaneus', s, V(0, 0.6, -1), 0.01);
+    P(`plantarHeel.${s}`, 'Calcaneus', s, V(0, -1, 0.4));
+    P(`mtp1.${s}`, 'Proximal phalanx of first finger of foot', s, V(-sx * 0.5, 0, -0.6), 0.01);
+    P(`patellaLow.${s}`, 'Patella', s, V(0, -1, 0.5));
+    P(`tibTub.${s}`, 'Tibia', s, V(0, 0.7, 1), 0.01);
+    P(`shinMed.${s}`, 'Tibia', s, V(-sx, -0.3, 0.2));
+    P(`asisLat.${s}`, 'Hip bone', s, V(sx * 0.4, 0.6, 1));
+    P(`mcp2.${s}`, 'Proximal phalanx of second finger of hand', s, V(0, 1, 0.5), 0.01);
+    P(`pip3.${s}`, 'Middle phalanx of third finger of hand', s, V(0, 1, 0.3), 0.01);
+    P(`elbowMed.${s}`, 'Ulna', s, V(-sx, 1, -0.6), 0.01);
+    P(`trapUpper.${s}`, 'Scapula', s, V(sx * 0.2, 1, -0.3));
+    P(`sij.${s}`, 'Hip bone', s, V(-sx * 0.6, 0.4, -1), 0.01);
     P(`thumb.${s}`, 'Distal phalanx of first finger of hand', s, V(0, -1, 0));
     P(`shin.${s}`, 'Tibia', s, V(0, -0.5, 1));
     P(`ankleMed.${s}`, 'Tibia', s, V(sx * 0.4, -1, 0.2));
@@ -104,6 +118,13 @@ export function bodyOf(kit) {
   P('t8', 'Vertebra T8', '', V(0, 0, -1));
   P('t12', 'Vertebra T12', '', V(0, 0, -1));
   P('s2', 'Sacrum', '', V(0, -0.3, -1));
+  P('l4', 'Vertebra L4', '', V(0, 0, -1));
+  P('l5', 'Vertebra L5', '', V(0, 0, -1));
+  P('c6', 'Vertebra C6', '', V(0, 0, -1));
+  P('t6', 'Vertebra T6', '', V(0, 0, -1));
+  P('occBase', 'Occipital bone', '', V(0, -0.6, -1));
+  P('jaw.l', 'Mandible', '', V(1, 0, 0.3));
+  P('jaw.r', 'Mandible', '', V(-1, 0, 0.3));
   for (const [n, v] of Object.entries(pt)) { const base = n.split('.')[0]; if (OFF[base] !== undefined) v.off = OFF[base]; }
   // stopy stoją na podłodze (y = 0): grubość pod piętą / głowami kości śródstopia = wysokość punktu w spoczynku
   for (const s of ['l', 'r']) for (const n of ['heel', 'mt1', 'mt5']) if (pt[`${n}.${s}`]) pt[`${n}.${s}`].off = pt[`${n}.${s}`].p.y;
@@ -167,6 +188,7 @@ export function buildPose(kit, spec) {
     }
     if (seg.startsWith('forearm')) rot(bones, piv, B.piv[`wrist.${s}`].clone().sub(piv).normalize().negate(), chan((p) => -sx * (p[`pro.${s}`] ?? 0))); // wokół osi przedramienia
     if (seg.startsWith('hand')) rot(bones, piv, Z, chan((p) => -sx * (p[`ulnar.${s}`] ?? 0)));
+    if (seg.startsWith('foot')) rot(bones, piv, Z, chan((p) => -sx * (p[`inv.${s}`] ?? 0))); // inwersja (+) / ewersja (−) stopy
   };
   for (const seg of SAG) if (seg !== 'pelvis') segJoint(seg);
   if (B.part.head && B.piv.neck) rot(B.desc('head'), B.piv.neck, X, chan((p) => p.neck ?? 0));
@@ -459,6 +481,37 @@ export function library(B) {
   const IR = (r, l) => ({ ...PR, 'arm.l': 0, 'arm.r': 0, 'shank.l': -90, 'shank.r': -90, 'foot.l': -90, 'foot.r': -90, 'hipY.r': r, 'hipY.l': l });
   L.hip_ir = { frames: hold(IR(0, 0), IR(38, 38), 0.45, 0.75), pin: PRONE_PIN, props: ['couch'], arrows: [{ pt: 'knee.r', dir: [0, -1, 0], color: STAB, from: 0.05, to: 0.9 }] };
   L.hip_ir_error = { frames: hold(IR(0, 0), IR(14, 38), 0.45, 0.75), pin: PRONE_PIN, props: ['couch'], marks: [{ pt: 'hipJ.r', from: 0.45, to: 0.78 }] };
+
+  // ===================== SCHORZENIA (tryb Schorzenia) =====================
+  // pozy pokazujące mechanizm schorzenia lub ruch, który je prowokuje; miejsca bólu i struktury chore nakłada src/conditions.js
+  L.stand = { frames: [{ t: 0, p: {} }, { t: 0.5, p: { 'arm.l': 2, 'arm.r': 2 } }, { t: 1, p: {} }], pin: lockFeet, props: [] };
+  const HF = { 'arm.l': 55, 'arm.r': 55, 'forearm.l': 95, 'forearm.r': 95, 'pro.l': 170, 'pro.r': 170 };
+  L.hands_fwd = { frames: hold({}, HF, 0.3, 0.85), pin: lockFeet, props: [] };
+  const GF = { 'arm.r': 10, 'forearm.r': 95 };
+  L.golfer = { frames: hold({ ...GF, 'hand.r': 95 }, { ...GF, 'hand.r': 125 }, 0.35, 0.75), pin: lockFeet, props: [],
+    arrows: [{ pt: 'palm.r', dir: [0, -1, 0], from: 0.3, to: 0.78 }, { pt: 'elbowJ.r', dir: [0, 1, 0], color: STAB, from: 0.05, to: 0.9 }] };
+  const INV = { 'thigh.r': 12, 'shank.r': 4, 'foot.r': -25, 'inv.r': 0, 'arm.l': 15, 'arm.r': -10, 'shZ.l': 20, 'shZ.r': 25, trunk: 4 };
+  L.ankle_inv = { frames: [{ t: 0, p: {} }, { t: 0.25, p: INV }, { t: 0.5, p: { ...INV, 'thigh.r': 4, 'shank.r': 2, 'inv.r': 38, 'foot.r': -30, trunkZ: -6 } }, { t: 0.7, p: { ...INV, 'thigh.r': 4, 'shank.r': 2, 'inv.r': 38, 'foot.r': -30, trunkZ: -6 } }, { t: 1, p: {} }], pin: lockOne('l'), props: [] };
+  // chód połowiczy (niedowład prawostronny po udarze lewej półkuli): kończyna górna w zgięciu, dolna sztywna z cyrkumdukcją
+  const hemi = gait(0, 1, 4, { trunk: 3, trunkZ: 4 }, { z0: -0.6, z1: 0.8, amp: 0.8 }).map((f) => { const p = { ...f.p }; const sw = p['thigh.r'] > 10; p['shank.r'] = p['thigh.r'] - 4; p['foot.r'] = p['thigh.r'] - 22; p['hipZ.r'] = sw ? 14 : 2; p.pelvisZ = sw ? -5 : 0; Object.assign(p, { 'arm.r': 15, 'forearm.r': 105, 'shY.r': 35, 'hand.r': 140, 'pro.r': 120 }); return { ...f, p }; });
+  L.hemi_gait = { frames: hemi, pin: floorFeet(floorY), props: ['tape10'] };
+  // chód parkinsonowski: pochylona sylwetka, drobne kroki, zgięte kolana, brak współruchów rąk
+  const park = gait(0, 1, 8, { pelvis: 6, trunk: 22, neck: 12 }, { z0: -0.4, z1: 0.6, amp: 0.38 }).map((f) => { const p = { ...f.p }; for (const s of ['l', 'r']) { p[`shank.${s}`] = (p[`shank.${s}`] ?? 0) - 10; p[`arm.${s}`] = 14; p[`forearm.${s}`] = 48; p[`shZ.${s}`] = 6; } return { ...f, p }; });
+  L.park_gait = { frames: park, pin: floorFeet(floorY), props: ['tape10'] };
+  // sylwetka w zesztywnieniu / hiperkifozie (ZZSK, osteoporoza): zgięcie piersiowe, głowa wysunięta, lekko zgięte biodra i kolana
+  const FX = { pelvis: -4, trunk: 24, neck: -14, 'thigh.l': 8, 'thigh.r': 8, 'shank.l': 0, 'shank.r': 0, 'arm.l': 12, 'arm.r': 12 };
+  L.flexed_stand = { frames: hold({}, FX, 0.4, 0.85), pin: lockFeet, props: [] };
+  // stenoza: chód z pochyleniem (ulga), wyprost prowokuje objawy
+  const sten = gait(0, 0.55, 4, { pelvis: 8, trunk: 26 }, { z0: -0.6, z1: 0.6, amp: 0.7 });
+  L.stenosis_walk = { frames: [...sten, { t: 0.62, p: { pelvis: 4, trunk: 10, z: 0.6 } }, { t: 0.75, p: { pelvis: -8, trunk: -22, z: 0.6 } }, { t: 0.88, p: { pelvis: -8, trunk: -22, z: 0.6 } }, { t: 1, p: { pelvis: 8, trunk: 26, z: 0.6 } }], pin: floorFeet(floorY), props: [] };
+  L.lumbar_ext = { frames: hold({}, { pelvis: -8, trunk: -26, 'arm.l': -8, 'arm.r': -8 }, 0.4, 0.75), pin: lockFeet, props: [] };
+  L.neck_ext = { frames: hold({}, { neck: -32 }, 0.4, 0.75), pin: lockFeet, props: [], arrows: [{ pt: 'vertex', dir: [0, -1, 0], from: 0.35, to: 0.75 }] };
+  L.elbow_flex = { frames: hold({}, { 'forearm.r': 135, 'hand.r': 150, 'arm.r': 5 }, 0.35, 0.85), pin: lockFeet, props: [] };
+  const WD = { 'arm.r': 60, 'forearm.r': 72, 'pro.r': 170 };
+  L.wrist_drop = { frames: [{ t: 0, p: {} }, { t: 0.3, p: { ...WD, 'hand.r': 72 } }, { t: 0.45, p: { ...WD, 'hand.r': 140 } }, { t: 0.85, p: { ...WD, 'hand.r': 140 } }, { t: 1, p: {} }], pin: lockFeet, props: [] };
+  // chód koguci (opadająca stopa prawa): wysokie unoszenie kolana, palce opadają w fazie przenoszenia
+  const step = gait(0, 1, 4, { trunk: 3 }, { z0: -0.6, z1: 0.8 }).map((f) => { const p = { ...f.p }; if (p['thigh.r'] > 15) { p['thigh.r'] += 22; p['shank.r'] = p['thigh.r'] - 75; } p['foot.r'] = (p['shank.r'] ?? p['thigh.r'] ?? 0) - 32; return { ...f, p }; });
+  L.steppage = { frames: step, pin: { mode: 'floor', pts: ['heel.l', 'mt1.l', 'mt5.l', 'heel.r', 'toeTip.r', 'mt1.r'], target: floorY }, props: ['tape10'] };
   return L;
 }
 

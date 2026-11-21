@@ -84,6 +84,31 @@ for (const [id, t] of Object.entries(CT)) {
   const ts = t.anim.phases.map((p) => p.t); if (ts.some((v, i) => i && v <= ts[i - 1])) { console.log(`[test ${id}] fazy nie rosną w czasie`); bad++; }
 }
 for (const [, , also] of CT_GROUPS) for (const k of also) if (!FT[k]) { console.log(`[grupa] brak testu ${k}`); bad++; }
+// schorzenia i przypadki kliniczne
+const { default: COND, COND_GROUPS } = await import('../src/data/conditions.js');
+const CASES = (await import('../src/data/cases.js')).default;
+const NERVES_KB = (await import('../src/data/nerves.js')).default ?? (await import('../src/data/nerves.js')).NERVES;
+const metaAll = JSON.parse(fs.readFileSync('public/data/meta.json', 'utf8'));
+const boneNames = new Set(metaAll.filter((m) => m.f === 'skeleton').map((m) => m.n)), cnsNames = new Set(metaAll.filter((m) => m.f === 'cns').map((m) => m.n));
+for (const [id, c] of Object.entries(COND)) {
+  for (const f of ['pl', 'lat', 'grp', 'def', 'mech', 'ryzyko', 'objawy', 'badanie', 'roznic', 'fizjo', 'rokowanie', 'viz']) if (!c[f]) { console.log(`[schorzenie ${id}] brak pola ${f}`); bad++; }
+  if (!COND_GROUPS.some(([g]) => g === c.grp)) { console.log(`[schorzenie ${id}] nieznana grupa ${c.grp}`); bad++; }
+  const v = c.viz ?? {};
+  if (!ANIM[v.anim]) { console.log(`[schorzenie ${id}] brak animacji ${v.anim}`); bad++; }
+  for (const k of [...(v.muscles ?? []), ...(v.inv ?? [])]) if (!allKb[k]) { console.log(`[schorzenie ${id}] brak mięśnia: ${k}`); bad++; }
+  for (const k of v.nerves ?? []) if (NERVES_KB && !NERVES_KB[k]) { console.log(`[schorzenie ${id}] brak nerwu: ${k}`); bad++; }
+  for (const k of v.joints ?? []) if (!JOINTS[k]) { console.log(`[schorzenie ${id}] brak stawu: ${k}`); bad++; }
+  for (const n of v.bones ?? []) if (!boneNames.has(n)) { console.log(`[schorzenie ${id}] brak kości: ${n}`); bad++; }
+  for (const n of v.cns ?? []) if (!cnsNames.has(n.split('|')[0])) { console.log(`[schorzenie ${id}] brak struktury OUN: ${n}`); bad++; }
+  for (const t of c.tests ?? []) if (!FT[t] && !CT[t]) { console.log(`[schorzenie ${id}] brak testu: ${t}`); bad++; }
+  if (!v.caption) { console.log(`[schorzenie ${id}] brak opisu wizualizacji`); bad++; }
+}
+for (const c of CASES) {
+  for (const k of [c.cond, ...c.dx]) if (!COND[k]) { console.log(`[przypadek ${c.id}] brak schorzenia: ${k}`); bad++; }
+  if (new Set([c.cond, ...c.dx]).size !== 4) { console.log(`[przypadek ${c.id}] potrzebne 4 różne rozpoznania`); bad++; }
+  if (!(c.step?.opts?.[c.step.ok])) { console.log(`[przypadek ${c.id}] zła odpowiedź w kroku 2`); bad++; }
+}
+console.log(`schorzenia: ${Object.keys(COND).length} | przypadki: ${CASES.length}`);
 console.log(`testy funkcjonalne: ${Object.keys(FT).length} | kliniczne: ${Object.keys(CT).length} | animacje: ${Object.keys(ANIM).length}`);
 const { ROOTS } = await import('../src/data/roots.js');
 const labelNames = new Set(JSON.parse(fs.readFileSync('public/data/labels.json', 'utf8')).map((l) => l.n));

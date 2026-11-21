@@ -8,6 +8,7 @@ import { initQuiz } from './quiz.js';
 import { initSrs } from './srs.js';
 import { initLearn } from './learn.js';
 import { initClinic } from './clinic.js';
+import { initConditions } from './conditions.js';
 import { landmarkPL } from './data/landmarks.js';
 import { polishName } from './data/names.js';
 import { structDesc } from './data/struct_kb.js';
@@ -193,7 +194,7 @@ function focusVisible() { applyView(); const ids = visibleIds(); if (ids.length)
 
 // ---------- wyszukiwarka ----------
 const q = $('#q'), results = $('#results');
-const KIND_COLOR = { muscle: '#a83d36', nerve: '#f5cc33', complex: '#3ecf8e', landmark: '#ffb454', joint: '#cfcbb5', functest: '#ff7a45' };
+const KIND_COLOR = { muscle: '#a83d36', nerve: '#f5cc33', complex: '#3ecf8e', landmark: '#ffb454', joint: '#cfcbb5', functest: '#ff7a45', condition: '#e5484d' };
 q.addEventListener('input', () => {
   const list = model ? model.find(q.value) : [];
   results.hidden = !list.length;
@@ -205,6 +206,7 @@ results.addEventListener('click', (e) => {
   const it = results._list[+r.dataset.i];
   results.hidden = true; q.blur();
   if (it.kind === 'complex') { modes.learn.openComplex(it.key); if (mode === 'learn') modes.learn.enter(); else setMode('learn'); return; }
+  if (it.kind === 'condition') { modes.cond.open(it.key); if (mode !== 'cond') setMode('cond'); return; }
   if (it.kind === 'functest') { if (mode === 'clinic') modes.clinic.openFT(it.key); else { modes.clinic.openFT(it.key); setMode('clinic'); } return; }
   setMode('atlas');
   openItem(it);
@@ -378,6 +380,7 @@ document.addEventListener('input', (e) => {
 function openNote(id) {
   const [kind, ...rest] = id.split(':'), key = rest.join(':'), side = defSide();
   if (kind === 'functest') { modes.clinic.openFT(key); if (mode !== 'clinic') setMode('clinic'); return; }
+  if (kind === 'cond') { modes.cond.open(key); if (mode !== 'cond') setMode('cond'); return; }
   if (kind === 'complex') { modes.learn.openComplex(key); if (mode === 'learn') modes.learn.enter(); else setMode('learn'); return; }
   setMode('atlas');
   if (kind === 'muscle' && MUSCLES[key]) select(model.muscleEntity(key, side), { isolate: true });
@@ -677,12 +680,12 @@ $('#hud').addEventListener('click', (e) => { const b = e.target.closest('button'
     }
     if (rp.has('debug')) {
       Object.assign(window, { __motion: motion, __model: model, __engine: engine, __view: view, __applyView: applyView });
-      const [{ createProps }, { testProps, library }] = await Promise.all([import('./props.js'), import('./poses.js')]);
+      const [{ createProps }, { testProps, library }, { default: COND }] = await Promise.all([import('./props.js'), import('./poses.js'), import('./data/conditions.js')]);
       const pr = createProps(engine, motion, model);
       window.__props = (key) => { const t = testProps(motion._body, key); pr.build(t.list, t.at, t.fx); };
       window.__com = (on) => pr.updateCom(on);
       // kontrola: punkty strzałek, znaczników i przypięć z biblioteki animacji istnieją w modelu
-      window.__ptCheck = () => { motion.setup({ rig: 'test:sts' }, 'r', []); const B = motion._body, out = []; for (const [k, a] of Object.entries(library(B))) { const pins = [].concat(a.pin ?? []); for (const n of [...(a.arrows ?? []), ...(a.marks ?? [])].map((x) => x.pt).concat(pins.flatMap((p) => [...(p.pts ?? []), ...(p.ptsB ?? [])]))) if (!B.pt[n]) out.push(`${k}: ${n}`); } motion.reset(); return [...new Set(out)]; };
+      window.__ptCheck = () => { motion.setup({ rig: 'test:sts' }, 'r', []); const B = motion._body, out = []; for (const [k, a] of Object.entries(library(B))) { const pins = [].concat(a.pin ?? []); for (const n of [...(a.arrows ?? []), ...(a.marks ?? [])].map((x) => x.pt).concat(pins.flatMap((p) => [...(p.pts ?? []), ...(p.ptsB ?? [])]))) if (!B.pt[n]) out.push(`${k}: ${n}`); } for (const [k, c] of Object.entries(COND)) for (const n of c.viz.pain ?? []) if (!B.pt[n]) out.push(`schorzenie ${k}: ${n}`); motion.reset(); return [...new Set(out)]; };
     } // testy automatyczne
     const ctx = { engine, model, view, applyView, need, hint, panelBody, esc, card, examCards, noteCard, openNote, setMode, select, entDir, MUSCLES, NERVES, modeIs: (m) => mode === m, home };
     modes.settings = initSettings(ctx);
@@ -691,6 +694,8 @@ $('#hud').addEventListener('click', (e) => { const b = e.target.closest('button'
     modes.learn = initLearn(ctx);
     Object.assign(ctx, { motion, JOINTS, labels: () => labels, setPointMarks, clearMarks, openMove: (id, side) => { setMode('motion'); modes.motion.open(id, side); } });
     modes.clinic = initClinic(ctx);
+    ctx.openFT = (id) => modes.clinic.openFT(id);
+    modes.cond = initConditions(ctx);
     renderLeft(); renderAtlas();
     if (isPhone()) app.classList.add('sheet-min');
     await engine.ensureAll(['skeleton', 'muscles']);

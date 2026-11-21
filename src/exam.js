@@ -4,13 +4,14 @@ import { PRESETS, grade } from './data/exam_presets.js';
 import { JOINTS } from './model.js';
 import FT from './data/func_tests.js';
 import CT from './data/clinical_tests.js';
+import COND from './data/conditions.js';
 import { store } from './store.js';
 import { prefs } from './settings.js';
 
 const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const pickOne = (a) => a[Math.floor(Math.random() * a.length)];
-const TYPE_PL = { name: 'Rozpoznaj mięsień', fact: 'Przyczepy, unerwienie, czynność', nerveOf: 'Który nerw unerwia', nerve: 'Nerwy: korzenie i mięśnie', joint: 'Stawy i testy', func: 'Testy funkcjonalne' };
-const REG_PL = { gs: 'Głowa i szyja', tu: 'Tułów', kg: 'Kończyna górna', kd: 'Kończyna dolna', nv: 'Nerwy', st: 'Stawy', ft: 'Testy funkcjonalne' };
+const TYPE_PL = { cond: 'Schorzenia', name: 'Rozpoznaj mięsień', fact: 'Przyczepy, unerwienie, czynność', nerveOf: 'Który nerw unerwia', nerve: 'Nerwy: korzenie i mięśnie', joint: 'Stawy i testy', func: 'Testy funkcjonalne' };
+const REG_PL = { sch: 'Schorzenia', gs: 'Głowa i szyja', tu: 'Tułów', kg: 'Kończyna górna', kd: 'Kończyna dolna', nv: 'Nerwy', st: 'Stawy', ft: 'Testy funkcjonalne' };
 
 export function initExam(ctx) {
   const { engine, model, view, applyView, panelBody, esc, MUSCLES, NERVES } = ctx;
@@ -91,9 +92,18 @@ export function initExam(ctx) {
     }
     return mk({ ...base, q: `Co ocenia ${t.pl} (${t.skrot})?`, explain: t.dlaczego }, t.cel, distract(t.cel, others.map((o) => o.cel)));
   };
+  G.cond = () => {
+    const ck = Object.keys(COND), k = pickOne(ck), c = COND[k], others = ck.filter((x) => x !== k).map((x) => COND[x]);
+    const base = { type: 'cond', reg: 'sch', kind: 'cond', key: k };
+    const kind = pickOne(['which', 'mech', 'flag', 'fizjo']);
+    if (kind === 'which') return mk({ ...base, q: `Objawy: ${c.objawy.slice(0, 2).map((x) => x.replace(/\.$/, '')).join('; ')}. Jakie to schorzenie?`, explain: c.def }, c.pl, distract(c.pl, others.filter((o) => o.grp === c.grp || Math.random() < 0.3).map((o) => o.pl)));
+    if (kind === 'flag' && c.flagi) return mk({ ...base, q: `${c.pl} – co jest czerwoną flagą?`, explain: c.flagi }, c.flagi, distract(c.flagi, others.map((o) => o.flagi).filter(Boolean)));
+    if (kind === 'fizjo') { const f = c.fizjo[0]; return mk({ ...base, q: `${c.pl} – co jest podstawą postępowania fizjoterapeutycznego?`, explain: c.fizjo.join(' ') }, f, distract(f, others.map((o) => o.fizjo[0]))); }
+    return mk({ ...base, q: `${c.pl} – jak powstaje?`, explain: c.mech }, c.def, distract(c.def, others.map((o) => o.def)));
+  };
   function build(P, n) {
     const muscles = [...new Set([...Object.keys(MUSCLES).filter((k) => P.regs.includes(MUSCLES[k].reg)), ...(P.extra ?? [])])];
-    const types = P.types.filter((t) => (t === 'name' || t === 'fact' || t === 'nerveOf' ? muscles.length >= 4 : t === 'nerve' ? P.nerves.length >= 4 : t === 'func' ? true : P.joints.length));
+    const types = P.types.filter((t) => (t === 'name' || t === 'fact' || t === 'nerveOf' ? muscles.length >= 4 : t === 'nerve' ? P.nerves.length >= 4 : t === 'func' || t === 'cond' ? true : P.joints.length));
     const out = [], seen = new Set();
     for (let guard = 0; out.length < n && guard < n * 30; guard++) {
       const t = types[out.length % types.length], q = G[t](P, muscles);

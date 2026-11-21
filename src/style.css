@@ -564,3 +564,15 @@ html.iosgap #settings{position:absolute}
 .card[data-fold]>h5:focus-visible{outline:2px solid var(--acc);outline-offset:-2px}
 .card.shut>h5{padding-bottom:13px;margin-bottom:-13px}
 .card.shut>:not(h5){display:none!important}
+/* tryb Schorzenia */
+.cond-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.cond-stats>div{background:var(--fill);border-radius:12px;padding:10px 8px;text-align:center}
+.cond-stats b{display:block;font-size:20px}
+.cond-stats small{color:var(--mut);font-size:11.5px}
+#condq{width:100%;margin:8px 0 2px;padding:9px 12px;border-radius:10px;border:1px solid var(--line,rgba(127,127,127,.25));background:var(--fill);color:var(--tx);font:inherit}
+.cond-q{font-size:15.5px;line-height:1.5;margin:6px 0 10px}
+.cond-ok{color:var(--ok,#3ecf8e);font-weight:600;margin-top:8px}
+.cond-bad{color:var(--bad,#e5484d);font-weight:600;margin-top:8px}
+.list .it.ok{box-shadow:inset 3px 0 0 var(--ok,#3ecf8e);background:color-mix(in srgb,var(--ok,#3ecf8e) 14%,transparent)}
+.list .it.bad{box-shadow:inset 3px 0 0 var(--bad,#e5484d);background:color-mix(in srgb,var(--bad,#e5484d) 14%,transparent)}
+@media (min-width:821px) and (max-width:1100px){#modes button{padding:6px 9px;font-size:13.5px}}

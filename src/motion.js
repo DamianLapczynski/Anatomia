@@ -230,18 +230,17 @@ export class Motion {
     };
     const skins = [];
     const sides = /^test/.test(move.rig) ? ['r', 'l'] : [side]; // testy funkcjonalne: całe ciało, obie strony
-    for (const key of muscleKeys) for (const sd of sides) {
-      const e = this.model.muscleEntity(key, sd);
-      for (const pid of e.att) { const b = boneOfPatch(pid); if (b != null && sigOf.has(b)) rigid.set(pid, groupOf(b)); }
-      for (const id of e.ids) {
-        if (!eng.meshes[id]) continue;
-        const b = meta[id].bb; if (Math.max(b[3] - b[0], b[4] - b[1], b[5] - b[2]) < 0.03) continue;
+    const skinOne = (id, key) => {
+        if (!eng.meshes[id]) return;
+        const b = meta[id].bb, small = Math.max(b[3] - b[0], b[4] - b[1], b[5] - b[2]) < 0.03; // małe struktury – sztywno z najbliższą kością
         const pad = 0.06, cand = bones.filter((bi) => { const c = meta[bi].bb; return c[0] < b[3] + pad && c[3] > b[0] - pad && c[1] < b[4] + pad && c[4] > b[1] - pad && c[2] < b[5] + pad && c[5] > b[2] - pad; });
         const cg = cand.map(groupOf);
-        if (!cg.length || cg.every((g) => g === cg[0])) { if (cg.length && cg[0] !== 0) rigid.set(id, cg[0]); continue; }
+        if (small && cg.length) { const c = [(b[0] + b[3]) / 2, (b[1] + b[4]) / 2, (b[2] + b[5]) / 2]; let best = 0, bd = Infinity; cand.forEach((bi, j) => { const q = meta[bi].bb, d = (Math.max(q[0] - c[0], 0, c[0] - q[3])) ** 2 + (Math.max(q[1] - c[1], 0, c[1] - q[4])) ** 2 + (Math.max(q[2] - c[2], 0, c[2] - q[5])) ** 2; if (d < bd) { bd = d; best = j; } }); if (cg[best] !== 0) rigid.set(id, cg[best]); return; }
+        if (small) return;
+        if (!cg.length || cg.every((g) => g === cg[0])) { if (cg.length && cg[0] !== 0) rigid.set(id, cg[0]); return; }
         const P = this._pos(id), n = P.length / 3, G = groups.length, ck = `${move.rig}|${side}|${id}|${groups.length}`;
         const hit = this.skinCache.get(ck);
-        if (hit) { skins.push({ id, P, n, ...hit }); continue; }
+        if (hit) { skins.push({ id, P, n, ...hit }); return; }
         const gi = new Uint8Array(n * 3), gw = new Float32Array(n * 3), dist = new Float32Array(G);
         const pts = cand.map((bi, j) => [sample(bi), cg[j]]);
         for (let v = 0; v < n; v++) {
@@ -263,8 +262,14 @@ export class Motion {
         }
         this.skinCache.set(ck, { gi, gw, dy });
         skins.push({ id, P, n, gi, gw, dy });
-      }
+    };
+    for (const key of muscleKeys) for (const sd of sides) {
+      const e = this.model.muscleEntity(key, sd);
+      for (const pid of e.att) { const b = boneOfPatch(pid); if (b != null && sigOf.has(b)) rigid.set(pid, groupOf(b)); }
+      for (const id of e.ids) skinOne(id, key);
     }
+    // dodatkowe struktury poruszające się z ciałem (nerwy, mózg i rdzeń w trybie Schorzenia) – skórowane jak mięśnie
+    for (const id of move.extraIds ?? []) skinOne(id, '');
     this.active = { rig: true, steps, groups, rigid, skins, sigOf, reverse: !!move.reverse, j: { p: steps.find((st) => !st.pre && st.ang)?.pivot ?? steps[0].pivot }, moving: [...sigOf.keys()] };
     this.set(0);
     return true;

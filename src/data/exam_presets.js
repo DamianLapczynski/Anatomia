@@ -18,7 +18,8 @@ export const PRESETS = [
   { id: 'nerves', pl: 'Nerwy obwodowe', desc: 'Unerwienie mięśni, korzenie, zakresy ruchowe nerwów kończyn.', regs: ['kg', 'kd'], nerves: [...UL_N, ...LL_N], joints: [], types: ['nerveOf', 'nerve'] },
   { id: 'joints', pl: 'Stawy i testy kliniczne', desc: 'Budowa stawów, pozycje zamknięte, wzorce torebkowe, testy specjalne.', regs: [], nerves: [], joints: [...UL_J, ...LL_J, ...AX_J], types: ['joint'] },
   { id: 'func', pl: 'Testy funkcjonalne i kliniczne', desc: 'Testy z zajęć (Neer, Hawkins, Jobe, SLR, Slump, FABER, Lachman, McMurray, Thomas…) oraz TUG, 30CST, Berg, 6MWT, FMS, Y-Balance, Sørensen – cel, wykonanie, wynik dodatni, normy.', regs: [], nerves: [], joints: [], types: ['func'] },
-  { id: 'all', pl: 'Całość – kolokwium końcowe', desc: 'Wszystkie okolice, nerwy i stawy.', regs: ['gs', 'tu', 'kg', 'kd'], nerves: [...UL_N, ...LL_N, 'intercostal', 'phrenic', 'facial', 'trigeminal', 'accessory'], joints: [...UL_J, ...LL_J, ...AX_J], types: [...ALL_T, 'func'] },
+  { id: 'sch', pl: 'Schorzenia', desc: 'Najczęstsze schorzenia w fizjoterapii: rozpoznanie z objawów, patomechanika, czerwone flagi, podstawy leczenia.', regs: [], nerves: [], joints: [], types: ['cond'] },
+  { id: 'all', pl: 'Całość – kolokwium końcowe', desc: 'Wszystkie okolice, nerwy i stawy.', regs: ['gs', 'tu', 'kg', 'kd'], nerves: [...UL_N, ...LL_N, 'intercostal', 'phrenic', 'facial', 'trigeminal', 'accessory'], joints: [...UL_J, ...LL_J, ...AX_J], types: [...ALL_T, 'func', 'cond'] },
 ];
 
 /** Ocena orientacyjna w skali stosowanej na wielu uczelniach (progi 60/69/77/85/93%). */

@@ -74,6 +74,14 @@ const CASES = [
   ['slump', [0, 0.5], 'side', [['siad na kozetce', ['ischium.l', 'ischium.r'], COUCH, 'touch'], ['nic nie przenika blatu', ['ischium.l', 'ischium.r', 'thighBack.l', 'thighBack.r'], COUCH, 'above']]],
   ['wallangel', [0, 0.45], 'front', [['siad na podłodze', ['ischium.l', 'ischium.r'], 'floor', 'touch'], ['stopy na podłodze', ['heel.l', 'heel.r'], 'floor', 'touch']]],
   ['fingerfloor', [0.6], 'side', [['stopy na podłodze', ['heel.l', 'heel.r', 'mt1.l', 'mt1.r'], 'floor', 'each']]],
+  // animacje schorzeń
+  ['ankle_inv', [0.6], 'front', [['stopa podporowa na podłodze', ['heel.l', 'mt1.l'], 'floor', 'each']]],
+  ['hemi_gait', [0.3, 0.6], 'side', [['stopa na podłodze', ['heel.l', 'heel.r', 'mt1.l', 'mt1.r', 'toeTip.r'], 'floor', 'touch'], ['nic pod podłogą', ['heel.l', 'heel.r', 'mt1.l', 'mt1.r'], 'floor', 'above']]],
+  ['park_gait', [0.3, 0.6], 'side', [['stopa na podłodze', ['heel.l', 'heel.r', 'mt1.l', 'mt1.r'], 'floor', 'touch'], ['nic pod podłogą', ['heel.l', 'heel.r', 'mt1.l', 'mt1.r'], 'floor', 'above']]],
+  ['steppage', [0.3, 0.6], 'side', [['stopa na podłodze', ['heel.l', 'heel.r', 'mt1.l', 'toeTip.r'], 'floor', 'touch'], ['nic pod podłogą', ['heel.l', 'heel.r', 'mt1.l', 'toeTip.r', 'toeTip.l'], 'floor', 'above']]],
+  ['stenosis_walk', [0.3, 0.8], 'side', [['stopa na podłodze', ['heel.l', 'heel.r', 'mt1.l', 'mt1.r'], 'floor', 'touch']]],
+  ['flexed_stand', [0.6], 'side', [['stopy na podłodze', ['heel.l', 'heel.r'], 'floor', 'each']]],
+  ['golfer', [0.5], 'side', []], ['wrist_drop', [0.6], 'side', []], ['hands_fwd', [0.6], 'front', []], ['neck_ext', [0.6], 'side', []],
   ['neer', [0.5], 'side', []], ['hawkins', [0.6], 'front', []], ['phalen', [0.6], 'front', []], ['jobe', [0.6], 'front', []], ['gerber', [0.7], 'back', []],
 ];
 
