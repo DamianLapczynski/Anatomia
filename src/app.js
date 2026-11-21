@@ -624,7 +624,13 @@ $('#hud').addEventListener('click', (e) => { const b = e.target.closest('button'
       await startReel({ engine, model, motion, MUSCLES, NERVES }, rp);
       return;
     }
-    if (rp.has('debug')) Object.assign(window, { __motion: motion, __model: model, __engine: engine }); // testy automatyczne
+    if (rp.has('debug')) {
+      Object.assign(window, { __motion: motion, __model: model, __engine: engine, __view: view, __applyView: applyView });
+      const [{ createProps }, { testProps }] = await Promise.all([import('./props.js'), import('./poses.js')]);
+      const pr = createProps(engine, motion, model);
+      window.__props = (key) => { const t = testProps(motion._body, key); pr.build(t.list, t.at); };
+      window.__com = (on) => pr.updateCom(on);
+    } // testy automatyczne
     const ctx = { engine, model, view, applyView, need, hint, panelBody, esc, card, examCards, noteCard, openNote, setMode, select, entDir, MUSCLES, NERVES, modeIs: (m) => mode === m, home };
     modes.settings = initSettings(ctx);
     modes.quiz = initQuiz(ctx); modes.srs = initSrs(ctx);

@@ -6,6 +6,7 @@
 //     move: Vector3 – przesunięcie maks., rel: indeks kroku, którego kąt (ze znakiem) przejąć z mnożnikiem deg }
 // Kolejność kroków: od zewnętrznego do wewnętrznego (kość = T1 · T2 · … dla kroków, które ją zawierają).
 import * as THREE from 'three';
+import { buildTest } from './poses.js';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const FINGER = ['first', 'second', 'third', 'fourth', 'fifth'];
@@ -242,6 +243,7 @@ export class RigKit {
       case 'jaw': return this.jaw(arg);
       case 'swallow': return this.swallow();
       case 'breath': return this.breath();
+      case 'test': return buildTest(this, arg);
     }
     throw new Error(`Nieznany rig: ${rig}`);
   }
