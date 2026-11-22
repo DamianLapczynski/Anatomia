@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { REGIONS, COMPLEXES, JOINTS } from './model.js';
 import { store } from './store.js';
 import { prefs } from './settings.js';
+import { folder } from './folders.js';
 import { mine, isLearning, toggleLearning, addLearning, clearLearning, saveSet, deleteSet } from './mine.js';
 
 const PALETTE = ['#ff6b4a', '#4c9dff', '#3ecf8e', '#ffb454', '#c084fc', '#f472b6', '#22d3ee', '#a3e635', '#fb7185', '#facc15', '#60a5fa', '#34d399', '#f97316'];
@@ -47,10 +48,7 @@ export function initLearn(ctx) {
   const lidOf = (kind, id) => `${kind}~${id}`;
   const prog = (kind, id) => { const r = store.get('learn', lidOf(kind, id)); return !r ? '' : r.done ? `<span class="prog">✔ ${r.best}%</span> · ` : r.best != null ? `<span class="prog seen">${r.best}%</span> · ` : r.seen ? '<span class="prog seen">przerobione</span> · ' : ''; };
   store.on((ns, id, remote) => { if ((ns === 'learn' || (ns === 'settings' && id === 'learnsets')) && remote && ctx.modeIs('learn') && S.screen === 'home') { S.keepScroll = true; home(); } });
-  // które sekcje są rozwinięte – wygoda tego urządzenia, więc localStorage
-  const OPEN_KEY = 'anatomia.learn.open';
-  let open; try { open = new Set(JSON.parse(localStorage.getItem(OPEN_KEY)) ?? []); } catch { open = new Set(); }
-  const sec = (id, title, count, body) => `<details class="sec" data-sec="${id}" ${open.has(id) ? 'open' : ''}><summary><span>${title}</span><small>${count}</small></summary><div class="list">${body}</div></details>`;
+  const sec = (id, title, count, body, o) => folder(`learn:${id}`, title, count, body, o);
   const star = (k) => `<button class="star ${isLearning(k) ? 'on' : ''}" data-mark="${esc(k)}" aria-pressed="${isLearning(k)}" title="${isLearning(k) ? 'Usuń z „Uczę się”' : 'Dodaj do „Uczę się”'}">${isLearning(k) ? '★' : '☆'}</button>`;
 
   function home() {
@@ -64,7 +62,7 @@ export function initLearn(ctx) {
          <div class="acts"><button class="primary" data-custom="learning">Ucz się po kolei</button><button data-act="quiz-learning">Quiz</button></div>
          <div class="saveset"><input id="setName" type="text" maxlength="60" placeholder="Nazwa zestawu" aria-label="Nazwa nowego zestawu"><button data-act="save-set">Zapisz jako zestaw</button></div>`
       : '<p class="en">Zaznacz gwiazdką ☆ mięśnie, których się uczysz – na liście sektora albo nerwu, w widoku krok po kroku lub w Atlasie. Trafią tutaj, a stąd możesz przejść je po kolei, zrobić z nich quiz albo zapisać jako zestaw.</p>'}</div>`;
-    if (my.sets.length) h += `<h4>Moje zestawy</h4><div class="list">${my.sets.map((st) => `<div class="it" data-custom="set:${esc(st.id)}"><span>${esc(st.name)}</span><small>${prog('custom', `set:${st.id}`)}${valid(st.keys).length}<button class="x" data-del-set="${esc(st.id)}" aria-label="Usuń zestaw ${esc(st.name)}" title="Usuń zestaw">✕</button></small></div>`).join('')}</div>`;
+    if (my.sets.length) h += sec('mysets', 'Moje zestawy', my.sets.length, `${my.sets.map((st) => `<div class="it" data-custom="set:${esc(st.id)}"><span>${esc(st.name)}</span><small>${prog('custom', `set:${st.id}`)}${valid(st.keys).length}<button class="x" data-del-set="${esc(st.id)}" aria-label="Usuń zestaw ${esc(st.name)}" title="Usuń zestaw">✕</button></small></div>`).join('')}`, { open: true });
     const regName = Object.fromEntries(REGIONS);
     h += sec('presets', 'Gotowe zestawy', Object.keys(PRESETS).length, Object.entries(PRESETS).map(([k, pr]) => `<div class="it" data-custom="preset:${k}"><span>${esc(pr.name)}</span><small>${prog('custom', `preset:${k}`)}${pr.keys.length}</small></div>`).join(''));
     h += sec('nerves', 'Drogi nerwów', nerveList.length, nerveList.map((x) => `<div class="it" data-nerve="${x.k}"><span>${esc(x.n.pl)}</span><small>${prog('nerve', x.k)}${esc(x.n.roots)} · ${x.count} mięśni</small></div>`).join(''));
@@ -77,11 +75,6 @@ export function initLearn(ctx) {
     }
     panelBody.innerHTML = h; panelBody.scrollTop = S.keepScroll ? scroll : 0; S.keepScroll = false;
   }
-  panelBody.addEventListener('toggle', (e) => {
-    const d = e.target; if (!ctx.modeIs('learn') || !d.matches?.('details.sec')) return;
-    if (d.open) open.add(d.dataset.sec); else open.delete(d.dataset.sec);
-    try { localStorage.setItem(OPEN_KEY, JSON.stringify([...open])); } catch { /* tryb prywatny */ }
-  }, true);
 
   async function stage(refocus = true) {
     const c = cur();

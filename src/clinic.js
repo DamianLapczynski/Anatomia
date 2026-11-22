@@ -6,6 +6,7 @@ import { MOVES } from './data/movements.js';
 import { store } from './store.js';
 import { prefs } from './settings.js';
 import { initFuncTests } from './functests.js';
+import { folder } from './folders.js';
 
 const RED = '#e5484d', ORANGE = '#f5a524';
 const MOTOR_ROOTS = ['C5', 'C6', 'C7', 'C8', 'Th1', 'L2', 'L3', 'L4', 'L5', 'S1'];
@@ -93,9 +94,9 @@ export function initClinic(ctx) {
     S.screen = 'home'; clearStage();
     let h = `<h2>Klinika</h2><p class="en">Co się stanie, gdy uszkodzisz nerw albo korzeń? Model pokazuje porażone mięśnie, a lista – ruchy, które pacjent straci. Do tego badanie neurologiczne i quiz z przypadków.</p>
       <div class="acts"><button class="primary" data-act="quiz">Quiz kliniczny</button><button data-act="exam">Badanie neurologiczne</button><button data-act="ft">Testy funkcjonalne</button></div>
-      <h4>Uszkodzenie korzenia (miotomy)</h4><div class="chips">${MOTOR_ROOTS.map((r) => `<span class="chip" data-root="${r}">${r}</span>`).join('')}</div>`;
+      ${folder('clinic:roots', 'Uszkodzenie korzenia (miotomy)', MOTOR_ROOTS.length, `<div class="chips">${MOTOR_ROOTS.map((r) => `<span class="chip" data-root="${r}">${r}</span>`).join('')}</div>`, { list: false })}`;
     for (const [g, keys] of GROUPS) {
-      h += `<h4>Uszkodzenie nerwu – ${g}</h4><div class="list">${keys.filter((k) => NERVES[k]).map((k) => { const L = lesion('nerve', k); return `<div class="it" data-nerve="${k}"><span>${esc(NAME(k))}</span><small>${esc(NERVES[k].roots)} · ${L.st.size} mięśni · ${L.moves.filter((x) => x.lost).length} ruchów zniesionych</small></div>`; }).join('')}</div>`;
+      h += folder(`clinic:${g}`, `Uszkodzenie nerwu – ${g}`, keys.filter((k) => NERVES[k]).length, `${keys.filter((k) => NERVES[k]).map((k) => { const L = lesion('nerve', k); return `<div class="it" data-nerve="${k}"><span>${esc(NAME(k))}</span><small>${esc(NERVES[k].roots)} · ${L.st.size} mięśni · ${L.moves.filter((x) => x.lost).length} ruchów zniesionych</small></div>`; }).join('')}`);
     }
     h += '<p class="note">Symulacja opiera się na bazie unerwienia mięśni i ruchów z tej aplikacji. Prawdziwe uszkodzenia bywają częściowe, a unerwienie zmienne osobniczo.</p>';
     panelBody.innerHTML = h; panelBody.scrollTop = 0;

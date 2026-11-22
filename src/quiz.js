@@ -3,6 +3,7 @@ import { polishName } from './data/names.js';
 import { REGIONS, JOINTS } from './model.js';
 import { initExam } from './exam.js';
 import { store } from './store.js';
+import { folder } from './folders.js';
 import COND from './data/conditions.js';
 import { prefs } from './settings.js';
 
@@ -87,9 +88,9 @@ export function initQuiz(ctx) {
     panelBody.innerHTML = `<div class="acts" style="margin-top:0"><button data-act="menu">‹ Quiz</button></div><h2>Statystyki</h2>
       ${n ? `<div class="stat"><div><b>${n}</b>odpowiedzi</div><div><b>${Math.round((100 * ok) / n)}%</b>poprawnych</div><div><b>${all.length}</b>struktur</div></div>` : '<p class="en">Jeszcze nie ma odpowiedzi – zrób kilka quizów.</p>'}
       ${weakM.length ? `<div class="acts"><button class="primary" data-act="weak">Ćwicz słabe mięśnie (${Math.min(weakM.length, 20)})</button></div>` : ''}
-      ${weak.length ? `<h4>Najsłabsze (min. 3 próby, poniżej 80%)</h4><div class="list">${weak.slice(0, 25).map((x) => `<div class="it"><span>${esc(titleOf(x))}</span><small>${pctBar(x.pct)} ${x.pct}% · ${x.n} · ${Object.entries(x.q).filter(([, v]) => v.bad).map(([q]) => QNAME[q] ?? q).join(', ')}</small></div>`).join('')}</div>` : ''}
-      ${Object.keys(byQ).length ? `<h4>Wg rodzaju pytania</h4><div class="list">${rows(byQ, (q) => QNAME[q] ?? q)}</div>` : ''}
-      ${Object.keys(byReg).length ? `<h4>Wg okolicy</h4><div class="list">${rows(byReg, (r) => (r === 'nv' ? 'Nerwy' : REGIONS.find((x) => x[0] === r)?.[1] ?? r))}</div>` : ''}`;
+      ${weak.length ? `${folder('quiz:weak', 'Najsłabsze (min. 3 próby, poniżej 80%)', '', `${weak.slice(0, 25).map((x) => `<div class="it"><span>${esc(titleOf(x))}</span><small>${pctBar(x.pct)} ${x.pct}% · ${x.n} · ${Object.entries(x.q).filter(([, v]) => v.bad).map(([q]) => QNAME[q] ?? q).join(', ')}</small></div>`).join('')}`)}` : ''}
+      ${Object.keys(byQ).length ? `${folder('quiz:byq', 'Wg rodzaju pytania', '', `${rows(byQ, (q) => QNAME[q] ?? q)}`)}` : ''}
+      ${Object.keys(byReg).length ? `${folder('quiz:byreg', 'Wg okolicy', '', `${rows(byReg, (r) => (r === 'nv' ? 'Nerwy' : REGIONS.find((x) => x[0] === r)?.[1] ?? r))}`)}` : ''}`;
     panelBody.scrollTop = 0;
   }
 

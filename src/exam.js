@@ -5,6 +5,7 @@ import { JOINTS } from './model.js';
 import FT from './data/func_tests.js';
 import CT from './data/clinical_tests.js';
 import COND from './data/conditions.js';
+import { folder } from './folders.js';
 import { store } from './store.js';
 import { prefs } from './settings.js';
 
@@ -124,7 +125,7 @@ export function initExam(ctx) {
       <h4>Liczba pytań</h4><div class="seg">${[10, 20, 40, 60].map((n) => `<button data-ex-count="${n}" class="${E.count === n ? 'on' : ''}">${n}</button>`).join('')}</div>
       <p class="en" style="margin-top:8px">Czas: ${Math.round(E.count * 0.75)} min (45 s na pytanie).</p>
       <div class="acts"><button class="primary" data-ex="start">Rozpocznij egzamin</button></div>
-      ${hist.length ? `<h4>Ostatnie wyniki</h4><div class="list">${hist.map((h) => `<div class="it"><span>${esc(h.label)}</span><small>${new Date(h.date).toLocaleDateString('pl-PL')} · ${h.pct}% · ${esc(grade(h.pct))}</small></div>`).join('')}</div>` : ''}
+      ${hist.length ? `${folder('exam:hist', 'Ostatnie wyniki', '', `${hist.map((h) => `<div class="it"><span>${esc(h.label)}</span><small>${new Date(h.date).toLocaleDateString('pl-PL')} · ${h.pct}% · ${esc(grade(h.pct))}</small></div>`).join('')}`)}` : ''}
       <p class="note">Ocena jest orientacyjna (progi 60/69/77/85/93%). Pytania i dystraktory pochodzą z bazy aplikacji.</p>`;
     panelBody.scrollTop = 0;
   }
@@ -175,9 +176,9 @@ export function initExam(ctx) {
     panelBody.innerHTML = `<div class="acts" style="margin-top:0"><button data-ex="menu">‹ Egzamin</button></div>
       <h2>Wynik: ${pct}%</h2><div class="lat">${esc(R.P.pl)} · ocena orientacyjna ${esc(grade(pct))}${timeout ? ' · koniec czasu' : ''}</div>
       <div class="stat"><div><b>${ok}</b>dobrze</div><div><b>${wrong.length}</b>źle / pominięte</div><div><b>${fmt(Date.now() - R.t0)}</b>czas</div></div>
-      <h4>Wg rodzaju pytania</h4><div class="list">${rows(by((q) => q.type), (k) => TYPE_PL[k])}</div>
-      <h4>Wg okolicy</h4><div class="list">${rows(by((q) => q.reg), (k) => REG_PL[k] ?? k)}</div>
-      ${wrong.length ? `<h4>Do powtórki (${wrong.length})</h4>${wrong.map((x) => `<div class="card clin exam-wrong" data-ex-open="${x.q.kind}:${esc(x.q.key)}"><p><b>${esc(x.q.q)}</b></p>${x.a != null ? `<p>Twoja odpowiedź: ${esc(x.q.opts[x.a].t)}</p>` : '<p>Pominięte</p>'}<p>Poprawnie: <b>${esc(x.q.opts.find((o) => o.ok).t)}</b></p><p class="note">${esc(x.q.explain ?? '')} · <span class="link">otwórz →</span></p></div>`).join('')}` : '<p class="en">Bez błędów – świetnie!</p>'}
+      ${folder('exam:bytype', 'Wg rodzaju pytania', '', `${rows(by((q) => q.type), (k) => TYPE_PL[k])}`)}
+      ${folder('exam:byreg', 'Wg okolicy', '', `${rows(by((q) => q.reg), (k) => REG_PL[k] ?? k)}`)}
+      ${wrong.length ? folder('exam:wrong', 'Do powtórki', wrong.length, wrong.map((x) => `<div class="card clin exam-wrong" data-ex-open="${x.q.kind}:${esc(x.q.key)}"><p><b>${esc(x.q.q)}</b></p>${x.a != null ? `<p>Twoja odpowiedź: ${esc(x.q.opts[x.a].t)}</p>` : '<p>Pominięte</p>'}<p>Poprawnie: <b>${esc(x.q.opts.find((o) => o.ok).t)}</b></p><p class="note">${esc(x.q.explain ?? '')} · <span class="link">otwórz →</span></p></div>`).join(''), { list: false, force: true }) : '<p class="en">Bez błędów – świetnie!</p>'}
       <div class="acts"><button class="primary" data-ex="start">Jeszcze raz</button><button data-ex="menu">Zmień zakres</button></div>`;
     E.run = null; panelBody.scrollTop = 0;
   }

@@ -9,6 +9,7 @@ import { initSrs } from './srs.js';
 import { initLearn } from './learn.js';
 import { initClinic } from './clinic.js';
 import { initConditions } from './conditions.js';
+import { folder } from './folders.js';
 import { landmarkPL } from './data/landmarks.js';
 import { polishName } from './data/names.js';
 import { structDesc } from './data/struct_kb.js';
@@ -565,8 +566,9 @@ modes.motion = (() => {
   };
   function list() {
     move = null; motion.reset(); view.only = null; view.tints.clear(); applyView();
-    let h = '<h2>Ruchy w stawach</h2><p class="en">Wybierz ruch, aby zobaczyć pracę szkieletu oraz mięśnie główne, wspomagające i antagonistyczne.</p>', g = '';
-    for (const m of MOVES) { if (m.g !== g) { g = m.g; h += `<div class="grp">${g}</div><div class="list">`; } h += `<div class="it" data-move="${m.id}"><span>${esc(m.pl)}</span><small>${anim(m) ? '▶ animacja' : 'mięśnie'}</small></div>`; if (MOVES[MOVES.indexOf(m) + 1]?.g !== g) h += '</div>'; }
+    let h = '<h2>Ruchy w stawach</h2><p class="en">Wybierz ruch, aby zobaczyć pracę szkieletu oraz mięśnie główne, wspomagające i antagonistyczne.</p>';
+    const groups = [...new Set(MOVES.map((m) => m.g))];
+    for (const gr of groups) { const ms = MOVES.filter((m) => m.g === gr); h += folder(`move:${gr}`, esc(gr), ms.length, ms.map((m) => `<div class="it" data-move="${m.id}"><span>${esc(m.pl)}</span><small>${anim(m) ? '▶ animacja' : 'mięśnie'}</small></div>`).join('')); }
     panelBody.innerHTML = h; panelBody.scrollTop = 0;
   }
   async function open(id, s = side) {

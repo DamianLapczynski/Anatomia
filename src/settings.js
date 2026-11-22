@@ -2,6 +2,7 @@
 // Preferencje zapisują się w store ('settings' / 'app'), więc po zalogowaniu wracają na każdym urządzeniu.
 import { store } from './store.js';
 import { initAccount } from './account.js';
+import { folderOpen } from './folders.js';
 
 export const DEFAULTS = { theme: 'graphite', accent: 'blue', font: 'md', quality: 'std', side: 'r', speed: 1, labels: 'hover', quizToSrs: true };
 export const prefs = () => ({ ...DEFAULTS, ...(store.get('settings', 'app') ?? {}) });
@@ -77,32 +78,32 @@ export function initSettings(ctx) {
     const counts = { srs: Object.keys(store.all('srs')).length, quiz: Object.values(store.all('quiz')).reduce((a, r) => a + (r.ok ?? 0) + (r.bad ?? 0), 0), learn: Object.keys(store.all('learn')).filter((k) => !k.startsWith('exam~')).length };
     root.innerHTML = `<div class="box" role="dialog" aria-modal="true" aria-label="Ustawienia">
       <div class="head"><h3>Ustawienia</h3><button data-close aria-label="Zamknij">✕</button></div>
-      <section><h4>Konto i baza danych</h4>${acct.html()}</section>
-      <section><h4>Wygląd</h4>
+      <details class="sec setsec" data-sec="set:konto"${folderOpen('set:konto', true) ? ' open' : ''}><summary><span>Konto i baza danych</span></summary><div class="sec-body">${acct.html()}</div></details>
+      <details class="sec setsec" data-sec="set:wyglad"${folderOpen('set:wyglad', false) ? ' open' : ''}><summary><span>Wygląd</span></summary><div class="sec-body">
         <div class="opt col"><span>Styl<small>Kolory, czcionki i oświetlenie modelu 3D. „Auto” przełącza Grafit i Jasny według systemu.</small></span>
           <div class="themes">${THEMES.map(([k, n, bg, acc]) => `<button class="${p.theme === k || (p.theme === 'dark' && k === 'graphite') ? 'on' : ''}" data-set="theme" data-v="${k}" style="--sw-acc:${acc}"><b style="background:${bg}"></b>${n}</button>`).join('')}<button class="${p.theme === 'auto' ? 'on' : ''}" data-set="theme" data-v="auto" style="--sw-acc:#0a84ff"><b style="background:linear-gradient(135deg,#f2f2f7 50%,#1c1c1e 50%)"></b>Auto</button></div></div>
         ${opt('Kolor akcentu', 'W stylach Grafit i Jasny', `<div class="seg">${ACC.map(([k, c]) => `<button class="sw-col ${p.accent === k ? 'on' : ''}" style="background:${c}" data-set="accent" data-v="${k}" aria-label="${k}"></button>`).join('')}</div>`)}
         ${opt('Wielkość tekstu', '', seg('font', [['sm', 'A−'], ['md', 'A'], ['lg', 'A+'], ['xl', 'A++']], p.font))}
-      </section>
-      <section><h4>Model 3D</h4>
+      </div></details>
+      <details class="sec setsec" data-sec="set:model"${folderOpen('set:model', false) ? ' open' : ''}><summary><span>Model 3D</span></summary><div class="sec-body">
         ${opt('Jakość grafiki', 'Oszczędna – płynniej i dłużej na baterii', seg('quality', [['low', 'Oszczędna'], ['std', 'Standard'], ['high', 'Wysoka']], p.quality))}
         ${opt('Domyślna strona ciała', 'Wyszukiwarka, Nauka, Quiz (Powtórki mają własny wybór)', seg('side', [['r', 'Prawa'], ['l', 'Lewa']], p.side))}
         ${opt('Tempo animacji ruchów', '', seg('speed', [[0.6, 'Wolno'], [1, 'Normalnie'], [1.6, 'Szybko']], p.speed))}
         ${opt('Nazwy punktów kostnych', 'Na kości: zawsze widoczne czy po dotknięciu', seg('labels', [['hover', 'Po dotknięciu'], ['always', 'Zawsze']], p.labels))}
-      </section>
-      <section><h4>Nauka</h4>
+      </div></details>
+      <details class="sec setsec" data-sec="set:nauka"${folderOpen('set:nauka', false) ? ' open' : ''}><summary><span>Nauka</span></summary><div class="sec-body">
         ${opt('Nowe fiszki dziennie', 'Powtórki (SM-2)', seg('perDay', [5, 10, 15, 20, 30].map((n) => [n, n]), perDay))}
         ${opt('Błędy z quizu do powtórek', 'Źle odpowiedziany mięsień od razu wraca w Powtórkach', sw('quizToSrs', p.quizToSrs))}
-      </section>
-      <section><h4>Moje notatki (${notes.length})</h4>
+      </div></details>
+      <details class="sec setsec" data-sec="set:notatki"${folderOpen('set:notatki', false) ? ' open' : ''}><summary><span>Moje notatki (${notes.length})</span></summary><div class="sec-body">
         ${notes.length ? `<div class="list">${notes.map(([id, n]) => `<div class="it col" data-note-open="${esc(id)}"><span>${esc(n.title ?? id)}</span><small>${esc(n.text.length > 140 ? `${n.text.slice(0, 140)}…` : n.text)}</small></div>`).join('')}</div>` : '<p class="en">Notatkę dodasz na karcie mięśnia, nerwu, stawu, kości lub kompleksu („Moja notatka”). Zapisuje się sama i synchronizuje z kontem.</p>'}
-      </section>
-      <section><h4>Dane</h4>
+      </div></details>
+      <details class="sec setsec" data-sec="set:dane"${folderOpen('set:dane', false) ? ' open' : ''}><summary><span>Dane</span></summary><div class="sec-body">
         <p class="en">W tej przeglądarce: ${counts.srs} fiszek w nauce, ${counts.quiz} odpowiedzi w quizach, ${counts.learn} sektorów w Nauce, ${notes.length} notatek.</p>
         <div class="acts"><button data-do="export">Eksport całego postępu</button><button data-do="import">Import</button></div>
         <div class="acts"><button data-do="update">Pobierz najnowszą wersję aplikacji</button><button data-do="wipe">Wyczyść dane w tej przeglądarce</button></div>
-      </section>
-      <section class="about"><h4>O aplikacji</h4>
+      </div></details>
+      <details class="sec setsec about" data-sec="set:about"${folderOpen('set:about', false) ? ' open' : ''}><summary><span>O aplikacji</span></summary><div class="sec-body">
         <p><b>Anatomia 3D</b> – atlas do nauki fizjoterapii. Wersja z ${esc(new Date(__BUILD__).toLocaleDateString('pl-PL'))}.</p>
         <p>Modele 3D: Z-Anatomy i BodyParts3D (CC BY-SA). Opisy pisane do nauki – nie przeszły recenzji anatoma, weryfikuj z podręcznikiem.</p>
         <details class="sources"><summary>Źródła treści</summary><ul>
@@ -116,7 +117,7 @@ export function initSettings(ctx) {
           <li>Opisy angielskie struktur: Wikipedia (CC BY-SA) za pośrednictwem Z-Anatomy.</li>
         </ul></details>
         <div class="acts"><button data-do="keys">Skróty klawiszowe</button></div>
-      </section></div>`;
+      </div></details></div>`;
   }
 
   const open = () => { render(); root.hidden = false; root.querySelector('[data-close]')?.focus(); };

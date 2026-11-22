@@ -6,6 +6,7 @@ import CT, { CT_GROUPS } from './data/clinical_tests.js';
 import { createProps } from './props.js';
 import { testProps } from './poses.js';
 import { prefs } from './settings.js';
+import { folder } from './folders.js';
 
 const HI = '#ff7a45'; // mięśnie pracujące w bieżącej fazie
 // kierunek kamery dla animacji (domyślnie z boku): [x, y, z] w układzie sylwetki (przód = +z, prawa strona = −x)
@@ -37,10 +38,12 @@ export function initFuncTests(ctx) {
     const item = ([k, t]) => `<div class="it col" data-ft-open="${k}"><span>${esc(t.pl)}</span><small>${esc(t.skrot)} · ${esc(t.cel.length > 90 ? `${t.cel.slice(0, 90)}…` : t.cel)}</small></div>`;
     let h = `<div class="acts" style="margin-top:0"><button data-ft="back">‹ Klinika</button></div><h2>Testy funkcjonalne</h2>
       <p class="en">Każdy test: jak go wykonać, jak ocenić i – w animacji – dlaczego działa: fazy ruchu, siła badającego, pracujące mięśnie, miejsce bólu i wynik dodatni.</p>
-      <h3 class="ft-sec">Testy z zajęć</h3><p class="note">Wynik pojedynczego testu nie stanowi samodzielnego rozpoznania – interpretuj go łącznie z wywiadem, badaniem funkcjonalnym, porównaniem ze stroną przeciwną i innymi testami.</p>`;
-    for (const [g, name, also] of CT_GROUPS) h += `<h4>${name}</h4><div class="list">${[...Object.entries(CT).filter(([, t]) => t.grp === g), ...also.filter((k) => FT[k]).map((k) => [k, FT[k]])].map(item).join('')}</div>`;
-    h += '<h3 class="ft-sec">Równowaga, wydolność i sport</h3>';
-    for (const [g, name] of FT_GROUPS) h += `<h4>${name}</h4><div class="list">${Object.entries(FT).filter(([, t]) => t.grp === g).map(item).join('')}</div>`;
+`;
+    const ctItems = (g, also) => [...Object.entries(CT).filter(([, t]) => t.grp === g), ...also.filter((k) => FT[k]).map((k) => [k, FT[k]])];
+    const ctBody = '<p class="note">Wynik pojedynczego testu nie stanowi samodzielnego rozpoznania – interpretuj go łącznie z wywiadem, badaniem funkcjonalnym, porównaniem ze stroną przeciwną i innymi testami.</p>'
+      + CT_GROUPS.map(([g, name, also]) => { const it = ctItems(g, also); return folder(`ft:ct:${g}`, name, it.length, it.map(item).join('')); }).join('');
+    h += folder('ft:ct', 'Testy z zajęć', CT_GROUPS.reduce((a, [g, , also]) => a + ctItems(g, also).length, 0), ctBody, { list: false, open: true });
+    h += folder('ft:ft', 'Równowaga, wydolność i sport', Object.keys(FT).length, FT_GROUPS.map(([g, name]) => { const it = Object.entries(FT).filter(([, t]) => t.grp === g); return folder(`ft:ft:${g}`, name, it.length, it.map(item).join('')); }).join(''), { list: false, open: true });
     panelBody.innerHTML = h; panelBody.scrollTop = 0;
     view.only = null; view.tints.clear(); view.iso = null; applyView(); ctx.home();
   }

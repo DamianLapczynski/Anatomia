@@ -9,6 +9,7 @@ import { createProps } from './props.js';
 import { testProps } from './poses.js';
 import { prefs } from './settings.js';
 import { store } from './store.js';
+import { folder } from './folders.js';
 
 const C = { bad: '#e5484d', inv: '#f5a524', nerve: '#f5cc33', joint: '#ff6b9a', bone: '#ff8a7a', cns: '#e5484d' };
 const TESTS = { ...FT, ...CT };
@@ -62,7 +63,8 @@ export function initConditions(ctx) {
     for (const [g, name] of COND_GROUPS) {
       const items = KEYS.filter((k) => COND[k].grp === g && match(k, COND[k]));
       if (!items.length) continue;
-      h += `<h4>${name}</h4><div class="list">${items.map((k) => { const c = COND[k]; return `<div class="it col" data-cond-open="${k}"><span>${prog(k).done ? '<b class="prog">✔</b> ' : ''}${esc(c.pl)}</span><small>${esc(c.lat)}</small></div>`; }).join('')}</div>`;
+      const done = items.filter((k) => prog(k).done).length;
+      h += folder(`cond:${g}`, name, `${done ? `✔ ${done}/` : ''}${items.length}`, items.map((k) => { const c = COND[k]; return `<div class="it col" data-cond-open="${k}"><span>${prog(k).done ? '<b class="prog">✔</b> ' : ''}${esc(c.pl)}</span><small>${esc(c.lat)}</small></div>`; }).join(''), { force: !!q });
     }
     el.innerHTML = h || '<p class="note">Brak schorzeń pasujących do filtra.</p>';
   }
@@ -215,7 +217,7 @@ export function initConditions(ctx) {
     S.screen = 'quizEnd';
     panelBody.innerHTML = `<div class="acts" style="margin-top:0"><button data-cd="home">‹ Schorzenia</button></div><h2>Wynik: ${pct}%</h2>
       <p class="en">${Q.ok} z ${Q.qs.length} poprawnie.</p>
-      ${wrong.length ? `<h4>Do powtórki</h4><div class="list">${wrong.map((q) => `<div class="it col" data-cd-card="${q.key}"><span>${esc(COND[q.key].pl)}</span><small>${esc(q.q.slice(0, 110))}${q.q.length > 110 ? '…' : ''}</small></div>`).join('')}</div>` : '<p class="cond-ok">Bez błędów – świetnie!</p>'}
+      ${wrong.length ? folder('cond:quizwrong', 'Do powtórki', wrong.length, wrong.map((q) => `<div class="it col" data-cd-card="${q.key}"><span>${esc(COND[q.key].pl)}</span><small>${esc(q.q.slice(0, 110))}${q.q.length > 110 ? '…' : ''}</small></div>`).join(''), { force: true }) : '<p class="cond-ok">Bez błędów – świetnie!</p>'}
       <div class="acts"><button class="primary" data-cd-scope="${Q.scope}">Jeszcze raz</button><button data-cd="quiz">Zmień zakres</button></div>`;
     panelBody.scrollTop = 0;
   }
@@ -225,7 +227,7 @@ export function initConditions(ctx) {
     stop(); S.screen = 'cases';
     panelBody.innerHTML = `<div class="acts" style="margin-top:0"><button data-cd="home">‹ Schorzenia</button></div><h2>Przypadki kliniczne</h2>
       <p class="en">Pacjent, wywiad i wyniki badania → rozpoznanie → kolejne pytanie kliniczne (test, postępowanie, czerwona flaga). Przypadki są fikcyjne, dydaktyczne.</p>
-      <div class="list">${CASES.map((c) => `<div class="it col" data-case-open="${c.id}"><span>${solved(c.id) ? '<b class="prog">✔</b> ' : ''}${esc(c.title)}</span><small>${esc(c.pacjent)}</small></div>`).join('')}</div>`;
+      ${COND_GROUPS.map(([g, name]) => { const cs = CASES.filter((c) => COND[c.cond]?.grp === g); if (!cs.length) return ''; const dn = cs.filter((c) => solved(c.id)).length; return folder(`cases:${g}`, name, `${dn ? `✔ ${dn}/` : ''}${cs.length}`, cs.map((c) => `<div class="it col" data-case-open="${c.id}"><span>${solved(c.id) ? '<b class="prog">✔</b> ' : ''}${esc(c.title)}</span><small>${esc(c.pacjent)}</small></div>`).join(''), { open: true }); }).join('')}`;
     panelBody.scrollTop = 0; view.only = null; view.tints.clear(); applyView();
   }
   function caseOpen(id) {

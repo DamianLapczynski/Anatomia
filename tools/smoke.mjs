@@ -46,10 +46,17 @@ const search = (text) => async (p) => {
 // element może leżeć w zwiniętej sekcji (Nauka) – rozwijamy ją jak użytkownik, potem klikamy
 const clickText = (sel, text) => async (p) => {
   const l = p.locator(sel, { hasText: text }).first();
-  await l.evaluate((el) => { const d = el.closest('details'); if (d && !d.open) d.open = true; });
+  await l.evaluate((el) => { for (let d = el.closest('details'); d; d = d.parentElement?.closest('details')) if (!d.open) d.open = true; });
   await l.click();
 };
 
+// kliknięcie elementu, który może leżeć w zwiniętym folderze (details.sec) – najpierw rozwijamy foldery nad nim
+const tap = async (p, sel, opt) => {
+  const l = p.locator(sel).first();
+  await l.waitFor({ state: 'attached', timeout: opt?.timeout ?? 30000 });
+  await l.evaluate((el) => { for (let d = el.closest('details'); d; d = d.parentElement?.closest('details')) if (!d.open) d.open = true; });
+  await l.click(opt);
+};
 const common = [
   ['atlas', mode('atlas')],
   ['szukaj-miesien', search('naramienny')],
@@ -76,38 +83,44 @@ const common = [
   ['nauka-staw', clickText('#panelBody .it', 'Staw ramienny')],
   ['nauka-wroc', mode('learn')],
   ['nauka-nerw', clickText('#panelBody .it', 'pośladkowy dolny')],
-  ['nauka-kompleks', async (p) => { await mode('learn')(p); await p.click('#panelBody [data-act=home]').catch(() => {}); await clickText('#panelBody .it', 'Gęsia stopa')(p); }],
-  ['nauka-stozek', async (p) => { await p.click('#panelBody [data-act=home]').catch(() => {}); await clickText('#panelBody .it', 'Stożek rotatorów')(p); }],
-  ['nauka-kanal', async (p) => { await p.click('#panelBody [data-act=home]').catch(() => {}); await clickText('#panelBody .it', 'Kanał nadgarstka')(p); }],
+  ['nauka-kompleks', async (p) => { await mode('learn')(p); await tap(p, '#panelBody [data-act=home]').catch(() => {}); await clickText('#panelBody .it', 'Gęsia stopa')(p); }],
+  ['nauka-stozek', async (p) => { await tap(p, '#panelBody [data-act=home]').catch(() => {}); await clickText('#panelBody .it', 'Stożek rotatorów')(p); }],
+  ['nauka-kanal', async (p) => { await tap(p, '#panelBody [data-act=home]').catch(() => {}); await clickText('#panelBody .it', 'Kanał nadgarstka')(p); }],
   ['szukaj-kompleks', search('trójkąt udowy')],
   ['ruch', mode('motion')],
   ['klinika', mode('clinic')],
   ['klinika-nerw', clickText('#panelBody .it', 'Nerw promieniowy')],
-  ['klinika-korzen', async (p) => { await p.click('#panelBody [data-act=home]'); await p.click('#panelBody [data-root=L5]'); }],
-  ['klinika-badanie', async (p) => { await p.click('#panelBody [data-act=home]'); await p.click('#panelBody [data-act=exam]'); }],
-  ['ft-lista', async (p) => { await p.click('#panelBody [data-act=home]'); await p.click('#panelBody [data-act=ft]'); }],
-  ['ft-sts', async (p) => { await p.click('#panelBody [data-ft-open=cst30]'); await p.waitForTimeout(2500); }],
-  ['ft-com', async (p) => { await p.click('#panelBody [data-ft=com]'); await p.waitForTimeout(1500); }],
-  ['ft-blad', async (p) => { await p.click('#panelBody [data-ft=err]'); await p.waitForTimeout(2500); }],
-  ['ft-sorensen', async (p) => { await p.click('#panelBody [data-ft=list]'); await p.click('#panelBody [data-ft-open=sorensen]'); await p.waitForTimeout(2500); }],
-  ['ft-kliniczny', async (p) => { await p.click('#panelBody [data-ft=list]'); await p.click('#panelBody [data-ft-open=lachman]'); await p.waitForTimeout(2000); }],
-  ['ft-kliniczny-dodatni', async (p) => { await p.click('#panelBody [data-ft=err]'); await p.waitForTimeout(2000); }],
-  ['ft-slump', async (p) => { await p.click('#panelBody [data-ft=list]'); await p.click('#panelBody [data-ft-open=slump]'); await p.waitForTimeout(2500); }],
+  ['klinika-korzen', async (p) => { await tap(p, '#panelBody [data-act=home]'); await tap(p, '#panelBody [data-root=L5]'); }],
+  ['klinika-badanie', async (p) => { await tap(p, '#panelBody [data-act=home]'); await tap(p, '#panelBody [data-act=exam]'); }],
+  ['ft-lista', async (p) => { await tap(p, '#panelBody [data-act=home]'); await tap(p, '#panelBody [data-act=ft]'); }],
+  ['ft-sts', async (p) => { await tap(p, '#panelBody [data-ft-open=cst30]'); await p.waitForTimeout(2500); }],
+  ['ft-com', async (p) => { await tap(p, '#panelBody [data-ft=com]'); await p.waitForTimeout(1500); }],
+  ['ft-blad', async (p) => { await tap(p, '#panelBody [data-ft=err]'); await p.waitForTimeout(2500); }],
+  ['ft-sorensen', async (p) => { await tap(p, '#panelBody [data-ft=list]'); await tap(p, '#panelBody [data-ft-open=sorensen]'); await p.waitForTimeout(2500); }],
+  ['ft-kliniczny', async (p) => { await tap(p, '#panelBody [data-ft=list]'); await tap(p, '#panelBody [data-ft-open=lachman]'); await p.waitForTimeout(2000); }],
+  ['ft-kliniczny-dodatni', async (p) => { await tap(p, '#panelBody [data-ft=err]'); await p.waitForTimeout(2000); }],
+  ['ft-slump', async (p) => { await tap(p, '#panelBody [data-ft=list]'); await tap(p, '#panelBody [data-ft-open=slump]'); await p.waitForTimeout(2500); }],
   ['ft-szukaj', search('Timed Up and Go')],
   ['ft-szukaj-kliniczny', search('McMurray')],
-  ['klinika-quiz', async (p) => { await mode('clinic')(p); await p.click('#panelBody [data-ft=list]', { timeout: 15000 }); await p.click('#panelBody [data-ft=back]', { timeout: 15000 }); await p.click('#panelBody [data-act=quiz]'); }],
-  ['klinika-odp', async (p) => { await p.click('#panelBody [data-opt="0"]'); }],
+  ['klinika-quiz', async (p) => { await mode('clinic')(p); await tap(p, '#panelBody [data-ft=list]', { timeout: 15000 }); await tap(p, '#panelBody [data-ft=back]', { timeout: 15000 }); await tap(p, '#panelBody [data-act=quiz]'); }],
+  ['klinika-odp', async (p) => { await tap(p, '#panelBody [data-opt="0"]'); }],
   ['schorzenia', async (p) => { await mode('atlas')(p); await mode('cond')(p); }],
-  ['sch-karta', async (p) => { await p.click('#panelBody [data-cond-open=epi_lat]'); await p.waitForTimeout(2500); }],
-  ['sch-udar', async (p) => { await p.click('#panelBody [data-cd=back]'); await p.fill('#condq', 'udar'); await p.click('#panelBody [data-cond-open=stroke]'); await p.waitForTimeout(3000); }],
-  ['sch-nerw', async (p) => { await p.click('#panelBody [data-cd=back]'); await p.fill('#condq', ''); await p.click('#panelBody [data-cond-open=peroneal_palsy]'); await p.waitForTimeout(2500); }],
-  ['sch-quiz', async (p) => { await p.click('#panelBody [data-cd=back]'); await p.click('#panelBody [data-cd=quiz]'); await p.click('#panelBody [data-cd-scope=all]'); await p.click('#panelBody [data-cd-opt="0"]'); }],
-  ['sch-przypadek', async (p) => { await p.click('#panelBody [data-cd=home]'); await p.click('#panelBody [data-cd=cases]'); await p.click('#panelBody [data-case-open=c1]'); await p.click('#panelBody [data-case-a1="0"]'); await p.click('#panelBody [data-case-a2="1"]'); }],
+  ['sch-folder', async (p) => {
+    await p.click('#panelBody details[data-sec="cond:kd"] > summary'); await p.waitForTimeout(300);
+    await p.reload(); await p.waitForSelector('#loading', { state: 'hidden', timeout: 120000 }); await mode('cond')(p);
+    if (!(await p.locator('#panelBody details[data-sec="cond:kd"]').evaluate((d) => d.open))) throw new Error('folder nie zapamiętał rozwinięcia');
+    await p.click('#panelBody details[data-sec="cond:kd"] > summary');
+  }],
+  ['sch-karta', async (p) => { await tap(p, '#panelBody [data-cond-open=epi_lat]'); await p.waitForTimeout(2500); }],
+  ['sch-udar', async (p) => { await tap(p, '#panelBody [data-cd=back]'); await p.fill('#condq', 'udar'); await tap(p, '#panelBody [data-cond-open=stroke]'); await p.waitForTimeout(3000); }],
+  ['sch-nerw', async (p) => { await tap(p, '#panelBody [data-cd=back]'); await p.fill('#condq', ''); await tap(p, '#panelBody [data-cond-open=peroneal_palsy]'); await p.waitForTimeout(2500); }],
+  ['sch-quiz', async (p) => { await tap(p, '#panelBody [data-cd=back]'); await tap(p, '#panelBody [data-cd=quiz]'); await tap(p, '#panelBody [data-cd-scope=all]'); await tap(p, '#panelBody [data-cd-opt="0"]'); }],
+  ['sch-przypadek', async (p) => { await tap(p, '#panelBody [data-cd=home]'); await tap(p, '#panelBody [data-cd=cases]'); await tap(p, '#panelBody [data-case-open=c1]'); await tap(p, '#panelBody [data-case-a1="0"]'); await tap(p, '#panelBody [data-case-a2="1"]'); }],
   ['sch-szukaj', search('łokieć tenisisty')],
   ['quiz', mode('quiz')],
-  ['egzamin', async (p) => { await mode('quiz')(p); await p.click('#panelBody [data-act=exam]'); await p.click('#panelBody [data-ex-preset=kd]'); await p.click('#panelBody [data-ex-count="10"]'); await p.click('#panelBody [data-ex=start]'); }],
-  ['egzamin-pytania', async (p) => { for (let i = 0; i < 10; i++) { await p.click('#panelBody [data-exopt="0"]'); await p.waitForTimeout(150); } }],
-  ['egzamin-testy', async (p) => { await mode('atlas')(p); await mode('quiz')(p); await p.click('#panelBody [data-act=exam]'); await p.click('#panelBody [data-ex-preset=func]'); await p.click('#panelBody [data-ex-count="10"]'); await p.click('#panelBody [data-ex=start]'); for (let i = 0; i < 10; i++) { await p.click('#panelBody [data-exopt="0"]', { timeout: 5000 }); await p.waitForTimeout(150); } }],
+  ['egzamin', async (p) => { await mode('quiz')(p); await tap(p, '#panelBody [data-act=exam]'); await tap(p, '#panelBody [data-ex-preset=kd]'); await tap(p, '#panelBody [data-ex-count="10"]'); await tap(p, '#panelBody [data-ex=start]'); }],
+  ['egzamin-pytania', async (p) => { for (let i = 0; i < 10; i++) { await tap(p, '#panelBody [data-exopt="0"]'); await p.waitForTimeout(150); } }],
+  ['egzamin-testy', async (p) => { await mode('atlas')(p); await mode('quiz')(p); await tap(p, '#panelBody [data-act=exam]'); await tap(p, '#panelBody [data-ex-preset=func]'); await tap(p, '#panelBody [data-ex-count="10"]'); await tap(p, '#panelBody [data-ex=start]'); for (let i = 0; i < 10; i++) { await tap(p, '#panelBody [data-exopt="0"]', { timeout: 5000 }); await p.waitForTimeout(150); } }],
   ['powtorki', mode('srs')],
 ];
 // SMOKE_ONLY=regex – tylko wybrane kroki (szybkie sprawdzenie jednego obszaru)

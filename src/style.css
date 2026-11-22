@@ -576,3 +576,12 @@ html.iosgap #settings{position:absolute}
 .list .it.ok{box-shadow:inset 3px 0 0 var(--ok,#3ecf8e);background:color-mix(in srgb,var(--ok,#3ecf8e) 14%,transparent)}
 .list .it.bad{box-shadow:inset 3px 0 0 var(--bad,#e5484d);background:color-mix(in srgb,var(--bad,#e5484d) 14%,transparent)}
 @media (min-width:821px) and (max-width:1100px){#modes button{padding:6px 9px;font-size:13.5px}}
+/* foldery: treść inna niż lista, foldery zagnieżdżone, sekcje Ustawień */
+details.sec>.sec-body{padding:0 10px 10px}
+details.sec>.sec-body>.chips{margin-top:2px}
+details.sec .sec-body>details.sec{background:var(--fill);margin:8px 0 0}
+details.sec .sec-body>details.sec>summary{padding:10px 12px;font-size:14px}
+details.sec .sec-body>.note:first-child{margin:0 4px 4px}
+#settings details.setsec{margin:14px 14px 0;background:var(--bg2);border:1px solid var(--line)}
+#settings details.setsec>summary{font-size:11.5px;letter-spacing:.9px;text-transform:uppercase;color:var(--acc)}
+#settings details.setsec>.sec-body{padding:0 14px 12px}
